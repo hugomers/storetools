@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             $controller = new BackupsController();
             $controller->backupsnigth();
-        })->everySixHour()->between('7:00','22:00');//Respaldo completo entre las 7 a las 10 cada 6 horas
+        })->everySixHours()->between('7:00','22:00');//Respaldo completo entre las 7 a las 10 cada 6 horas
 
         $schedule->call(function () {
             $controller = new BackupsController();
