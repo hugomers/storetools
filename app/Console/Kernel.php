@@ -20,32 +20,32 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // envir las asistencias cada min de 9 a 10
-        $schedule->call([ZktecoController::class,'replyAssist'])->everyfiveMinutes()->between('9:00','11:00')->name("Replica Asistencias de 8 a 10");//cada 5 min de 8 a 10 de la manana
-        $schedule->call([ZktecoController::class,'replyAssist'])->hourly()->between('11:00', '22:00')->name("Replica asistencias de 10 a 9");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
+        $schedule->call([ZktecoController::class,'replyAssist'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
+        $schedule->call([ZktecoController::class,'replyAssist'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
         $schedule->call(function () {
             $controller = new accessController();
             $controller->OpeningBox();
-        })->dailyAt('8:00')->name("Realiza la apertura de Cajas");//apertura de cajas a las 7:00 de la manana
+        })->dailyAt('7:00')->name("Apertura de caja");//apertura de cajas a las 7:00 de la manana
 
         $schedule->call(function () {
             $controller = new BackupsController();
             $controller->backupsnigth();
-        })->everySixHours()->between('7:00','22:00')->name("Realiza respaldos cada 6 horas Nube");//Respaldo completo entre las 7 a las 10 cada 6 horas
+        })->everySixHours()->between('7:00','22:00')->name("Respaldos Nube");//Respaldo completo entre las 7 a las 10 cada 6 horas
 
         $schedule->call(function () {
             $controller = new BackupsController();
             $controller->Backups();
-        })->everyTwoHours()->between('10:00', '22:00')->name("Se genera respaldo cada 2 horas en local");//Respaldo solo de el ejercico actual
+        })->everyTwoHours()->between('10:00', '22:00')->name("Respaldo Local");//Respaldo solo de el ejercico actual
 
         $schedule->call(function () {
             $controller = new accessController();
             $controller->regeneration();
-        })->dailyAt('4:00')->name("Realiza la regeneracion de stock de la sucursal");//Regeneracion de stock a las 3 de la manana
+        })->dailyAt('4:00')->name("Regeneracion de Stock");//Regeneracion de stock a las 3 de la manana
 
         $schedule->call(function () {
             $controller = new accessController();
             $controller->Withdrawals();
-        })->everyTenMinutes()->between('8:00','9:00')->name('Envia mensaje sobre exedente efe');//Retiradas de sucursal
+        })->everyTenMinutes()->between('8:00','9:00')->name("Revisa EFE");//Retiradas de sucursal
     }
 
     /**
