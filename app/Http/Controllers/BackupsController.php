@@ -13,9 +13,10 @@ class BackupsController extends Controller
 
     public function backupsnigth(){
         $sucursal = env('STORE');
+        $store = env('SUCURSAL');
         $pathcomplete = env('RESPALDOCOMPLETO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RES'.$sucursal.'_'.$datetime.'.rar';
+        $filename = 'RES'.$store.'_'.$datetime.'.rar';
         $archivosCopiados = [];
         $archivosNoCopiados =[];
 
@@ -134,10 +135,11 @@ class BackupsController extends Controller
     }
 
     public function Backups(){
+        $store = env('SUCURSAL');
         $sucursal = env('STORE');
         $respaldodiario = env('RESPALDODIARIO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RES'.$sucursal.'_'.$datetime.'.rar';
+        $filename = 'RES'.$store.'_'.$datetime.'.rar';
         $copiados = [];
         $nocopiados = [];
         $year = date('Y');
