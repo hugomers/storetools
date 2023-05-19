@@ -15,7 +15,7 @@ class BackupsController extends Controller
         $sucursal = env('STORE');
         $pathcomplete = env('RESPALDOCOMPLETO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RESCR1_'.$datetime.'.rar';
+        $filename = 'RES'.$sucursal.'_'.$datetime.'.rar';
         $archivosCopiados = [];
         $archivosNoCopiados =[];
 
@@ -137,7 +137,7 @@ class BackupsController extends Controller
         $sucursal = env('STORE');
         $respaldodiario = env('RESPALDODIARIO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RESCR1_'.$datetime.'.rar';
+        $filename = 'RES'.$sucursal.'_'.$datetime.'.rar';
         $copiados = [];
         $nocopiados = [];
         $year = date('Y');
