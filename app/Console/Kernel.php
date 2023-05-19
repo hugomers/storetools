@@ -23,14 +23,11 @@ class Kernel extends ConsoleKernel
         $schedule->call([ZktecoController::class,'replyAssist'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
         $schedule->call([ZktecoController::class,'replyAssist'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
         if(env('STORE') == 1){
-        $schedule->call([ZktecoController::class,'replyAssisttexc'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
-        $schedule->call([ZktecoController::class,'replyAssisttexc'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
+            $schedule->call([ZktecoController::class,'replyAssisttexc'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
+            $schedule->call([ZktecoController::class,'replyAssisttexc'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
         }
 
-        $schedule->call(function () {
-            $controller = new accessController();
-            $controller->OpeningBox();
-        })->dailyAt('7:00')->name("Apertura de caja");//apertura de cajas a las 7:00 de la manana
+
 
         $schedule->call(function () {
             $controller = new BackupsController();
@@ -47,10 +44,17 @@ class Kernel extends ConsoleKernel
             $controller->regeneration();
         })->dailyAt('4:00')->name("Regeneracion de Stock");//Regeneracion de stock a las 3 de la manana
 
-        $schedule->call(function () {
-            $controller = new accessController();
-            $controller->Withdrawals();
-        })->everyTenMinutes()->between('8:00','9:00')->name("Revisa EFE");//Retiradas de sucursal
+        if(env('STORE') > 2){
+            $schedule->call(function () {
+                $controller = new accessController();
+                $controller->OpeningBox();
+            })->dailyAt('7:00')->name("Apertura de caja");//apertura de cajas a las 7:00 de la manana
+
+            $schedule->call(function () {
+                $controller = new accessController();
+                $controller->Withdrawals();
+            })->everyTenMinutes()->between('8:00','9:00')->name("Revisa EFE");//Retiradas de sucursal
+        }
     }
 
     /**
