@@ -44,7 +44,7 @@ class Kernel extends ConsoleKernel
             $controller->regeneration();
         })->dailyAt('4:00')->name("Regeneracion de Stock");//Regeneracion de stock a las 3 de la manana
 
-        if(env('STORE') > 2){
+        if(env('STORE') > 1){
             $schedule->call(function () {
                 $controller = new accessController();
                 $controller->OpeningBox();
