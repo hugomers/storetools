@@ -39,10 +39,10 @@ class Kernel extends ConsoleKernel
             $controller->Backups();
         })->everyTwoHours()->between('10:00', '22:00')->name("Respaldo Local");//Respaldo solo de el ejercico actual
 
-        $schedule->call(function () {
-            $controller = new accessController();
-            $controller->regeneration();
-        })->dailyAt('4:00')->name("Regeneracion de Stock");//Regeneracion de stock a las 3 de la manana
+        // $schedule->call(function () {
+        //     $controller = new accessController();
+        //     $controller->regeneration();
+        // })->dailyAt('4:00')->name("Regeneracion de Stock");//Regeneracion de stock a las 3 de la manana
 
         if(env('STORE') > 1){
             $schedule->call(function () {
