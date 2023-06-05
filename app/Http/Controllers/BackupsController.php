@@ -47,7 +47,7 @@ class BackupsController extends Controller
                 "goal"=>$archivosCopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = realpath('C:\DATOS');
+            $comprimir = realpath('C:/DATOS/');
 
             // // Ruta donde se guardara el archivo
             $guardar = $pathcomplete.$filename;//aqui entra el de google para
