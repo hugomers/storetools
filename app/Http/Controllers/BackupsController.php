@@ -139,7 +139,7 @@ class BackupsController extends Controller
         $sucursal = env('STORE');
         $respaldodiario = env('RESPALDODIARIO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RES'.$store.'_'.$datetime.'.rar';
+        $filename = 'RES'.$store.'_'.$datetime.'.zip';
         $copiados = [];
         $nocopiados = [];
         $year = date('Y');
