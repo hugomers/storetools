@@ -16,11 +16,11 @@ class BackupsController extends Controller
         $store = env('SUCURSAL');
         $pathcomplete = env('RESPALDOCOMPLETO');
         $datetime = date('Y-m-d_his');
-        $filename = 'RES'.$store.'_'.$datetime.'.rar';
+        $filename = 'RES'.$store.'_'.$datetime.'.zip';
         $archivosCopiados = [];
         $archivosNoCopiados =[];
 
-        if($sucursal == 1){
+        if($sucursal === 1){
 
             $archivos = [
                 'C:\Software DELSOL\FACTUSOL\Datos\Datos generales'=>'C:\DATOS\General\FS',
@@ -47,7 +47,7 @@ class BackupsController extends Controller
                 "goal"=>$archivosCopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = 'C:\DATOS';
+            $comprimir = realpath('C:\DATOS');
 
             // // Ruta donde se guardara el archivo
             $guardar = $pathcomplete.$filename;//aqui entra el de google para
@@ -168,7 +168,7 @@ class BackupsController extends Controller
                 "no_copiados"=>$nocopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = 'C:\RESEJERCICIO';
+            $comprimir = realpath('C:\RESEJERCICIO');
 
             // // Ruta donde se guardara el archivo
             $guardar = $respaldodiario.$filename;//AQUI ENTRA GOOGLE EN ESTE CASO RESPALDO DIARIO CADA 3 HORAS
