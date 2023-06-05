@@ -20,7 +20,7 @@ class BackupsController extends Controller
         $archivosCopiados = [];
         $archivosNoCopiados =[];
 
-        if($sucursal === 1){
+        if($sucursal == 1){
 
             $archivos = [
                 'C:\Software DELSOL\FACTUSOL\Datos\Datos generales'=>'C:\DATOS\General\FS',
@@ -76,9 +76,6 @@ class BackupsController extends Controller
                 return response()->json("respaldo generado");
             } else {
                 $zip->close();
-if ($zip->getStatusString() !== 'No error') {
-    return response()->json('Error al crear el archivo ZIP: ' . $zip->getStatusString());
-}
                 return response()->json('No se pudo crear el archivo RAR.');
             }
         }else {
