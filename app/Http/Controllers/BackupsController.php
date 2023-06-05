@@ -47,7 +47,7 @@ class BackupsController extends Controller
                 "goal"=>$archivosCopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = realpath('C:/DATOS');
+            $comprimir = 'C:/DATOS';
 
             // // Ruta donde se guardara el archivo
             $guardar = $pathcomplete.$filename;//aqui entra el de google para
@@ -169,7 +169,7 @@ class BackupsController extends Controller
                 "no_copiados"=>$nocopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = realpath('C:\RESEJERCICIO');
+            $comprimir = 'C:\RESEJERCICIO';
 
             // // Ruta donde se guardara el archivo
             $guardar = $respaldodiario.$filename;//AQUI ENTRA GOOGLE EN ESTE CASO RESPALDO DIARIO CADA 3 HORAS
