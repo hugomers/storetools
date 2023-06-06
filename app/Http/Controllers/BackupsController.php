@@ -75,7 +75,6 @@ class BackupsController extends Controller
 
                 return response()->json("respaldo generado");
             } else {
-                $zip->close();
                 return response()->json('No se pudo crear el archivo RAR.');
             }
         }else {
