@@ -54,9 +54,7 @@ class BackupsController extends Controller
 
             // // Crea una instancia de ZipArchive
             $zip = new ZipArchive();
-            if ($zip->open($guardar, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-                return response()->json('No se pudo abrir el archivo ZIP.');
-            }
+
             // Abre el archivo ZIP en modo escritura
             if ($zip->open($guardar, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
 
