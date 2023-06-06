@@ -76,9 +76,6 @@ class BackupsController extends Controller
                 return response()->json("respaldo generado");
             } else {
 
-                if ($zip->getStatusString() !== 'No error') {
-                    return response()->json('Error al crear el archivo ZIP: ' . $zip->getStatusString());
-                }
                 return response()->json('No se pudo crear el archivo RAR.');
             }
         }else {
