@@ -112,7 +112,7 @@ class StateController extends Controller
             $invoices = $exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($invoices as $invoice){
                 $ptick [] = "'".$invoice['ticket']."'";
-                $ticket[] = [
+                $ticket = [
                     "client_name"=>utf8_encode($invoice['cliente']),
                     "created_at"=>$invoice['created_at'],
                     "update_at"=>$invoice['update_at'],
