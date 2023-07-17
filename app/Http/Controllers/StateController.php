@@ -88,11 +88,11 @@ class StateController extends Controller
             $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($payfac as $pay){
                 $salep = DB::table('sales')->where('ticket',$pay['TICKET'])->where('_store',$store)->value('id');
-                $pag = $pay['PAGO'] == null ? "EFECTIVO (CEDIS)" : $pay['PAGO'];
+                $pag = $pay['PAGO'] == null ? "EFECTIVO (CEDIS)" : utf8_encode($pay['PAGO']);
                 $pays = [
                     "_sale"=>$salep,
                     "import"=>$pay['IMPORTE'],
-                    "way_to_pay"=>$pag,
+                    "way_to_pay"=>utf8_encode($pag),
                     "id_mul"=>$pay['IDPAG']
                 ];
                 $insert = DB::table('sales_payment')->insert($pays);
@@ -128,7 +128,8 @@ class StateController extends Controller
             CANLFA AS CANTIDAD,
             PRELFA AS PRECIO,
             TOTLFA AS TOTAL,
-            COSLFA AS COSTO";
+            COSLFA AS COSTO
+            FROM F_LFA";
             $exec = $this->conn->prepare($prday);
             $exec -> execute();
             $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
@@ -158,17 +159,17 @@ class StateController extends Controller
             $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($payfac as $pay){
                 $salep = DB::table('sales')->where('ticket',$pay['TICKET'])->where('_store',$store)->value('id');
-                $pag = $pay['PAGO'] == null ? "CONTADO EFECTIVO" : $pay['PAGO'];
+                $pag = $pay['PAGO'] == null ? "CONTADO EFECTIVO" : utf8_encode($pay['PAGO']);
                 $pays = [
                     "_sale"=>$salep,
                     "import"=>$pay['IMPORTE'],
-                    "way_to_pay"=>$pag,
+                    "way_to_pay"=>utf8_encode($pag),
                     "id_mul"=>$pay['IDPAG']
                 ];
                 $insert = DB::table('sales_payment')->insert($pays);
             }
 
-            return response()->json(count($ptick));
+            return response()->json(count([1,2,3]));
         }
 
     }
@@ -182,7 +183,8 @@ class StateController extends Controller
             F_APU.CUEAPU AS CUENTA,
             F_MAE.NOMMAE AS NAMECUEN,
             F_APU.CONAPU AS CONCEPTO,
-            FORMAT(F_APU.FCRAPU,'YYYY-mm-dd')&' '&'00:00:00' AS CREATED
+            FORMAT(F_APU.FCRAPU,'YYYY-mm-dd')&' '&'00:00:00' AS CREATED,
+            F_APU.IMPAPU AS IMPORTE
             FROM F_APU
             INNER JOIN F_MAE ON F_MAE.CODMAE = F_APU.CUEAPU
             WHERE [D-HAPU] = 'D' AND CUEAPU LIKE '410%'
@@ -200,7 +202,8 @@ class StateController extends Controller
                     "_account"=>$entrie['CUENTA'],
                     "name_account"=>utf8_encode($entrie['NAMECUEN']),
                     "concept"=>utf8_encode($entrie['CONCEPTO']),
-                    "created_at"=>$entrie['CREATED']
+                    "created_at"=>$entrie['CREATED'],
+                    "import"=>$entrie['IMPORTE']
                 ];
                 $insert = DB::table('accounting_entries')->insert($inscon);
             }
