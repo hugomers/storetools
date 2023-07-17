@@ -128,8 +128,7 @@ class StateController extends Controller
             CANLFA AS CANTIDAD,
             PRELFA AS PRECIO,
             TOTLFA AS TOTAL,
-            COSLFA AS COSTO
-            FROM F_LFA WHERE TIPLFA&'-'&CODLFA IN (".implode(",",$ptick).")";
+            COSLFA AS COSTO";
             $exec = $this->conn->prepare($prday);
             $exec -> execute();
             $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
@@ -153,8 +152,7 @@ class StateController extends Controller
             IMPLCO AS IMPORTE,
             CPTLCO AS PAGO,
             MULLCO AS IDPAG
-            FROM F_LCO
-            WHERE TFALCO&'-'&CFALCO IN (".implode(",",$ptick).")";
+            FROM F_LCO";
             $exec = $this->conn->prepare($paday);
             $exec -> execute();
             $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
