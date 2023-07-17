@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ZktecoController;
 use App\Http\Controllers\accessController;
 use App\Http\Controllers\BackupsController;
+use App\Http\Controllers\StateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,3 +23,8 @@ Route::get('/Withdrawals',[accessController::class,'Withdrawals']);
 Route::get('/regeneration',[accessController::class,'regeneration']);
 Route::get('/Backupsnigth',[BackupsController::class,'Backupsnigth']);
 Route::get('/Backups',[BackupsController::class,'Backups']);
+
+Route::prefix('/State')->group(function(){
+    Route::post('/sale',[StateController::class, 'sales']);
+    Route::post('/bills',[StateController::class, 'bills']);
+});
