@@ -6,6 +6,8 @@ use App\Http\Controllers\ZktecoController;
 use App\Http\Controllers\accessController;
 use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\StateController;
+use App\Http\Controllers\cashierController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -27,4 +29,9 @@ Route::get('/Backups',[BackupsController::class,'Backups']);
 Route::prefix('/State')->group(function(){
     Route::post('/sale',[StateController::class, 'sales']);
     Route::post('/bills',[StateController::class, 'bills']);
+});
+
+
+Route::prefix('/Cashier')->group(function(){
+    Route::post('/opencashier',[cashierController::class, 'opencashier']);
 });
