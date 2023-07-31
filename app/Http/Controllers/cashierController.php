@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
+use Mike42\Escpos\Printer;
+use Illuminate\Support\Facades\DB;
 
 class cashierController extends Controller
 {
@@ -115,6 +118,7 @@ class cashierController extends Controller
                 $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo." WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
+                $impresora = $this->prinret($terminal,$request->retirada,$request->montonuevo);
             }
             if($result){
                 $msg = "La retirada ".$request->retirada." se modifico correctamente";
@@ -135,8 +139,47 @@ class cashierController extends Controller
                 return response()->json("no se pudo abrir la caja");
             }
         }
-
-
       }
+    }
+
+    public function prinret($caja,$retiro,$import){
+        $store = env('STORE');
+        $print = DB::table('cash_printers')->where('name',$caja)->where('_store',$store)->value('ip_address');
+        $empresa = "SELECT TOP 1 * FROM F_EMP";
+        $exec = $this->conn->prepare($empresa);
+        $exec->execute();
+        $emp =$exec->fetch(\PDO::FETCH_ASSOC);
+        $retirada = "SELECT * FROM F_RET INNER JOIN F_PRO ON F_PRO.CODPRO = F_RET.PRORET WHERE CODRET =".$retiro;
+        $exec = $this->conn->prepare($retirada);
+        $exec->execute();
+        $ret =$exec->fetch(\PDO::FETCH_ASSOC);
+        $suc = DB::table('stores')->where('id',$store)->first();
+        $connector = new NetworkPrintConnector($print, 9100, 3);
+        $printer = new Printer($connector);
+        $printer->text(" \n");
+        $printer->text(" \n");
+        $printer->text("           --MODIFICACION DE RETIRADA--           \n");
+        $printer->text(" \n");
+        $printer->text(" \n");
+        $printer->text($emp['NOMEMP']." \n");
+        $printer->text($emp['DOMEMP']." (".$emp['POBEMP'].") "." \n");
+        $printer->text("Tfno:".$emp['TELEMP']." \n");
+        $printer->text("______________________________________________"." \n");
+        $printer->text("SALIDA DE TERMINAL: ".$ret['CAJRET']." \n");
+        $printer->text("Nº:".$ret['CODRET']."   ".date('d/m/Y',strtotime($ret['FECRET']))."-".$ret['HORRET']." \n");
+        $printer->text("DEPENDIENTE:"."MONDAY"." \n");
+        $printer->text("______________________________________________"." \n");
+        $printer->text($ret['NOFPRO']." \n");
+        $printer->text(" \n");
+        $printer->text("00000"." \n");
+        $printer->text(" \n");
+        $printer->text("GVC:"." \n");
+        $printer->text("______________________________________________"." \n");
+        $printer->text("IMPORTE RETIRADO:                   ".$import." \n");
+        $printer->text("Concepto:"." \n");
+        $printer->text($ret['CONRET']." \n");
+        $printer->text("______________________________________________"." \n");
+        $printer->cut();
+        $printer->close();
     }
 }

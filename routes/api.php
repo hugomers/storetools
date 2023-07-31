@@ -34,4 +34,5 @@ Route::prefix('/State')->group(function(){
 
 Route::prefix('/Cashier')->group(function(){
     Route::post('/opencashier',[cashierController::class, 'opencashier']);
+    Route::get('/retirada',[cashierController::class, 'prinret']);
 });
