@@ -228,9 +228,7 @@ class StateController extends Controller
             $withdrawals = $exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($withdrawals as $withdrawal){
                 $exisw = DB::table('withdrawals')->where('_store',$store)->where('code',$withdrawal['CODRET'])->first();
-                if($exisw){
-
-                }else{
+                if(!$exisw){
                     $inse = [
                         "code"=>$withdrawal['CODRET'],
                         "created_at"=>$withdrawal['CREACION'],
