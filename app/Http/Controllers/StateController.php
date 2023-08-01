@@ -238,9 +238,12 @@ class StateController extends Controller
                         "_store"=>$store,
                     ];
                 $insret = DB::table('withdrawals')->insert($inse);
+
                 }
-                return $inse;
+
                 }
+                return "hola";
+
         }
     }
 }
