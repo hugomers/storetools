@@ -196,19 +196,23 @@ class StateController extends Controller
             $exec->execute();
             $entries = $exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($entries as $entrie){
-                $inscon = [
-                    "_stores"=>$store,
-                    "entrie"=>$entrie['ASIENTO'],
-                    "_account"=>$entrie['CUENTA'],
-                    "name_account"=>utf8_encode($entrie['NAMECUEN']),
-                    "concept"=>utf8_encode($entrie['CONCEPTO']),
-                    "created_at"=>$entrie['CREATED'],
-                    "import"=>$entrie['IMPORTE']
-                ];
-                $insert = DB::table('accounting_entries')->insert($inscon);
-            }
+                $exist = DB::table('accounting_entries')->where('entrie',$entrie['ASIENTO'])->first();
+                if($exist){
 
-            return $inscon;
+                }else{
+                    $inscon = [
+                        "_stores"=>$store,
+                        "entrie"=>$entrie['ASIENTO'],
+                        "_account"=>$entrie['CUENTA'],
+                        "name_account"=>utf8_encode($entrie['NAMECUEN']),
+                        "concept"=>utf8_encode($entrie['CONCEPTO']),
+                        "created_at"=>$entrie['CREATED'],
+                        "import"=>$entrie['IMPORTE']
+                    ];
+                    $insert = DB::table('accounting_entries')->insert($inscon);
+                }
+                return $inscon;
+                }
         }else{
             $with = "SELECT
             CODRET,
@@ -223,19 +227,22 @@ class StateController extends Controller
             $exec->execute();
             $withdrawals = $exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($withdrawals as $withdrawal){
-                $inse = [
-                    "code"=>$withdrawal['CODRET'],
-                    "created_at"=>$withdrawal['CREACION'],
-                    "concept"=>utf8_encode($withdrawal['CONRET']),
-                    "import"=>$withdrawal['IMPRET'],
-                    "provider_name"=>utf8_encode($withdrawal['nombre']),
-                    "_store"=>$store,
-                ];
-            $insret = DB::table('withdrawals')->insert($inse);
+                $exisw = DB::table('withdrawals')->where('_store',$store)->where('code',$withdrawal['CODRET'])->first();
+                if($exisw){
 
-
-            }
-            return $inse;
+                }else{
+                    $inse = [
+                        "code"=>$withdrawal['CODRET'],
+                        "created_at"=>$withdrawal['CREACION'],
+                        "concept"=>utf8_encode($withdrawal['CONRET']),
+                        "import"=>$withdrawal['IMPRET'],
+                        "provider_name"=>utf8_encode($withdrawal['nombre']),
+                        "_store"=>$store,
+                    ];
+                $insret = DB::table('withdrawals')->insert($inse);
+                }
+                return $inse;
+                }
         }
     }
 }

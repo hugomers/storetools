@@ -7,6 +7,8 @@ use App\Http\Controllers\accessController;
 use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\cashierController;
+use App\Http\Controllers\ProductsController;
+
 
 
 /*
@@ -35,4 +37,13 @@ Route::prefix('/State')->group(function(){
 Route::prefix('/Cashier')->group(function(){
     Route::post('/opencashier',[cashierController::class, 'opencashier']);
     Route::get('/retirada',[cashierController::class, 'prinret']);
+});
+
+Route::prefix('/Products')->group(function(){//regisprice
+    Route::post('/registerProducts',[ProductsController::class, 'productRegis']);
+    Route::post('/registerPrices',[ProductsController::class, 'regisprice']);
+});
+
+Route::prefix('/Stores')->group(function(){
+    Route::post('/regisproduct',[ProductsController::class, 'regisProstores']);
 });
