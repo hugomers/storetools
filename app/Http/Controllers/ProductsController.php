@@ -631,7 +631,6 @@ class ProductsController extends Controller
                 }elseif($mayoreo >= 1000){
                     $menudeo =  $mayoreo + 100;
                 }
-                if($costo <= $aaa){
                     if($aaa <= $centro){
                         if($centro <= $especial){
                             if($especial <= $caja){
@@ -657,7 +656,6 @@ class ProductsController extends Controller
                             }else{$actualizados['fails'][]= $codigo." precio Especia mayor que Caja";}
                         }else{$actualizados['fails'][]= $codigo." precio Centro mayor que Especial";}
                     }else{$actualizados['fails'][]= $codigo." precio AAA mayor que Centro";}
-                }else{$actualizados['fails'][]= $codigo." precio Costo mayor que AAA";}
             }else{$actualizados['fails'][] = "El codigo ".$codigo." No existe";}
         }
         $res = [
@@ -727,7 +725,6 @@ class ProductsController extends Controller
                         $menudeo =  $mayoreo + 100;
                     }
                 }
-                if($costo <= $aaa){
                     if($aaa <= $centro){
                         if($centro <= $especial){
                             if($especial <= $caja){
@@ -753,7 +750,6 @@ class ProductsController extends Controller
                             }else{$actualizados['fails'][]= $codigo." precio Especia mayor que Caja";}
                         }else{$actualizados['fails'][]= $codigo." precio Centro mayor que Especial";}
                     }else{$actualizados['fails'][]= $codigo." precio AAA mayor que Centro";}
-                }else{$actualizados['fails'][]= $codigo." precio Costo mayor que AAA";}
             }else{$actualizados['fails'][] = "El codigo ".$codigo." No existe";}
         }
         $res = [
