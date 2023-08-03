@@ -527,7 +527,18 @@ class ProductsController extends Controller
                                                 "ESPECIAL"=>$especial,
                                                 "CAJA"=>$caja,
                                                 "DOCENA"=>$docena,
-                                                "MAYOREO"=>$mayoreo
+                                                "MAYOREO"=>$mayoreo,
+                                                "MENUDEO"=>$menudeo,
+                                            ];
+                                            $product_prices_for [] = [
+                                                "MODELO"=>$codigo,
+                                                "COSTO"=>$aaa,
+                                                "CENTRO"=>$centro,
+                                                "ESPECIAL"=>$especial,
+                                                "CAJA"=>$caja,
+                                                "DOCENA"=>$docena,
+                                                "MAYOREO"=>$mayoreo,
+                                                "MENUDEO"=>$menudeo,
                                             ];
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
@@ -566,7 +577,7 @@ class ProductsController extends Controller
         $puebla = DB::connection('vizapi')->table('workpoints')->where('id',18)->first();
         $urlpub = $puebla->dominio."/storetools/public/api/Stores/regispricespub";//se optiene el inicio del dominio de la sucursal
         $sucpub = curl_init($urlpub);//inicio de curl
-        $pripub = json_encode(["prices" => $prduct_prices]);//se codifica el arreglo de los proveedores
+        $pripub = json_encode(["prices" => $product_prices_for]);//se codifica el arreglo de los proveedores
         //inicio de opciones de curl
         curl_setopt($sucpub,CURLOPT_POSTFIELDS,$pripub);//se envia por metodo post
         curl_setopt($sucpub,CURLOPT_RETURNTRANSFER, 1);
