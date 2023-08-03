@@ -618,7 +618,7 @@ class ProductsController extends Controller
                 $docena = round($price['DOCENA'],0);
                 $mayoreo = round($price['MAYOREO'],0);
                 if(isset($price['MENUDEO'])){
-                    $menudeo = round($price['MENUDEO']*$margin,0);
+                    $menudeo = round($price['MENUDEO'],0);
                 }else if($mayoreo == $centro){
                     $menudeo = $caja;
                 }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
