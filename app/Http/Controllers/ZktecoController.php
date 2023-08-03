@@ -9,7 +9,7 @@ use Rats\Zkteco\Lib\ZKTeco;
 
 class ZktecoController extends Controller
 {
-    public function replyAssist(){
+    public static function replyAssist(){
         $report = [];
         $fail = [];
         $ret = [];

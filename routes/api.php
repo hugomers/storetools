@@ -43,7 +43,10 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/registerProducts',[ProductsController::class, 'productRegis']);
     Route::post('/registerPrices',[ProductsController::class, 'regisprice']);
 });
-
+//regispricepub
 Route::prefix('/Stores')->group(function(){
     Route::post('/regisproduct',[ProductsController::class, 'regisProstores']);
+    Route::post('/regispricesproduct',[ProductsController::class, 'regispricesstores']);
+    Route::post('/regispricespub',[ProductsController::class, 'regispricepub']);
+
 });

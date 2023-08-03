@@ -222,7 +222,7 @@ class StateController extends Controller
             F_PRO.NOFPRO as nombre
             FROM F_RET
             INNER JOIN F_PRO ON F_PRO.CODPRO = F_RET.PRORET
-            WHERE PRORET >800";
+            WHERE PRORET >800 AND YEAR(FECRET) = 2023";
             $exec = $this->conn->prepare($with);
             $exec->execute();
             $withdrawals = $exec->fetchall(\PDO::FETCH_ASSOC);
