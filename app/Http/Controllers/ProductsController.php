@@ -631,14 +631,13 @@ class ProductsController extends Controller
                 }elseif($mayoreo >= 1000){
                     $menudeo =  $mayoreo + 100;
                 }
-                    if($aaa <= $centro){
+                    if($costo <= $centro){
                         if($centro <= $especial){
                             if($especial <= $caja){
                                 if($caja <= $docena){
                                     if($docena <= $mayoreo){
                                         if($mayoreo <= $menudeo){
                                             $costoupd = $this->conn->prepare("UPDATE F_ART SET PCOART = ?, FUMART = ? WHERE CODART = ?")->execute([$costo,$date_format,$codigo]);
-                                            $aaaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$aaa,$codigo,7]);
                                             $centroupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$centro,$codigo,6]);
                                             $especiaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$especial,$codigo,5]);
                                             $cajaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$caja,$codigo,4]);
@@ -725,14 +724,13 @@ class ProductsController extends Controller
                         $menudeo =  $mayoreo + 100;
                     }
                 }
-                    if($aaa <= $centro){
+                    if($cost <= $centro){
                         if($centro <= $especial){
                             if($especial <= $caja){
                                 if($caja <= $docena){
                                     if($docena <= $mayoreo){
                                         if($mayoreo <= $menudeo){
                                             $costoupd = $this->conn->prepare("UPDATE F_ART SET PCOART = ?, FUMART = ? WHERE CODART = ?")->execute([$costo,$date_format,$codigo]);
-                                            $aaaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$aaa,$codigo,7]);
                                             $centroupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$centro,$codigo,6]);
                                             $especiaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$especial,$codigo,5]);
                                             $cajaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$caja,$codigo,4]);
