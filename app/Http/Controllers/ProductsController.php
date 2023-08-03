@@ -757,5 +757,310 @@ class ProductsController extends Controller
         return response()->json($res);
     }
 
+    public function highPueblaInvoice(Request $request){
+        $date = $request->date;
+        $failstores=[];
+        $stor=[];
+
+
+        $products = "SELECT F_ART.CODART,F_ART.EANART,F_ART.FAMART,F_ART.DESART,F_ART.DEEART,F_ART.DETART,F_ART.DLAART,F_ART.EQUART,F_ART.CCOART,F_ART.PHAART,F_ART.REFART,F_ART.FTEART,F_ART.PCOART,F_ART.UPPART,F_ART.CANART,F_ART.CAEART,F_ART.UMEART,F_ART.CP1ART,F_ART.CP2ART,F_ART.CP3ART,F_ART.CP4ART,F_ART.CP5ART,F_ART.FALART,F_ART.FUMART,F_ART.MPTART,F_ART.UEQART FROM ((F_ART  INNER JOIN F_LFA ON F_LFA.ARTLFA = F_ART.CODART) INNER JOIN F_FAC ON F_FAC.TIPFAC = F_LFA.TIPLFA AND F_FAC.CODFAC = F_LFA.CODLFA) WHERE F_FAC.CLIFAC = 20  AND  F_FAC.FECFAC >= #".$date."#";
+        $exec = $this->conn->prepare($products);
+        $exec -> execute();
+        $articulos=$exec->fetchall(\PDO::FETCH_ASSOC);
+        if($articulos){
+        $dat =$this->highPricesPueInvoice($date);
+
+        $colsTabProds = array_keys($articulos[0]);
+
+        foreach($articulos as $art){
+            foreach($colsTabProds as $col){ $art[$col] = utf8_encode($art[$col]); }
+            $arti[]=$art;
+        }
+
+        $stores = DB::connection('vizapi')->table('workpoints')->where('id',18)->get();//se obtienen sucursales de mysql
+        foreach($stores as $store){//inicio de foreach de sucursales
+            $url = $store->local_domain."/StoresTools/public/api/puebla/inspub";//se optiene el inicio del dominio de la sucursal
+            $ch = curl_init($url);//inicio de curl
+            $data = json_encode(["articulos" => $arti]);//se codifica el arreglo de los proveedores
+            //inicio de opciones de curl
+            curl_setopt($ch, CURLOPT_POSTFIELDS,$data);//se envia por metodo post
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+            //fin de opciones e curl
+            $exec = curl_exec($ch);//se executa el curl
+            $exc = json_decode($exec);//se decodifican los datos decodificados
+            if(is_null($exc)){//si me regresa un null
+                $failstores[] =$store->alias." sin conexion";//la sucursal se almacena en sucursales fallidas
+            }else{
+                $stor[] =["sucursal"=>$store->alias, "mssg"=>$exc];
+            }
+            curl_close($ch);//cirre de curl
+        }//fin de foreach de sucursales
+
+
+        return response()->json(["articulos"=>[
+                                    "goals"=>$stor,
+                                    "fail"=>$failstores
+                                ],
+                                 "precios" => $dat
+        ]);
+        }
+            else{return response()->json("no hay articulos que exportar");}
+    }
+
+    public function highPricesPueInvoice($date){
+        $failstores=[];
+        $stor=[];
+        // $prices = "SELECT F_LTA.* FROM ((F_LTA  INNER JOIN F_LFA ON F_LFA.ARTLFA = F_LTA.ARTLTA) INNER JOIN F_FAC ON F_FAC.TIPFAC = F_LFA.TIPLFA AND F_FAC.CODFAC = F_LFA.CODLFA) WHERE F_FAC.CLIFAC = 20 AND F_LTA.TARLTA NOT IN (7) AND  F_FAC.FECFAC >= #".$date."#";
+       $prices = "SELECT
+       F_LTA.ARTLTA AS CODIGO,
+       F_FAM.SECFAM AS SECCION,
+       MAX(iif(F_LTA.TARLTA = 6 , F_LTA.PRELTA ,0 )) AS CENTRO,
+       MAX(iif(F_LTA.TARLTA = 5 , F_LTA.PRELTA ,0 )) AS ESPECIAL,
+       MAX(iif(F_LTA.TARLTA = 4 , F_LTA.PRELTA ,0 )) AS CAJA,
+       MAX(iif(F_LTA.TARLTA = 3 , F_LTA.PRELTA ,0 )) AS DOCENA,
+       MAX(iif(F_LTA.TARLTA = 2 , F_LTA.PRELTA ,0 )) AS MAYOREO
+       FROM
+       ((F_LTA
+       INNER JOIN F_LFA ON F_LFA.ARTLFA = F_LTA.ARTLTA)
+       INNER JOIN F_FAC ON F_FAC.TIPFAC = F_LFA.TIPLFA AND F_FAC.CODFAC = F_LFA.CODLFA)
+       INNER JOIN F_ART ON F_ART.CODART = F_LTA.ARTLTA
+       INNER JOIN F_FAM ON F_ART.FAMART = F_FAM.CODFAM
+       WHERE F_FAC.CLIFAC = 20 AND F_LTA.TARLTA NOT IN (7) AND  F_FAC.FECFAC >= #".$date."#
+       GROUP BY F_LTA.ARTLTA;";
+        $exec = $this->conn->prepare($prices);
+        $exec -> execute();
+        $precios=$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($precios as $pre){
+            $pri[]= $pre;
+        }
+        $stores = DB::connection('vizapi')->table('workpoints')->where('id',18)->get();//se obtienen sucursales de mysql
+        foreach($stores as $store){//inicio de foreach de sucursales
+            $url = $store->local_domain."/StoresTools/public/api/puebla/insertPricesPub";//se optiene el inicio del dominio de la sucursal
+            $ch = curl_init($url);//inicio de curl
+            $data = json_encode(["prices" => $pri]);//se codifica el arreglo de los proveedores
+            //inicio de opciones de curl
+            curl_setopt($ch, CURLOPT_POSTFIELDS,$data);//se envia por metodo post
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+            //fin de opciones e curl
+            $exec = curl_exec($ch);//se executa el curl
+            $exc = json_decode($exec);//se decodifican los datos decodificados
+            if(is_null($exc)){//si me regresa un null
+                $failstores[] =$store->alias." sin conexion";//la sucursal se almacena en sucursales fallidas
+            }else{
+                $stor[] =["sucursal"=>$store->alias, "mssg"=>$exc];
+            }
+            curl_close($ch);//cirre de curl
+        }//fin de foreach de sucursales
+         $res = [
+            "goals"=>$stor,
+            "fail"=>$failstores
+        ];
+        return $res;
+    }
+
+    public function insertPub(Request $request){
+        $actualizados = [];
+        $insertados = [];
+        $date = date("Y/m/d H:i");
+        $date_format = date("d/m/Y");
+        $articulos = $request->articulos;
+        $margen = 1.05;
+        $almacenes ="SELECT CODALM FROM F_ALM";
+        $exec = $this->conn->prepare($almacenes);
+        $exec -> execute();
+        $fil=$exec->fetchall(\PDO::FETCH_ASSOC);
+        // $tarifas ="SELECT CODTAR FROM F_TAR";
+        // $exec = $this->conn->prepare($tarifas);
+        // $exec -> execute();
+        // $tar=$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($articulos as $art){
+
+            $artexs = "SELECT CODART FROM F_ART WHERE CODART = ?";
+            $exec = $this->conn->prepare($artexs);
+            $exec -> execute([$art['CODART']]);
+            $cossis=$exec->fetch(\PDO::FETCH_ASSOC);
+
+            if($cossis){
+                $articulo=$art['CODART'];
+                $costo = round($art['PCOART']*$margen,2);
+                $barcode = $art['EANART'];
+                $familia = $art['FAMART'];
+                $palets =$art['UPPART'];
+                $categoria = $art['CP1ART'];
+                $actualizar =[
+                    $date_format,
+                    $costo,
+                    $barcode,
+                    $familia,
+                    $palets,
+                    $categoria,
+                    $articulo
+                ];
+
+                $updaxs = "UPDATE F_ART SET FUMART = ?, PCOART = ?, EANART = ?, FAMART = ?,  UPPART = ?, CP1ART = ? WHERE CODART = ?";
+                $exec = $this->conn->prepare($updaxs);
+                $exec -> execute($actualizar);
+                $actualizados[] ="Se actualizo el modelo ".$cossis["CODART"];
+            }else{
+                $product = [
+                    $art["CODART"],
+                    $art["EANART"],
+                    $art["FAMART"],
+                    $art["DESART"],
+                    $art["DEEART"],
+                    $art["DETART"],
+                    $art["DLAART"],
+                    $art["EQUART"],
+                    $art["CCOART"],
+                    $art["PHAART"],
+                    $art["REFART"],
+                    $art["FTEART"],
+                    ($art["PCOART"]*$margen),
+                    $art["UPPART"],
+                    $art["CANART"],
+                    $art["CAEART"],
+                    $art["UMEART"],
+                    $art["CP1ART"],
+                    $art["CP2ART"],
+                    $art["CP3ART"],
+                    $art["CP4ART"],
+                    $art["CP5ART"],
+                    $date_format,
+                    $date_format,
+                    $art["MPTART"],
+                    $art["UEQART"]
+                ];
+            $artid = "INSERT INTO  F_ART (CODART,EANART,FAMART,DESART,DEEART,DETART,DLAART,EQUART,CCOART,PHAART,REFART,FTEART,PCOART,UPPART,CANART,CAEART,UMEART,CP1ART,CP2ART,CP3ART,CP4ART,CP5ART,FALART,FUMART,MPTART,UEQART
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            $exec = $this->conn->prepare($artid);
+            $exec -> execute($product);
+            foreach($fil as $row){
+                $alm=$row['CODALM'];
+                $insertsto = "INSERT INTO F_STO (ARTSTO,ALMSTO,MINSTO,MAXSTO,ACTSTO,DISSTO) VALUES (?,?,?,?,?,?) ";
+                $exec = $this->conn->prepare($insertsto);
+                $exec -> execute([$art["CODART"],$alm,0,0,0,0]);
+            }
+            // foreach($tar as $tari){
+            //     $tarifa=$tari['CODTAR'];
+            //     $inserttar = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES (?,?,?,?) ";
+            //     $exec = $this->conn->prepare($inserttar);
+            //     $exec -> execute([$tarifa,$art["CODART"],0,0,0,0]);
+            // }
+            $insertados[]="Se inserto el modelo ".$art["CODART"];
+            }
+
+       }
+        $res = [
+            "insertados"=>$insertados,
+            "actualizados"=>$actualizados
+        ];
+        return response()->json($res);
+
+    }
+
+    public function insertPricesPub(request $request){
+        $actualizados = [];
+        $insertados = [];
+
+        $prices = $request->prices;
+
+
+        $margen = 1.05;
+        foreach($prices as $price){
+
+            $articulo = $price['CODIGO'];
+            $centro = round($price['CENTRO']*$margen,0);
+            $especial = round($price['ESPECIAL']*$margen,0);
+            $caja = round($price['CAJA']*$margen,0);
+            $docena = round($price['DOCENA']*$margen,0);
+            $mayoreo = round($price['MAYOREO']*$margen,0);
+
+            if($mayoreo == $centro){
+                $menudeo = $caja;
+            }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
+                $menudeo = $mayoreo + 5;
+            }elseif(($mayoreo >= 50) && ($mayoreo <= 99)){
+                $menudeo = $mayoreo + 10;
+            }elseif(($mayoreo >= 100) && ($mayoreo <= 499)){
+                $menudeo = $mayoreo + 20;
+            }elseif(($mayoreo >= 500) && ($mayoreo <= 999)){
+                $menudeo = $mayoreo + 50;
+            }elseif($mayoreo >= 1000){
+                $menudeo =  $mayoreo + 100;
+            }
+
+            $exispr = "SELECT ARTLTA FROM F_LTA WHERE ARTLTA = ?";
+            $exec = $this->conn->prepare($exispr);
+            $exec -> execute([$articulo]);
+            $cossis=$exec->fetch(\PDO::FETCH_ASSOC);
+            if($cossis){
+
+                $cen = "UPDATE F_LTA SET PRELTA = ".$centro." WHERE ARTLTA = ?  AND TARLTA = 6";
+                $exec = $this->conn->prepare($cen);
+                $exec -> execute([$articulo]);
+
+                $espe = "UPDATE F_LTA SET PRELTA = ".$especial." WHERE ARTLTA = ? AND TARLTA = 5";
+                $exec = $this->conn->prepare($espe);
+                $exec -> execute([$articulo]);
+
+                $caj = "UPDATE F_LTA SET PRELTA = ".$caja." WHERE ARTLTA = ? AND TARLTA = 4";
+                $exec = $this->conn->prepare($caj);
+                $exec -> execute([$articulo]);
+
+                $doc = "UPDATE F_LTA SET PRELTA = ".$docena." WHERE ARTLTA = ? AND TARLTA = 3";
+                $exec = $this->conn->prepare($doc);
+                $exec -> execute([$articulo]);
+
+                $mayo = "UPDATE F_LTA SET PRELTA = ".$mayoreo." WHERE ARTLTA = ?  AND TARLTA = 2";
+                $exec = $this->conn->prepare($mayo);
+                $exec -> execute([$articulo]);
+
+                $menu = "UPDATE F_LTA SET PRELTA = ".$menudeo." WHERE ARTLTA = ? AND TARLTA = 1";
+                $exec = $this->conn->prepare($menu);
+                $exec -> execute([$articulo]);
+                $actualizados[]="Se actuzalizaron precios de el articulo ".$articulo;
+            }else{
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([6,$articulo,0,$centro]);
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([5,$articulo,0,$especial]);
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([4,$articulo,0,$caja]);
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([3,$articulo,0,$docena]);
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([2,$articulo,0,$mayoreo]);
+
+                $inscen = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES  (?,?,?,?)";
+                $exec = $this->conn->prepare($inscen);
+                $exec -> execute([1,$articulo,0,$menudeo]);
+                $insertados[]="Precios insertados del articulo ".$articulo;
+            }
+        }
+        $res = [
+            "actualizados"=>$actualizados,
+            "insertados"=>$insertados
+        ];
+        return response()->json($res);
+    }
+
 }
 //
