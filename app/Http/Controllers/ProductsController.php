@@ -644,7 +644,7 @@ class ProductsController extends Controller
                                             $docenaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$docena,$codigo,3]);
                                             $mayoreoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$mayoreo,$codigo,2]);
                                             $menudeoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$menudeo,$codigo,1]);
-                                            if($costoupd && $aaaupd && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
+                                            if($costoupd && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
                                                 $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
                                                 $actualizados['fails']= ['product'=>$codigo,'prices'=>['factusol' => 0]];
@@ -724,7 +724,7 @@ class ProductsController extends Controller
                         $menudeo =  $mayoreo + 100;
                     }
                 }
-                    if($cost <= $centro){
+                    if($costo <= $centro){
                         if($centro <= $especial){
                             if($especial <= $caja){
                                 if($caja <= $docena){
@@ -737,7 +737,7 @@ class ProductsController extends Controller
                                             $docenaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$docena,$codigo,3]);
                                             $mayoreoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$mayoreo,$codigo,2]);
                                             $menudeoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$menudeo,$codigo,1]);
-                                            if($costoupd && $aaaupd && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
+                                            if($costoupd  && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
                                                 $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
                                                 $actualizados['fails']= ['product'=>$codigo,'prices'=>['factusol' => 0]];
