@@ -530,15 +530,6 @@ class ProductsController extends Controller
                                                 "MAYOREO"=>$mayoreo,
                                                 "MENUDEO"=>$menudeo,
                                             ];
-                                            $product_prices_for [] = [
-                                                "MODELO"=>$codigo,
-                                                "COSTO"=>$aaa,
-                                                "CENTRO"=>$centro,
-                                                "ESPECIAL"=>$especial,
-                                                "CAJA"=>$caja,
-                                                "DOCENA"=>$docena,
-                                                "MAYOREO"=>$mayoreo,
-                                            ];
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
                                 }else{$actualizados['fails'][]= $codigo." precio Caja mayor que Docena";}
@@ -576,7 +567,7 @@ class ProductsController extends Controller
         $puebla = DB::connection('vizapi')->table('workpoints')->where('id',18)->first();
         $urlpub = $puebla->dominio."/storetools/public/api/Stores/regispricespub";//se optiene el inicio del dominio de la sucursal
         $sucpub = curl_init($urlpub);//inicio de curl
-        $pripub = json_encode(["prices" => $product_prices_for]);//se codifica el arreglo de los proveedores
+        $pripub = json_encode(["prices" => $prices]);//se codifica el arreglo de los proveedores
         //inicio de opciones de curl
         curl_setopt($sucpub,CURLOPT_POSTFIELDS,$pripub);//se envia por metodo post
         curl_setopt($sucpub,CURLOPT_RETURNTRANSFER, 1);
@@ -627,7 +618,7 @@ class ProductsController extends Controller
                 $docena = round($price['DOCENA'],0);
                 $mayoreo = round($price['MAYOREO'],0);
                 if(isset($price['MENUDEO'])){
-                    $menudeo = round($price['MENUDEO'],0);
+                    $menudeo = round($price['MENUDEO']*$margin,0);
                 }else if($mayoreo == $centro){
                     $menudeo = $caja;
                 }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
