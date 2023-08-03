@@ -239,7 +239,7 @@ class ProductsController extends Controller
         }
         $stores = $tiendas;//se obtienen sucursales de mysql
         foreach($stores as $store){//inicio de foreach de sucursales
-            $url = $store['dominio']."/StoresTools/public/api/Stores/regisproduct";//se optiene el inicio del dominio de la sucursal
+            $url = $store['dominio']."/storestools/public/api/Stores/regisproduct";//se optiene el inicio del dominio de la sucursal
             $ch = curl_init($url);//inicio de curl
             $data = json_encode(["productos" => $products]);//se codifica el arreglo de los proveedores
             //inicio de opciones de curl
@@ -541,7 +541,7 @@ class ProductsController extends Controller
 
         $stores = $tiendas;//se obtienen sucursales de mysql
         foreach($stores as $store){//inicio de foreach de sucursales
-            $url = $store['dominio']."/StoresTools/public/api/Stores/regispricesproduct";//se optiene el inicio del dominio de la sucursal
+            $url = $store['dominio']."/storetools/public/api/Stores/regispricesproduct";//se optiene el inicio del dominio de la sucursal
             $ch = curl_init($url);//inicio de curl
             $data = json_encode(["prices" => $prduct_prices]);//se codifica el arreglo de los proveedores
             //inicio de opciones de curl
@@ -564,7 +564,7 @@ class ProductsController extends Controller
         }//fin de foreach de sucursales
 
         $puebla = DB::connection('vizapi')->table('workpoints')->where('id',18)->first();
-        $urlpub = $puebla->dominio."/StoresTools/public/api/Stores/regispricespub";//se optiene el inicio del dominio de la sucursal
+        $urlpub = $puebla->dominio."/storetools/public/api/Stores/regispricespub";//se optiene el inicio del dominio de la sucursal
         $sucpub = curl_init($urlpub);//inicio de curl
         $pripub = json_encode(["prices" => $prduct_prices]);//se codifica el arreglo de los proveedores
         //inicio de opciones de curl
