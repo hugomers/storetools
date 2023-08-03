@@ -538,7 +538,6 @@ class ProductsController extends Controller
                                                 "CAJA"=>$caja,
                                                 "DOCENA"=>$docena,
                                                 "MAYOREO"=>$mayoreo,
-                                                "MENUDEO"=>$menudeo,
                                             ];
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
