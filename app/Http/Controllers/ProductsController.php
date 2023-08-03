@@ -239,7 +239,7 @@ class ProductsController extends Controller
         }
         $stores = $tiendas;//se obtienen sucursales de mysql
         foreach($stores as $store){//inicio de foreach de sucursales
-            $url = $store['dominio']."/storestools/public/api/Stores/regisproduct";//se optiene el inicio del dominio de la sucursal
+            $url = $store['dominio']."/storetools/public/api/Stores/regisproduct";//se optiene el inicio del dominio de la sucursal
             $ch = curl_init($url);//inicio de curl
             $data = json_encode(["productos" => $products]);//se codifica el arreglo de los proveedores
             //inicio de opciones de curl
