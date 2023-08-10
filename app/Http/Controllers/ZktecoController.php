@@ -36,13 +36,15 @@ class ZktecoController extends Controller
                                 "_device"=>$sucursal->id,
                                 ];
                                 $insert = DB::table('assist')->insert($report);
-                                $ret[] = $report;
-                            }else{$fail[]= "El id ".$assist['id']." no tiene usuario registro ".$assist['timestamp'];}
+                                // $ret[] = $report;
+                            }else{
+                                // $fail[]= "El id ".$assist['id']." no tiene usuario registro ".$assist['timestamp'];
+                            }
                         }
                     }
                 }else{$fail[]= "La Sucursal no existe la serie".$serie;}
-                $res = ["registros"=>count($ret), "regis"=>$ret, "fail"=>$fail];
-                return response()->json($res,201);
+                //  $res = ["registros"=>count($ret), "regis"=>$ret, "fail"=>$fail];
+                //  return response()->json($res,201);
             }else{return response()->json("No hay registros por el momento",404);}
         }else{return response()->json("No hay conexion a el checador",501);}
     }

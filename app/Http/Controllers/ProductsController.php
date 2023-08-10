@@ -193,7 +193,8 @@ class ProductsController extends Controller
                                 '_provider'=>$provider,
                                 'updated_at'=>now(),
                                 'cost'=>$cost,
-                                'barcode'=>$ean
+                                'barcode'=>$ean,
+                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>''])
                             ];
 
                             $updmys = DB::connection('vizapi')->table('products')->update($updms);
