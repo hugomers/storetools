@@ -114,18 +114,35 @@ class cashierController extends Controller
                 $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo.", CONRET = '', PRORET = 0 WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
+                if($result){
+                    $msg = "La retirada ".$request->retirada." se elimino correctamente";
+                }else{
+                    $msg = "La retirada ".$request->retirada." no se elimino correctamente";
+                }
+                $this->msg($msg,$number);
             }else{
                 $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo." WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
-                $impresora = $this->prinret($terminal,$request->retirada,$request->montonuevo);
-            }
-            if($result){
-                $msg = "La retirada ".$request->retirada." se modifico correctamente";
-                $this->msg($msg,$numer);
-                return response()->json($result);
-            }else{
-                return response()->json("no se pudo modificar la retirada");
+                if($result){
+                    $impresora = $this->prinret($terminal,$request->retirada,$request->montonuevo);
+                    if($impresora === "impreso con exito"){
+                        $msg = "La retirada ".$request->retirada." se modifico correctamente";
+                    }else{
+                        $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
+                        $exec = $this->conn->prepare($apertura);
+                        $result = $exec->execute();
+                        if($result){
+                            $msg = "La retirada ".$request->retirada." se modifico correctamente pero no se logro imprimir la caja esta abierta para realizar la impresion";
+                        }else{
+                            $msg = "La retirada ".$request->retirada." se modifico chido pero no se abrio tu caja ni se imprimio hablale a Dieguito parito";
+                        }
+                    }
+                    $this->msg($msg,$numer);
+                    return response()->json($result);
+                }else{
+                    return response()->json("no se pudo modificar la retirada");
+                }
             }
         }else if($request->tipo_mov == "DESCUADRE"){
             $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
@@ -154,32 +171,39 @@ class cashierController extends Controller
         $exec->execute();
         $ret =$exec->fetch(\PDO::FETCH_ASSOC);
         $suc = DB::table('stores')->where('id',$store)->first();
+
         $connector = new NetworkPrintConnector($print, 9100, 3);
-        $printer = new Printer($connector);
-        $printer->text(" \n");
-        $printer->text(" \n");
-        $printer->text("           --MODIFICACION DE RETIRADA--           \n");
-        $printer->text(" \n");
-        $printer->text(" \n");
-        $printer->text($emp['NOMEMP']." \n");
-        $printer->text($emp['DOMEMP']." (".$emp['POBEMP'].") "." \n");
-        $printer->text("Tfno:".$emp['TELEMP']." \n");
-        $printer->text("______________________________________________"." \n");
-        $printer->text("SALIDA DE TERMINAL: ".$ret['CAJRET']." \n");
-        $printer->text("Nº:".$ret['CODRET']."   ".date('d/m/Y',strtotime($ret['FECRET']))."-".$ret['HORRET']." \n");
-        $printer->text("DEPENDIENTE:"."MONDAY"." \n");
-        $printer->text("______________________________________________"." \n");
-        $printer->text($ret['NOFPRO']." \n");
-        $printer->text(" \n");
-        $printer->text("00000"." \n");
-        $printer->text(" \n");
-        $printer->text("GVC:"." \n");
-        $printer->text("______________________________________________"." \n");
-        $printer->text("IMPORTE RETIRADO:                   ".$import." \n");
-        $printer->text("Concepto:"." \n");
-        $printer->text($ret['CONRET']." \n");
-        $printer->text("______________________________________________"." \n");
-        $printer->cut();
-        $printer->close();
+        if($connector){
+            $printer = new Printer($connector);
+            $printer->text(" \n");
+            $printer->text(" \n");
+            $printer->text("           --MODIFICACION DE RETIRADA--           \n");
+            $printer->text(" \n");
+            $printer->text(" \n");
+            $printer->text($emp['NOMEMP']." \n");
+            $printer->text($emp['DOMEMP']." (".$emp['POBEMP'].") "." \n");
+            $printer->text("Tfno:".$emp['TELEMP']." \n");
+            $printer->text("______________________________________________"." \n");
+            $printer->text("SALIDA DE TERMINAL: ".$ret['CAJRET']." \n");
+            $printer->text("Nº:".$ret['CODRET']."   ".date('d/m/Y',strtotime($ret['FECRET']))."-".$ret['HORRET']." \n");
+            $printer->text("DEPENDIENTE:"."MONDAY"." \n");
+            $printer->text("______________________________________________"." \n");
+            $printer->text($ret['NOFPRO']." \n");
+            $printer->text(" \n");
+            $printer->text("00000"." \n");
+            $printer->text(" \n");
+            $printer->text("GVC:"." \n");
+            $printer->text("______________________________________________"." \n");
+            $printer->text("IMPORTE RETIRADO:                   ".$import." \n");
+            $printer->text("Concepto:"." \n");
+            $printer->text($ret['CONRET']." \n");
+            $printer->text("______________________________________________"." \n");
+            $printer->cut();
+            $printer->close();
+            return "impreso con exito";
+        }else{
+            return "No se pudo imprimir";
+        }
     }
+
 }

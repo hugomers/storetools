@@ -47,58 +47,57 @@ class StateController extends Controller
                     "total"=>round($invoice['total'],2),
                     "_store"=>$store
                 ];
-                $insert = DB::table('sales')->insert($ticket);
+                $insert = DB::table('sales')->insertGetId($ticket);
+                if($insert){
+                    $sale =  $insert;
+                    $prday = "SELECT
+                    TIPLFA&'-'&CODLFA AS TICKET,
+                    ARTLFA AS ARTICULO,
+                    CANLFA AS CANTIDAD,
+                    PRELFA AS PRECIO,
+                    TOTLFA AS TOTAL,
+                    COSLFA AS COSTO
+                    FROM F_LFA WHERE TIPLFA&'-'&CODLFA = "."'".$invoice['ticket']."'";
+                    $exec = $this->conn->prepare($prday);
+                    $exec -> execute();
+                    $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
+                    foreach($profac as $pro){
+                        $costo= DB::connection('vizapi')->table('products')->where('code',$pro['ARTICULO'])->value('cost');
+                        $cost = $costo == null ? 0 : $costo;
+                        $produ  = [
+                            "_sale"=>$sale,
+                            "_product"=>$pro['ARTICULO'],
+                            "amount"=>$pro['CANTIDAD'],
+                            "price"=>$pro['PRECIO'],
+                            "total"=>$pro['TOTAL'],
+                            "cost"=>$cost
+                        ];
+                        $insert = DB::table('sale_body')->insert($produ);
+                    }
+                    $paday = "SELECT
+                    TFALCO&'-'&CFALCO AS TICKET,
+                    IMPLCO AS IMPORTE,
+                    CP.DESCRIPCION AS PAGO,
+                    MULLCO AS IDPAG
+                    FROM F_LCO
+                    LEFT JOIN (SELECT CODCNP AS CODIGO, DESCNP AS DESCRIPCION FROM F_CNP WHERE F_CNP.TIPCNP = 0) AS CP ON CP.CODIGO = F_LCO.CPALCO
+                    WHERE TFALCO&'-'&CFALCO = "."'".$invoice['ticket']."'";
+                    $exec = $this->conn->prepare($paday);
+                    $exec -> execute();
+                    $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
+                    foreach($payfac as $pay){
+                        $pag = $pay['PAGO'] == null ? "EFECTIVO (CEDIS)" : utf8_encode($pay['PAGO']);
+                        $pays = [
+                            "_sale"=>$sale,
+                            "import"=>$pay['IMPORTE'],
+                            "way_to_pay"=>utf8_encode($pag),
+                            "id_mul"=>$pay['IDPAG']
+                        ];
+                        $insert = DB::table('sales_payment')->insert($pays);
+                    }
+                }
             }
-            $prday = "SELECT
-            TIPLFA&'-'&CODLFA AS TICKET,
-            ARTLFA AS ARTICULO,
-            CANLFA AS CANTIDAD,
-            PRELFA AS PRECIO,
-            TOTLFA AS TOTAL,
-            COSLFA AS COSTO
-            FROM F_LFA WHERE TIPLFA&'-'&CODLFA IN (".implode(",",$ptick).")";
-            $exec = $this->conn->prepare($prday);
-            $exec -> execute();
-            $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
-            foreach($profac as $pro){
-                $sale = DB::table('sales')->where('ticket',$pro['TICKET'])->where('_store',$store)->value('id');
-                $costo= DB::connection('vizapi')->table('products')->where('code',$pro['ARTICULO'])->value('cost');
-                $cost = $costo == null ? 0 : $costo;
-
-                $produ  = [
-                    "_sale"=>$sale,
-                    "_product"=>$pro['ARTICULO'],
-                    "amount"=>$pro['CANTIDAD'],
-                    "price"=>$pro['PRECIO'],
-                    "total"=>$pro['TOTAL'],
-                    "cost"=>$cost
-                ];
-                $insert = DB::table('sale_body')->insert($produ);
-            }
-            $paday = "SELECT
-            TFALCO&'-'&CFALCO AS TICKET,
-            IMPLCO AS IMPORTE,
-            CP.DESCRIPCION AS PAGO,
-            MULLCO AS IDPAG
-            FROM F_LCO
-            LEFT JOIN (SELECT CODCNP AS CODIGO, DESCNP AS DESCRIPCION FROM F_CNP WHERE F_CNP.TIPCNP = 0) AS CP ON CP.CODIGO = F_LCO.CPALCO
-            WHERE TFALCO&'-'&CFALCO IN (".implode(",",$ptick).")";
-            $exec = $this->conn->prepare($paday);
-            $exec -> execute();
-            $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
-            foreach($payfac as $pay){
-                $salep = DB::table('sales')->where('ticket',$pay['TICKET'])->where('_store',$store)->value('id');
-                $pag = $pay['PAGO'] == null ? "EFECTIVO (CEDIS)" : utf8_encode($pay['PAGO']);
-                $pays = [
-                    "_sale"=>$salep,
-                    "import"=>$pay['IMPORTE'],
-                    "way_to_pay"=>utf8_encode($pag),
-                    "id_mul"=>$pay['IDPAG']
-                ];
-                $insert = DB::table('sales_payment')->insert($pays);
-            }
-
-            return response()->json(count($ptick));
+            return response()->json(["id"=>$sale,"cuantos"=>count($ptick)]);
         }else{
             $fac = "SELECT
             TIPFAC&'-'&CODFAC AS ticket,
@@ -120,56 +119,57 @@ class StateController extends Controller
                     "total"=>round($invoice['total'],2),
                     "_store"=>$store
                 ];
-                $insert = DB::table('sales')->insert($ticket);
-            }
-            $prday = "SELECT
-            TIPLFA&'-'&CODLFA AS TICKET,
-            ARTLFA AS ARTICULO,
-            CANLFA AS CANTIDAD,
-            PRELFA AS PRECIO,
-            TOTLFA AS TOTAL,
-            COSLFA AS COSTO
-            FROM F_LFA";
-            $exec = $this->conn->prepare($prday);
-            $exec -> execute();
-            $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
-            foreach($profac as $pro){
-                $sale = DB::table('sales')->where('ticket',$pro['TICKET'])->where('_store',$store)->value('id');
-                $costo= DB::connection('vizapi')->table('products')->where('code',$pro['ARTICULO'])->value('cost');
-                $cost = $costo == null ? 0 : $costo;
+                $insert = DB::table('sales')->insertGetId($ticket);
+                if($insert){
+                    $sale = $insert;
+                    $prday = "SELECT
+                    TIPLFA&'-'&CODLFA AS TICKET,
+                    ARTLFA AS ARTICULO,
+                    CANLFA AS CANTIDAD,
+                    PRELFA AS PRECIO,
+                    TOTLFA AS TOTAL,
+                    COSLFA AS COSTO
+                    FROM F_LFA WHERE TIPLFA&'-'&CODLFA = "."'".$invoice['ticket']."'";
+                    $exec = $this->conn->prepare($prday);
+                    $exec -> execute();
+                    $profac=$exec->fetchall(\PDO::FETCH_ASSOC);
+                    foreach($profac as $pro){
+                        $costo= DB::connection('vizapi')->table('products')->where('code',$pro['ARTICULO'])->value('cost');
+                        $cost = $costo == null ? 0 : $costo;
 
-                $produ  = [
-                    "_sale"=>$sale,
-                    "_product"=>$pro['ARTICULO'],
-                    "amount"=>$pro['CANTIDAD'],
-                    "price"=>$pro['PRECIO'],
-                    "total"=>$pro['TOTAL'],
-                    "cost"=>$cost
-                ];
-                $insert = DB::table('sale_body')->insert($produ);
+                        $produ  = [
+                            "_sale"=>$sale,
+                            "_product"=>$pro['ARTICULO'],
+                            "amount"=>$pro['CANTIDAD'],
+                            "price"=>$pro['PRECIO'],
+                            "total"=>$pro['TOTAL'],
+                            "cost"=>$cost
+                        ];
+                        $insert = DB::table('sale_body')->insert($produ);
+                    }
+                    $paday = "SELECT
+                    TFALCO&'-'&CFALCO AS TICKET,
+                    IMPLCO AS IMPORTE,
+                    CPTLCO AS PAGO,
+                    MULLCO AS IDPAG
+                    FROM F_LCO
+                    WHERE TFALCO&'-'&CFALCO = "."'".$invoice['ticket']."'";
+                    $exec = $this->conn->prepare($paday);
+                    $exec -> execute();
+                    $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
+                    foreach($payfac as $pay){
+                        $pag = $pay['PAGO'] == null ? "CONTADO EFECTIVO" : utf8_encode($pay['PAGO']);
+                        $pays = [
+                            "_sale"=>$sale,
+                            "import"=>$pay['IMPORTE'],
+                            "way_to_pay"=>utf8_encode($pag),
+                            "id_mul"=>$pay['IDPAG']
+                        ];
+                        $insert = DB::table('sales_payment')->insert($pays);
+                    }
+                }
             }
-            $paday = "SELECT
-            TFALCO&'-'&CFALCO AS TICKET,
-            IMPLCO AS IMPORTE,
-            CPTLCO AS PAGO,
-            MULLCO AS IDPAG
-            FROM F_LCO";
-            $exec = $this->conn->prepare($paday);
-            $exec -> execute();
-            $payfac=$exec->fetchall(\PDO::FETCH_ASSOC);
-            foreach($payfac as $pay){
-                $salep = DB::table('sales')->where('ticket',$pay['TICKET'])->where('_store',$store)->value('id');
-                $pag = $pay['PAGO'] == null ? "CONTADO EFECTIVO" : utf8_encode($pay['PAGO']);
-                $pays = [
-                    "_sale"=>$salep,
-                    "import"=>$pay['IMPORTE'],
-                    "way_to_pay"=>utf8_encode($pag),
-                    "id_mul"=>$pay['IDPAG']
-                ];
-                $insert = DB::table('sales_payment')->insert($pays);
-            }
-
-            return response()->json(count([1,2,3]));
+            return response()->json(count($ptick));
         }
 
     }
