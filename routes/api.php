@@ -42,11 +42,13 @@ Route::prefix('/Cashier')->group(function(){
 Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/registerProducts',[ProductsController::class, 'productRegis']);
     Route::post('/registerPrices',[ProductsController::class, 'regisprice']);
+    Route::post('/translate',[ProductsController::class, 'translateWarehouses']);
+
 });
 //regispricepub
 Route::prefix('/Stores')->group(function(){
     Route::post('/regisproduct',[ProductsController::class, 'regisProstores']);
     Route::post('/regispricesproduct',[ProductsController::class, 'regispricesstores']);
     Route::post('/regispricespub',[ProductsController::class, 'regispricepub']);
-
 });
+

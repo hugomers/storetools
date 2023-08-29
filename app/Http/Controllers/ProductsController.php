@@ -1063,5 +1063,53 @@ class ProductsController extends Controller
         return response()->json($res);
     }
 
+    public function translateWarehouses(Request $request){
+        $data = $request->data;
+        $origen = $data['AORTRA'];
+        $destino = $data['ADETRA'];
+        $nota = $data['COMTRA'];
+        $products = $data['products'];
+
+        $nextid = "SELECT MAX(DOCTRA) + 1 AS ID FROM F_TRA";
+        $exec = $this->conn->prepare($nextid);
+        $exec -> execute();
+        $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        $instra = [
+            $id['ID'],
+            $origen,
+            $destino,
+            $nota
+        ];
+        $insertra = "INSERT INTO F_TRA (FECTRA,DOCTRA,AORTRA,ADETRA,COMTRA) VALUES(date(),?,?,?,?)";
+        $exec = $this->conn->prepare($insertra);
+        $result = $exec -> execute($instra);
+        if($instra){
+            $lin = 1;
+            foreach($products as $product){
+                $codigo = $product['ARTLTR'];
+                $cantidad = $product['CANLTR'];
+                $insltr = [
+                    $id['ID'],
+                    $lin,
+                    $codigo,
+                    $cantidad
+                ];
+                $inspro = "INSERT INTO F_LTR (DOCLTR,LINLTR,ARTLTR,CANLTR) VALUES (?,?,?,?)";
+                $exec = $this->conn->prepare($inspro);
+                $ltres = $exec -> execute($insltr);
+                $lin++;
+                $updori = "UPDATE F_STO SET ACTSTO = ACTSTO - ".$cantidad.", DISSTO = DISSTO - ".$cantidad." WHERE ARTSTO = "."'".$codigo."'"." AND ALMSTO = "."'".$origen."'";
+                $exec = $this->conn->prepare($updori)->execute();
+                $updes = "UPDATE F_STO SET ACTSTO = ACTSTO + ".$cantidad.", DISSTO = DISSTO + ".$cantidad." WHERE ARTSTO = "."'".$codigo."'"." AND ALMSTO = "."'".$destino."'";
+                $exec = $this->conn->prepare($updes)->execute();
+
+            }
+        }else{
+            return "no se genero el traspaso ";
+        }
+        $res = "El traspaso ".$id['ID']." se genero con exito";
+        return response()->json($res);
+    }
+
 }
 //
