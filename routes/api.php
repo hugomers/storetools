@@ -8,6 +8,9 @@ use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\cashierController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\ReceivedController;
+use App\Http\Controllers\RequiredController;
+
 
 
 
@@ -52,3 +55,10 @@ Route::prefix('/Stores')->group(function(){
     Route::post('/regispricespub',[ProductsController::class, 'regispricepub']);
 });
 
+Route::prefix('/Received')->group(function(){
+    Route::post('/Received',[ReceivedController::class, 'invoice']);
+});
+
+Route::prefix('/Required')->group(function(){
+    Route::post('/Required',[RequiredController::class, 'invoice_received']);
+});
