@@ -197,7 +197,7 @@ class ProductsController extends Controller
                                 'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>''])
                             ];
 
-                            $updmys = DB::connection('vizapi')->table('products')-where('id',$promsexist)->update($updms);
+                            $updmys = DB::connection('vizapi')->table('products')->where('id',$promsexist)->update($updms);
                             if($updmys){
                                 $mysql['goals']['actualizados'][] = "Se actualizo el codigo ".$codigo." correctamente ".$updmys;
                             }else{
