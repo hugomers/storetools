@@ -46,6 +46,12 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/registerProducts',[ProductsController::class, 'productRegis']);
     Route::post('/registerPrices',[ProductsController::class, 'regisprice']);
     Route::post('/translate',[ProductsController::class, 'translateWarehouses']);
+    Route::post('/dev',[ProductsController::class, 'refund']);
+    Route::post('/abo',[ProductsController::class, 'abono']);
+    Route::post('/inv',[ProductsController::class, 'invice']);
+    Route::post('/invr',[ProductsController::class, 'invoiceReceived']);
+
+
 
 });
 //regispricepub

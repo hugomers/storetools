@@ -1111,5 +1111,67 @@ class ProductsController extends Controller
         return response()->json($res);
     }
 
+    public function refund(Request $request){//devolucion de la sucursal
+        $datos = $request->data;
+        $referencia = $datos['referencia'];
+        $observacion = $datos['observacion'];
+        $tot = $datos['total'];
+        $nextid = "SELECT MAX(CODFRD) + 1 AS ID FROM F_FRD";
+        $exec = $this->conn->prepare($nextid);
+        $exec -> execute();
+        $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        $datprov =  "SELECT CODPRO,NOFPRO,DOMPRO,POBPRO,CPOPRO,PROPRO FROM F_PRO WHERE CODPRO = 5";
+        $exec = $this->conn->prepare($datprov);
+        $exec -> execute();
+        $provider =$exec->fetch(\PDO::FETCH_ASSOC);
+        $insdev = [
+            1,
+            $id['ID'],
+            $referencia,
+            $referencia,
+            $provider['CODPRO'],
+            0,
+            $provider['NOFPRO'],
+            $provider['DOMPRO'],
+            $provider['POBPRO'],
+            $provider['CPOPRO'],
+            $provider['PROPRO'],
+            $tot,
+            $tot,
+            $tot,
+            '02-01-00',
+            1,
+            0,
+            "GEN",
+            900,
+            900,
+            "MEXICO",
+            0,
+            1,
+            2,
+            "2023",
+            "02-01-00",
+            0,
+            $observacion
+        ];
+        $creat = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,ESTFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,FENFRD,0,CFDFRD,ALMFRD,USUFRD,USMFRD,PPAFRD,TIVA1FRD,TIVA2FRD,TIVA3FRD,EFDFRD,FUMFRD,EERFRD,OB1FRD) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($creat);
+        $yes = $exec -> execute($insdev);
+        return $yes;
+
+    }
+
+    public function abono(Request $request){//abono
+
+    }
+
+    public function invice(Request $request){//salida cedis
+
+    }
+
+    public function invoiceReceived(Request $request){//factura recibida
+
+    }
+
 }
 //
