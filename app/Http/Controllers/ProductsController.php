@@ -1116,7 +1116,8 @@ class ProductsController extends Controller
         $referencia = $datos['referencia'];
         $observacion = $datos['observacion'];
         $tot = $datos['total'];
-        $nextid = "SELECT MAX(CODFRD) + 1 AS ID FROM F_FRD";
+        $products = $datos['products'];
+        $nextid = "SELECT MAX(CODFRD) + 1 AS ID FROM F_FRD WHERE TIPFRD =  '1' ";
         $exec = $this->conn->prepare($nextid);
         $exec -> execute();
         $id =$exec->fetch(\PDO::FETCH_ASSOC);
@@ -1139,38 +1140,254 @@ class ProductsController extends Controller
             $tot,
             $tot,
             $tot,
-            '02-01-00',
+            '01/01/1900',
             1,
-            0,
             "GEN",
-            900,
-            900,
+            1,
+            1,
             "MEXICO",
             0,
             1,
             2,
             "2023",
-            "02-01-00",
+            "01/01/1900",
             0,
             $observacion
         ];
-        $creat = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,ESTFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,FENFRD,0,CFDFRD,ALMFRD,USUFRD,USMFRD,PPAFRD,TIVA1FRD,TIVA2FRD,TIVA3FRD,EFDFRD,FUMFRD,EERFRD,OB1FRD) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $creat = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,ESTFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,FENFRD,CFDFRD,ALMFRD,USUFRD,USMFRD,PPAFRD,TIVA1FRD,TIVA2FRD,TIVA3FRD,EFDFRD,FUMFRD,EERFRD,OB1FRD) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";   
         $exec = $this->conn->prepare($creat);
         $yes = $exec -> execute($insdev);
-        return $yes;
+        $pos = 1;
+        if($yes){
+            foreach($products as $product){
+                $insepro = [
+                    1,
+                    $id['ID'],
+                    $pos,
+                    $product['ARTLTR'],
+                    $product['DES'],
+                    $product['CANLTR'],
+                    $product['PRE'],
+                    $product['TOTAL']
+                ];
+                
+                $inspr = "INSERT INTO F_LFD (TIPLFD,CODLFD,POSLFD,ARTLFD,DESLFD,CANLFD,PRELFD,TOTLFD) VALUES (?,?,?,?,?,?,?,?)";
+                $exec = $this->conn->prepare($inspr);
+                $art = $exec -> execute($insepro);
+
+                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO - ".$product['CANLTR'].", DISSTO = DISSTO - ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                $exec = $this->conn->prepare($updsto);
+                $art = $exec -> execute();
+                $pos++;
+            }
+            $res ="1-".$id['ID'];
+            return response()->json($res);
+        }else{
+            return "No se genero la devolucion";
+        }
 
     }
 
     public function abono(Request $request){//abono
+        $datos = $request->data;
+        $products = $datos['products'];
+        $datcli =  "SELECT CODCLI,NOFCLI,DOMCLI,POBCLI,CPOCLI,PROCLI, DOCCLI, TELCLI FROM F_CLI WHERE CODCLI = ".$datos['cliente'];
+        $exec = $this->conn->prepare($datcli);
+        $exec -> execute();
+        $client =$exec->fetch(\PDO::FETCH_ASSOC);
+        $nextid = "SELECT MAX(CODFAB) + 1 AS ID FROM F_FAB WHERE TIPFAB = "."'".$client['DOCCLI']."'";
+        $exec = $this->conn->prepare($nextid);
+        $exec -> execute();
+        $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        $insa = [
+            $client['DOCCLI'],
+            $id['ID'],
+            $datos['referencia'],
+            'GEN',
+            500,
+            $client['CODCLI'],
+            $client['NOFCLI'],
+            $client['DOMCLI'],
+            $client['POBCLI'],
+            $client['CPOCLI'],
+            $client['PROCLI'],
+            $client['TELCLI'],
+            $datos['total'],
+            $datos['total'],
+            $datos['total'],
+            'C30',
+            484,
+            0,
+            1,
+            2,
+            2023,
+            '01/01/1900'
+        ];
+        $insabo = "INSERT INTO F_FAB (TIPFAB,CODFAB,REFFAB,FECFAB,ALMFAB,AGEFAB,CLIFAB,CNOFAB,CDOFAB,CPOFAB,CCPFAB,CPRFAB,TELFAB,NET1FAB,BAS1FAB,TOTFAB,FOPFAB,CPAFAB,TIVA1FAB,TIVA2FAB,TIVA3FAB,EDRFAB,FUMFAB) VALUES (?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($insabo);
+        $yes = $exec -> execute($insa);
+        if($yes){
+            $pos = 1;
+            foreach($products as $product){
+                $inspro = [
+                    $client['DOCCLI'],
+                    $id['ID'],
+                    $pos,
+                    $product['ARTLTR'],
+                    $product['DES'],
+                    $product['CANLTR'],
+                    $product['PRE'],
+                    $product['TOTAL'],
+                    $product['COSTO']
+                ];
+                $inspab = "INSERT INTO F_LFB (TIPLFB,CODLFB,POSLFB,ARTLFB,DESLFB,CANLFB,PRELFB,TOTLFB,COSLFB) VALUES (?,?,?,?,?,?,?,?,?)";
+                $exec = $this->conn->prepare($inspab);
+                $art = $exec -> execute($inspro);
+
+                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO + ".$product['CANLTR'].", DISSTO = DISSTO + ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                $exec = $this->conn->prepare($updsto);
+                $art = $exec -> execute();
+                $pos++;
+            }
+            $res =$client['DOCCLI']."-".$id['ID'];
+            return response()->json($res);
+        }else{
+            return "No se genero el abono";
+        }
 
     }
 
     public function invice(Request $request){//salida cedis
+        $datos = $request->data;
+        $products = $datos['products'];
+        $datcli =  "SELECT CODCLI,NOFCLI,DOMCLI,POBCLI,CPOCLI,PROCLI, DOCCLI, TELCLI FROM F_CLI WHERE CODCLI = ".$datos['cliente'];
+        $exec = $this->conn->prepare($datcli);
+        $exec -> execute();
+        $client =$exec->fetch(\PDO::FETCH_ASSOC);
+        $nextid = "SELECT MAX(CODFAC) + 1 AS ID FROM F_FAC WHERE TIPFAC = "."'".$client['DOCCLI']."'";
+        $exec = $this->conn->prepare($nextid);
+        $exec -> execute();
+        $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        $insa = [
+            $client['DOCCLI'],
+            $id['ID'],
+            $datos['referencia'],
+            'GEN',
+            500,
+            $client['CODCLI'],
+            $client['NOFCLI'],
+            $client['DOMCLI'],
+            $client['POBCLI'],
+            $client['CPOCLI'],
+            $client['PROCLI'],
+            $client['TELCLI'],
+            $datos['total'],
+            $datos['total'],
+            $datos['total'],
+            'C30',
+            0,
+            1,
+            2,
+            2023,
+            '01/01/1900',
+            $datos['observacion'],
+            1
+        ];
+        $insabo = "INSERT INTO F_FAC (TIPFAC,CODFAC,REFFAC,FECFAC,ALMFAC,AGEFAC,CLIFAC,CNOFAC,CDOFAC,CPOFAC,CCPFAC,CPRFAC,TELFAC,NET1FAC,BAS1FAC,TOTFAC,FOPFAC,TIVA1FAC,TIVA2FAC,TIVA3FAC,EDRFAC,FUMFAC,OB1FAC,USUFAC) VALUES (?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($insabo);
+        $yes = $exec -> execute($insa);
+        if($yes){
+            $pos = 1;
+            foreach($products as $product){
+                $inspro = [
+                    $client['DOCCLI'],
+                    $id['ID'],
+                    $pos,
+                    $product['ARTLTR'],
+                    $product['DES'],
+                    $product['CANLTR'],
+                    $product['PRE'],
+                    $product['TOTAL'],
+                    $product['COSTO']
+                ];
+                $inspab = "INSERT INTO F_LFA (TIPLFA,CODLFA,POSLFA,ARTLFA,DESLFA,CANLFA,PRELFA,TOTLFA,COSLFA) VALUES (?,?,?,?,?,?,?,?,?)";
+                $exec = $this->conn->prepare($inspab);
+                $art = $exec -> execute($inspro);
 
+                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO - ".$product['CANLTR'].", DISSTO = DISSTO - ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                $exec = $this->conn->prepare($updsto);
+                $art = $exec -> execute();
+                $pos++;
+            }
+            
+            $res =$client['DOCCLI']."-".str_pad($id['ID'], 6, "0", STR_PAD_LEFT);
+            return response()->json($res);
+        }else{
+            return "No se genero el abono";
+        }
     }
 
     public function invoiceReceived(Request $request){//factura recibida
+        $datos = $request->data;
+        $products = $datos['products'];
+        $datprov =  "SELECT CODPRO,NOFPRO,DOMPRO,POBPRO,CPOPRO,PROPRO FROM F_PRO WHERE CODPRO = 5";
+        $exec = $this->conn->prepare($datprov);
+        $exec -> execute();
+        $provider =$exec->fetch(\PDO::FETCH_ASSOC);
+        $nextid = "SELECT MAX(CODFRE) + 1 AS ID FROM F_FRE WHERE TIPFRE = '1'";
+        $exec = $this->conn->prepare($nextid);
+        $exec -> execute();
+        $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        $insa = [
+            '1',
+            $id['ID'],
+            $datos['referencia'],
+            $datos['referencia'],
+            $provider['CODPRO'],
+            $provider['NOFPRO'],
+            $provider['DOMPRO'],
+            $provider['POBPRO'],
+            $provider['CPOPRO'],
+            $provider['PROPRO'],
+            $datos['total'],
+            $datos['total'],
+            $datos['total'],
+            1,
+            1,
+            'GEN',
+            '01/01/1900',
+            $datos['observacion'],
+        ];
+        $insabo = "INSERT INTO F_FRE (TIPFRE,CODFRE,FACFRE,REFFRE,FECFRE,PROFRE,PNOFRE,PDOFRE,PPOFRE,PCPFRE,PPRFRE,NET1FRE,BAS1FRE,TOTFRE,USUFRE,USMFRE,ALMFRE,FUMFRE,OB1FRE) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($insabo);
+        $yes = $exec -> execute($insa);
+        if($yes){
+            $pos = 1;
+            foreach($products as $product){
+                $inspro = [
+                    '1',
+                    $id['ID'],
+                    $pos,
+                    $product['ARTLTR'],
+                    $product['DES'],
+                    $product['CANLTR'],
+                    $product['PRE'],
+                    $product['TOTAL'],
+                ];
+                $inspab = "INSERT INTO F_LFR (TIPLFR,CODLFR,POSLFR,ARTLFR,DESLFR,CANLFR,PRELFR,TOTLFR) VALUES (?,?,?,?,?,?,?,?)";
+                $exec = $this->conn->prepare($inspab);
+                $art = $exec -> execute($inspro);
 
+                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO + ".$product['CANLTR'].", DISSTO = DISSTO + ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                $exec = $this->conn->prepare($updsto);
+                $art = $exec -> execute();
+                $pos++;
+            }
+            $res ="1"."-".$id['ID'];
+            return response()->json($res);
+        }else{
+            return "No se genero la factura recibida";
+        }
     }
 
 }
