@@ -50,7 +50,7 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/abo',[ProductsController::class, 'abono']);
     Route::post('/inv',[ProductsController::class, 'invice']);
     Route::post('/invr',[ProductsController::class, 'invoiceReceived']);
-    Route::post('/reportDepure',[ProductsController::class, 'reportDepure']);
+    Route::get('/reportDepure',[ProductsController::class, 'reportDepure']);
 });
 //regispricepub
 Route::prefix('/Stores')->group(function(){
