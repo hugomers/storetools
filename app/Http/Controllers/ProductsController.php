@@ -1154,7 +1154,7 @@ class ProductsController extends Controller
             0,
             $observacion
         ];
-        $creat = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,ESTFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,FENFRD,CFDFRD,ALMFRD,USUFRD,USMFRD,PPAFRD,TIVA1FRD,TIVA2FRD,TIVA3FRD,EFDFRD,FUMFRD,EERFRD,OB1FRD) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";   
+        $creat = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,ESTFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,FENFRD,CFDFRD,ALMFRD,USUFRD,USMFRD,PPAFRD,TIVA1FRD,TIVA2FRD,TIVA3FRD,EFDFRD,FUMFRD,EERFRD,OB1FRD) VALUES (?,?,?,?,date(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         $exec = $this->conn->prepare($creat);
         $yes = $exec -> execute($insdev);
         $pos = 1;
@@ -1170,7 +1170,7 @@ class ProductsController extends Controller
                     $product['PRE'],
                     $product['TOTAL']
                 ];
-                
+
                 $inspr = "INSERT INTO F_LFD (TIPLFD,CODLFD,POSLFD,ARTLFD,DESLFD,CANLFD,PRELFD,TOTLFD) VALUES (?,?,?,?,?,?,?,?)";
                 $exec = $this->conn->prepare($inspr);
                 $art = $exec -> execute($insepro);
@@ -1319,7 +1319,7 @@ class ProductsController extends Controller
                 $art = $exec -> execute();
                 $pos++;
             }
-            
+
             $res =$client['DOCCLI']."-".str_pad($id['ID'], 6, "0", STR_PAD_LEFT);
             return response()->json($res);
         }else{
@@ -1390,5 +1390,119 @@ class ProductsController extends Controller
         }
     }
 
+    public function reportDepure(){
+        $prod = [];
+        $invoice = [];
+        $received = [];
+        $include = [];
+        $return = [];
+        $translate = [];
+        $aibonos = [];
+        $sli = [];
+        $alb = [];
+        $cin = [];
+        $fab = [];
+        $stc = [];
+
+        $pros ="SELECT CODART FROM F_ART WHERE YEAR(FALART) < YEAR(DATE())";
+        $exec = $this->conn->prepare($pros);
+        $exec -> execute();
+        $products =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($products AS $product){
+            $prod [] = $product['CODART'];
+        }
+
+        $fac ="SELECT DISTINCT ARTLFA FROM F_LFA";
+        $exec = $this->conn->prepare($fac);
+        $exec -> execute();
+        $facturas =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($facturas as $factura){
+            $invoice[] = $factura['ARTLFA'];
+        }
+        $fre ="SELECT DISTINCT ARTLFR FROM F_LFR";
+        $exec = $this->conn->prepare($fre);
+        $exec -> execute();
+        $recibidas =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($recibidas as $recibida){
+            $received[] = $recibida['ARTLFR'];
+        }
+        $ent ="SELECT DISTINCT ARTLEN FROM F_LEN";
+        $exec = $this->conn->prepare($ent);
+        $exec -> execute();
+        $entradas =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($entradas as $entrada){
+            $include[] = $entrada['ARTLEN'];
+        }
+        $dev ="SELECT DISTINCT ARTLFD FROM F_LFD";
+        $exec = $this->conn->prepare($dev);
+        $exec -> execute();
+        $devoluciones =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($devoluciones as $devolucion){
+            $return[] = $devolucion['ARTLFD'];
+        }
+        $tra ="SELECT DISTINCT ARTLTR FROM F_LTR";
+        $exec = $this->conn->prepare($tra);
+        $exec -> execute();
+        $traspasos =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($traspasos as $traspaso){
+            $translate[] = $traspaso['ARTLTR'];
+        }
+        $abo ="SELECT DISTINCT ARTLFB FROM F_LFB";
+        $exec = $this->conn->prepare($abo);
+        $exec -> execute();
+        $abonos =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($abonos as $abono){
+            $aibonos[] = $abono['ARTLFB'];
+        }
+
+        $lsa ="SELECT DISTINCT ARTLSA FROM F_LSA";
+        $exec = $this->conn->prepare($lsa);
+        $exec -> execute();
+        $salidas =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($salidas as $salida){
+            $sli[] = $salida['ARTLSA'];
+        }
+
+        $lal ="SELECT DISTINCT ARTLAL FROM F_LAL";
+        $exec = $this->conn->prepare($lal);
+        $exec -> execute();
+        $albaranes =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($albaranes as $albaran){
+            $alb[] = $albaran['ARTLAL'];
+        }
+
+        $arcin ="SELECT DISTINCT ARTCIN FROM F_CIN WHERE URECIN <> 0";
+        $exec = $this->conn->prepare($arcin);
+        $exec -> execute();
+        $consolidaciones =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($consolidaciones as $consolidacion){
+            $cin[] = $consolidacion['ARTCIN'];
+        }
+
+        $lfc ="SELECT DISTINCT ARTLFC FROM F_LFC";
+        $exec = $this->conn->prepare($lfc);
+        $exec -> execute();
+        $fabricaciones =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($fabricaciones as $fabricacion){
+            $fab[] = $fabricacion['ARTLFC'];
+        }
+
+        $sto ="SELECT DISTINCT ARTSTO FROM F_STO WHERE ACTSTO <> 0";
+        $exec = $this->conn->prepare($sto);
+        $exec -> execute();
+        $stocks =$exec->fetchall(\PDO::FETCH_ASSOC);
+        foreach($stocks as $stock){
+            $stc[] = $stock['ARTSTO'];
+        }
+
+        $union = array_unique(array_merge($invoice,$received,$include,$return,$translate,$aibonos,$sli,$alb,$cin,$fab,$stc));
+        $diff = array_diff($prod,$union);
+        if($diff){
+            $respuesta = mb_convert_encoding(array_values($diff), 'UTF-8','UTF-8');
+
+            return response()->json($respuesta,200);
+        }else{
+            return response()->json("No se encontraron diferencias",404);
+        }
+    }
 }
-//
