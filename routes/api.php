@@ -51,6 +51,8 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/inv',[ProductsController::class, 'invice']);
     Route::post('/invr',[ProductsController::class, 'invoiceReceived']);
     Route::get('/reportDepure',[ProductsController::class, 'reportDepure']);
+    Route::post('/replacecode',[ProductsController::class, 'replacecode']);
+
 });
 //regispricepub
 Route::prefix('/Stores')->group(function(){

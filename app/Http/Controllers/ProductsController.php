@@ -1505,4 +1505,199 @@ class ProductsController extends Controller
             return response()->json("No se encontraron diferencias",404);
         }
     }
+
+    public function replacecode(Request $request){
+        $fails = [];
+        $goal = [];
+
+        $products =  $request['data'];
+        foreach($products as $product){
+            $nvo = "'".$product['NUEVO']."'";
+            $ant = "'".$product['ANTERIOR']."'";
+        //EAN ARTICULOS FAMILIARIZADOS
+            $enean = "SELECT * FROM F_EAN WHERE EANEAN = ".$nvo;
+            $exec = $this->conn->prepare($enean);
+            $exec -> execute();
+            $eneans =$exec->fetchall(\PDO::FETCH_ASSOC);
+            if(count($eneans) > 1){
+                $fails['asoc'][] = ['msg'=>"se tienen que revisar ya que cuentan con mas familiarizaciones",'ANT'=>$ant,'NVO'=>$nvo];
+            }else{
+                if(count($eneans) == 1){
+                    // EAN ARTICULOS FAMILIARIZADOS\
+                    $desart = "SELECT DESART, DEEART, DETART, DLAART FROM F_ART WHERE CODART = ".$ant;
+                    $exec = $this->conn->prepare($desart);
+                    $exec -> execute();
+                    $descriptions =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($descriptions){
+                        $des = str_replace($product['NUEVO'], $product['ANTERIOR'], $descriptions['DESART']);
+                        $tic = str_replace($product['NUEVO'], $product['ANTERIOR'], $descriptions['DETART']);
+                        $eti = str_replace($product['NUEVO'], $product['ANTERIOR'], $descriptions['DEEART']);
+                        $lar = str_replace($product['NUEVO'], $product['ANTERIOR'], $descriptions['DLAART']);
+                        $updes = "UPDATE F_ART SET DESART = ? , DEEART = ?, DLAART = ?, DETART = ? WHERE CODART = ".$ant;
+                        $exec = $this->conn->prepare($updes);
+                        $exec -> execute([$des,$eti,$lar,$tic]);
+
+                        $updfam = "UPDATE F_EAN SET ARTEAN = ".$nvo."WHERE ARTEAN = ".$ant;
+                        $exec = $this->conn->prepare($updfam);
+                        $exec -> execute();
+
+                        $updfamvis = "UPDATE F_EAN SET EANEAN = ".$ant."WHERE EANEAN = ".$nvo;
+                        $exec = $this->conn->prepare($updfamvis);
+                        $exec -> execute();
+
+                        $goal['Familiarizados'][]=[
+                            "codigo"=>$nvo,
+                            "descripcion"=>$lar
+                        ];
+                    }else{
+                        $fails['DES'] = "No existen descripcioines de el articulo ". $ant;
+                    }
+                }
+                //ART ARTICULOS
+                $art = "SELECT CODART FROM  F_ART WHERE CODART = ".$ant;
+                $exec = $this->conn->prepare($art);
+                $exec -> execute();
+                $cod =$exec->fetch(\PDO::FETCH_ASSOC);
+                if($cod){
+                    $upart = "UPDATE F_ART SET CODART = ".$nvo."  WHERE CODART = ".$ant;
+                    $exec = $this->conn->prepare($upart);
+                    $exec -> execute();
+                    //STO STOCK DE ARTICULOS
+                    $exsto = "SELECT ARTSTO FROM F_STO WHERE ARTSTO = ".$nvo;
+                    $exec = $this->conn->prepare($exsto);
+                    $exec -> execute();
+                    $existo =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($existo){
+                        $upsto = "DELETE FROM  F_STO  WHERE ARTSTO = ".$ant;
+                        $exec = $this->conn->prepare($upsto);
+                        $exec -> execute();
+                    }else{
+                        $upsto = "UPDATE F_STO SET ARTSTO = ".$nvo." WHERE ARTSTO = ".$ant;
+                        $exec = $this->conn->prepare($upsto);
+                        $exec -> execute();
+                    }
+                    //LTA PRECIOS
+                    $exlta = "SELECT ARTLTA FROM F_LTA WHERE ARTLTA = ".$ant;
+                    $exec = $this->conn->prepare($exlta);
+                    $exec -> execute();
+                    $exilta =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilta){
+                        $uplta = "UPDATE F_LTA SET ARTLTA = ".$nvo." WHERE ARTLTA = ".$ant;
+                        $exec = $this->conn->prepare($uplta);
+                        $exec -> execute();
+                    }
+                    //LFA FACTURAS
+                    $exlfa = "SELECT ARTLFA FROM F_LFA WHERE ARTLFA = ".$ant;
+                    $exec = $this->conn->prepare($exlfa);
+                    $exec -> execute();
+                    $exilfa =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilfa){
+                        $upfac = "UPDATE F_LFA SET ARTLFA = ".$nvo." WHERE ARTLFA = ".$ant;
+                        $exec = $this->conn->prepare($upfac);
+                        $exec -> execute();
+                    }
+                    //LFR FACTURAS RECIBIDAS
+                    $exlfr = "SELECT ARTLFR  FROM F_LFR WHERE ARTLFR = ".$ant;
+                    $exec = $this->conn->prepare($exlfr);
+                    $exec -> execute();
+                    $exilfr =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilfr){
+                        $uplfr = "UPDATE F_LFR SET ARTLFR = ".$nvo." WHERE ARTLFR = ".$ant;
+                        $exec = $this->conn->prepare($uplfr);
+                        $exec -> execute();
+                    }
+                    //LEN ENTRADAS
+                    $exlen = "SELECT ARTLEN FROM F_LEN WHERE ARTLEN = ".$ant;
+                    $exec = $this->conn->prepare($exlen);
+                    $exec -> execute();
+                    $exilen =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilen){
+                        $uplen = "UPDATE F_LEN SET ARTLEN = ".$nvo." WHERE ARTLEN = ".$ant;
+                        $exec = $this->conn->prepare($uplen);
+                        $exec -> execute();
+                    }
+                    //LFD DEVOLUCIONES
+                    $exlfd = "SELECT ARTLFD FROM F_LFD WHERE ARTLFD = ".$ant;
+                    $exec = $this->conn->prepare($exlfd);
+                    $exec -> execute();
+                    $exilfd =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilfd){
+                        $uplfd = "UPDATE F_LFD SET ARTLFD = ".$nvo." WHERE ARTLFD = ".$ant;
+                        $exec = $this->conn->prepare($uplfd);
+                        $exec -> execute();
+                    }
+                    //LTR TRASPASOS
+                    $exltr = "SELECT ARTLTR FROM F_LTR WHERE ARTLTR = ".$ant;
+                    $exec = $this->conn->prepare($exltr);
+                    $exec -> execute();
+                    $exiltr =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exiltr){
+                        $upltr = "UPDATE F_LTR SET ARTLTR = ".$nvo." WHERE ARTLTR = ".$ant;
+                        $exec = $this->conn->prepare($upltr);
+                        $exec -> execute();
+                    }
+                    //LFB ABONOS
+                    $exlfb = "SELECT ARTLFB FROM F_LFB WHERE ARTLFB = ".$ant;
+                    $exec = $this->conn->prepare($exlfb);
+                    $exec -> execute();
+                    $exilfb =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilfb){
+                        $uplfb = "UPDATE F_LFB SET ARTLFB = ".$nvo." WHERE ARTLFB = ".$ant;
+                        $exec = $this->conn->prepare($uplfb);
+                        $exec -> execute();
+                    }
+                    //LSA SALIDAS INT
+                    $exlsa = "SELECT ARTLSA FROM F_LSA WHERE ARTLSA = ".$ant;
+                    $exec = $this->conn->prepare($exlsa);
+                    $exec -> execute();
+                    $exilsa =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilsa){
+                        $uplsa = "UPDATE F_LSA SET ARTLSA = ".$nvo." WHERE ARTLSA = ".$ant;
+                        $exec = $this->conn->prepare($uplsa);
+                        $exec -> execute();
+                    }
+                    //LAL ALBARANES
+                    $exlal = "SELECT ARTLAL FROM F_LAL WHERE ARTLAL = ".$ant;
+                    $exec = $this->conn->prepare($exlal);
+                    $exec -> execute();
+                    $exilal =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilal){
+                        $uplal = "UPDATE F_LAL SET ARTLAL = ".$nvo." WHERE ARTLAL = ".$ant;
+                        $exec = $this->conn->prepare($uplal);
+                        $exec -> execute();
+                    }
+                    //CIN CONSOLIDACIONES
+                    $excin = "SELECT ARTCIN FROM F_CIN WHERE ARTCIN = ".$nvo;
+                    $exec = $this->conn->prepare($excin);
+                    $exec -> execute();
+                    $exicin =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if(!$exicin){
+                        $upcin = "UPDATE F_CIN SET ARTCIN = ".$nvo." WHERE ARTCIN = ".$ant;
+                        $exec = $this->conn->prepare($upcin);
+                        $exec -> execute();
+                    }
+                    //LFC FABRICACION COMPUESTOS
+                    $exlfc = "SELECT ARTLFC FROM F_LFC WHERE ARTLFC = ".$ant;
+                    $exec = $this->conn->prepare($exlfc);
+                    $exec -> execute();
+                    $exilfc =$exec->fetch(\PDO::FETCH_ASSOC);
+                    if($exilfc){
+                        $uplfc = "UPDATE F_LFC SET ARTLFC = ".$nvo." WHERE ARTLFC = ".$ant;
+                        $exec = $this->conn->prepare($uplfc);
+                        $exec -> execute();
+                    }
+                    $goal['Actualizados'][]="Modelo ".$ant." actualizado por ".$nvo;
+                }else{
+                    $fails['Cod'] = "El articulo ".$ant." no existe";
+                }
+            }
+        }
+        $res = [
+            "goals"=>$goal,
+            "fails"=>$fails
+
+        ];
+        return $res;
+
+    }
 }
