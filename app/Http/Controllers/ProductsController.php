@@ -1559,7 +1559,7 @@ class ProductsController extends Controller
                 $exec -> execute();
                 $cod =$exec->fetch(\PDO::FETCH_ASSOC);
                 if($cod){
-                    $upart = "UPDATE F_ART SET CODART = ".$nvo."  WHERE CODART = ".$ant;
+                    $upart = "UPDATE F_ART SET CODART = ".$nvo.", FUMART = DATE()  WHERE CODART = ".$ant;
                     $exec = $this->conn->prepare($upart);
                     $exec -> execute();
                     //STO STOCK DE ARTICULOS
