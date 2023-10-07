@@ -1199,6 +1199,9 @@ class ProductsController extends Controller
         $exec = $this->conn->prepare($nextid);
         $exec -> execute();
         $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        if(is_null($id['ID'])){
+            $id = ['ID'=>"1"];
+        }
         $insa = [
             $client['DOCCLI'],
             $id['ID'],
@@ -1229,6 +1232,10 @@ class ProductsController extends Controller
         if($yes){
             $pos = 1;
             foreach($products as $product){
+                $pco =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
+                $exec = $this->conn->prepare($pco);
+                $exec -> execute();
+                $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
                 $inspro = [
                     $client['DOCCLI'],
                     $id['ID'],
@@ -1238,7 +1245,7 @@ class ProductsController extends Controller
                     $product['CANLTR'],
                     $product['PRE'],
                     $product['TOTAL'],
-                    $product['COSTO']
+                    $pcos['COSTO']
                 ];
                 $inspab = "INSERT INTO F_LFB (TIPLFB,CODLFB,POSLFB,ARTLFB,DESLFB,CANLFB,PRELFB,TOTLFB,COSLFB) VALUES (?,?,?,?,?,?,?,?,?)";
                 $exec = $this->conn->prepare($inspab);
@@ -1254,6 +1261,7 @@ class ProductsController extends Controller
         }else{
             return "No se genero el abono";
         }
+
 
     }
 
@@ -1299,6 +1307,10 @@ class ProductsController extends Controller
         if($yes){
             $pos = 1;
             foreach($products as $product){
+                $cos =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
+                $exec = $this->conn->prepare($cos);
+                $exec -> execute();
+                $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
                 $inspro = [
                     $client['DOCCLI'],
                     $id['ID'],
@@ -1308,7 +1320,7 @@ class ProductsController extends Controller
                     $product['CANLTR'],
                     $product['PRE'],
                     $product['TOTAL'],
-                    $product['COSTO']
+                    $pcos['COSTO']
                 ];
                 $inspab = "INSERT INTO F_LFA (TIPLFA,CODLFA,POSLFA,ARTLFA,DESLFA,CANLFA,PRELFA,TOTLFA,COSLFA) VALUES (?,?,?,?,?,?,?,?,?)";
                 $exec = $this->conn->prepare($inspab);
@@ -1700,4 +1712,35 @@ class ProductsController extends Controller
         return $res;
 
     }
+
+    public function getdev(Request $request){
+        $data = $request->data;
+        $dev = "SELECT * FROM F_FRD WHERE TIPFRD&'-'&CODFRD = "."'".$data['dev']."'";
+        $exec = $this->conn->prepare($dev);
+        $exec -> execute();
+        $devs =$exec->fetch(\PDO::FETCH_ASSOC);
+        if($devs){
+            $prodev = "SELECT * FROM F_LFD WHERE TIPLFD&'-'&CODLFD = "."'".$data['dev']."'";
+            $exec = $this->conn->prepare($prodev);
+            $exec -> execute();
+            $psdevs =$exec->fetchall(\PDO::FETCH_ASSOC);
+            foreach($psdevs as $pros){
+                $products[] = [
+                    "ARTLTR"=>$pros['ARTLFD'],
+                    "DES"=>$pros['DESLFD'],
+                    "CANLTR"=>$pros['CANLFD'],
+                    "PRE"=>$pros['PRELFD'],
+                    "TOTAL"=>$pros['TOTLFD']
+                ];
+            }
+        }
+        $res = [
+            "devolucion"=>$devs['TIPFRD']."-".$devs['CODFRD'],
+            "referencia"=>$devs['REFFRD'],
+            "total"=>$devs['TOTFRD'],
+            "productos"=>$products
+        ];
+        return $res;
+    }
+
 }
