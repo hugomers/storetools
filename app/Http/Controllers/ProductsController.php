@@ -1727,7 +1727,7 @@ class ProductsController extends Controller
             foreach($psdevs as $pros){
                 $products[] = [
                     "ARTLTR"=>$pros['ARTLFD'],
-                    "DES"=>$pros['DESLFD'],
+                    "DES"=>mb_convert_encoding($pros['DESLFD'],'UTF-8'),
                     "CANLTR"=>$pros['CANLFD'],
                     "PRE"=>$pros['PRELFD'],
                     "TOTAL"=>$pros['TOTLFD']
