@@ -739,6 +739,15 @@ class ProductsController extends Controller
                                             $docenaupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$docena,$codigo,3]);
                                             $mayoreoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$mayoreo,$codigo,2]);
                                             $menudeoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$menudeo,$codigo,1]);
+
+                                            $cosms = DB::connection('vizapub')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
+                                            $centroms = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',6)->update(['PP.price'=>$centro]);
+                                            $especialms = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',5)->update(['PP.price'=>$especial]);
+                                            $cajams = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',4)->update(['PP.price'=>$caja]);
+                                            $docenams = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',3)->update(['PP.price'=>$docena]);
+                                            $mayoreoms = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
+                                            $menudeoms = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
+
                                             if($costoupd  && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
                                                 $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
