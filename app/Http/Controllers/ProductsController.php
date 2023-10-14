@@ -1359,6 +1359,9 @@ class ProductsController extends Controller
         $exec = $this->conn->prepare($nextid);
         $exec -> execute();
         $id =$exec->fetch(\PDO::FETCH_ASSOC);
+        if(is_null($id['ID'])){
+            $id['ID'] = 1;
+        }
         $insa = [
             '1',
             $id['ID'],
@@ -1752,4 +1755,34 @@ class ProductsController extends Controller
         return $res;
     }
 
+    public function getinvoice(Request $request){
+        $data = $request->data;
+        $dev = "SELECT * FROM F_FAC WHERE TIPFAC&'-'&CODFAC = "."'".$data['fac']."'";
+        $exec = $this->conn->prepare($dev);
+        $exec -> execute();
+        $devs =$exec->fetch(\PDO::FETCH_ASSOC);
+        if($devs){
+            $prodev = "SELECT * FROM F_LFA WHERE TIPLFA&'-'&CODLFA = "."'".$data['fac']."'";
+            $exec = $this->conn->prepare($prodev);
+            $exec -> execute();
+            $psdevs =$exec->fetchall(\PDO::FETCH_ASSOC);
+            foreach($psdevs as $pros){
+                $products[] = [
+                    "ARTLTR"=>$pros['ARTLFA'],
+                    "DES"=>mb_convert_encoding($pros['DESLFA'],'UTF-8'),
+                    "CANLTR"=>$pros['CANLFA'],
+                    "PRE"=>$pros['PRELFA'],
+                    "TOTAL"=>$pros['TOTLFA']
+                ];
+            }
+        }
+        $res = [
+            "factura"=>$devs['TIPFAC']."-".str_pad($devs['CODFAC'],6,"0",STR_PAD_LEFT),
+            "client"=>mb_convert_encoding($devs['CLIFAC'],'UTF-8'),
+            "referencia"=>mb_convert_encoding($devs['REFFAC'],'UTF-8'),
+            "total"=>$devs['TOTFAC'],
+            "productos"=>$products
+        ];
+        return $res;
+    }
 }

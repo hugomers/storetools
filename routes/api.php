@@ -53,6 +53,7 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::get('/reportDepure',[ProductsController::class, 'reportDepure']);
     Route::post('/replacecode',[ProductsController::class, 'replacecode']);
     Route::post('/getdev',[ProductsController::class, 'getdev']);
+    Route::post('/getinvoice',[ProductsController::class, 'getinvoice']);
 
 });
 //regispricepub
