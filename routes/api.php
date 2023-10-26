@@ -73,6 +73,7 @@ Route::prefix('/Required')->group(function(){
 
 Route::prefix('/Resources')->group(function(){
     Route::post('/createClient',[accessController::class, 'createClient']);
+    Route::post('/createClientSuc',[accessController::class, 'createClientSuc']);
     Route::get('/getsal',[accessController::class, 'getsal']);
     Route::post('/updsal',[accessController::class, 'updsal']);
     Route::get('/getclient',[accessController::class, 'getclient']);
