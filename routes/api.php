@@ -70,3 +70,11 @@ Route::prefix('/Received')->group(function(){
 Route::prefix('/Required')->group(function(){
     Route::post('/Required',[RequiredController::class, 'invoice_received']);
 });
+
+Route::prefix('/Resources')->group(function(){
+    Route::post('/createClient',[accessController::class, 'createClient']);
+    Route::get('/getsal',[accessController::class, 'getsal']);
+    Route::post('/updsal',[accessController::class, 'updsal']);
+    Route::get('/getclient',[accessController::class, 'getclient']);
+
+});

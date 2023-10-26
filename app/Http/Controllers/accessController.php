@@ -304,4 +304,105 @@ class accessController extends Controller
         return response()->json("Regeneracion Hecha");
     }
 
+    public function createClient(Request $request){
+        $client =  $request->all();
+        $celphone = isset($client['celphone']) ? $client['celphone']: '';
+        $email = isset($client['email']) ? $client['email'] : '';
+        if($celphone  === ''){
+            if($email === ''){
+                $msg = "No se puede dar de alta sin telefono y sin correo";
+                return response()->json(['msg'=>$msg],400);
+            }else{
+                $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE EMACLI = "."'".$email."'";
+            }
+        }else{
+            $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE TELCLI = "."'".$celphone."'";
+        }
+
+        $existcli = $query;
+        $exec = $this->conn->prepare($existcli);
+        $exec -> execute();
+        $clientes = $exec->fetch(\PDO::FETCH_ASSOC);
+        if(!$clientes){
+            $maxid = "SELECT MAX(CODCLI) + 1 AS ID FROM F_CLI";
+            $exec = $this->conn->prepare($maxid);
+            $exec -> execute();
+            $idmax = $exec->fetch(\PDO::FETCH_ASSOC);
+            if(!$idmax){
+                $idmax['ID']=1;
+            }
+            $ins = [
+                intval($idmax['ID']),
+                intval($idmax['ID']),
+                $client['nom_cli'],
+                $client['nom_cli'],
+                $client['street']." ".$client['num_int']." ".$client['num_ext'],
+                $client['estado'],
+                $client['cp'],
+                $client['mun'],
+                $celphone,
+                500,
+                'EFE',
+                $client['price'],
+                'DIS',
+                $email,
+                8,
+                484,
+                'ESPAÑA',
+                'ESPAÑA',
+                'ESPAÑA',
+                'ESPAÑA',
+            ];
+            $inscli = "INSERT INTO F_CLI (CODCLI,CCOCLI,NOFCLI,NOCCLI,DOMCLI,POBCLI,CPOCLI,PROCLI,TELCLI,AGECLI,FPACLI,TARCLI,TCLCLI,EMACLI,DOCCLI,FUMCLI,FALCLI,PAICLI,APA1CLI,APA2CLI,APA3CLI,APA4CLI) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE(),DATE(),?,?,?,?,?)";
+            $exec = $this->conn->prepare($inscli);
+            $insertado = $exec -> execute($ins);
+            if($insertado){
+                $res = [
+                    "id"=>$idmax['ID'],
+                    "nombre"=>$client['nom_cli']
+                ];
+                return response()->json($res);
+            }else{
+                $msg = "No se pudo generar el cliente";
+                return response()->json(['msg'=>$msg],400);
+            }
+
+        }else{
+            $msg = "El celular o email ya esta en uso favor de intentarlo de nuevo";
+            return response()->json(['msg'=>$msg],400);
+        }
+
+    }
+
+    public function getsal(){
+        $salid = "SELECT  TIPFAC&'-'&CODFAC AS SALIDA, REFFAC AS REFERENCIA, CNOFAC AS CLIENTE, FECFAC  AS FECHA, OB2FAC AS ENTRADA FROM F_FAC WHERE TIPFAC <> '8' AND REFFAC NOT LIKE '%TRASPASO%' AND FECFAC = DATE()";
+        $exec = $this->conn->prepare($salid);
+        $exec -> execute();
+        $salidas = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return   mb_convert_encoding($salidas,'UTF-8');
+    }
+
+    public function updsal(Request $request){
+        $upd = [
+            $request->entrada,
+            $request->salida
+        ];
+        $upds = "UPDATE F_FAC SET OB2FAC = ? WHERE TIPFAC&'-'&CODFAC = ?";
+        $exec = $this->conn->prepare($upds);
+        $res = $exec -> execute($upd);
+        if($res){
+            return "salida actualizada";
+        }else{
+            return "no se pudo acturalizar la salida";
+        }
+
+    }
+
+    public function getclient(){
+        $existcli = "SELECT CODCLI, NOFCLI, TELCLI, EMACLI, TARCLI FROM F_CLI";
+        $exec = $this->conn->prepare($existcli);
+        $exec -> execute();
+        $clientes = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return mb_convert_encoding($clientes,'UTF-8');
+    }
 }
