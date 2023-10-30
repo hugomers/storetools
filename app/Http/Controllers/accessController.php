@@ -398,12 +398,21 @@ class accessController extends Controller
         }
     }
 
-    public function getclient(){
-        $existcli = "SELECT CODCLI, NOFCLI, TELCLI, EMACLI, TARCLI FROM F_CLI";
-        $exec = $this->conn->prepare($existcli);
+    public function getclient(Request $request){
+        $search = $request->query('q');
+        $existid = "SELECT CODCLI, NOFCLI, TELCLI, EMACLI, TARCLI FROM F_CLI WHERE CODCLI = ".intval($search);
+        $exec = $this->conn->prepare($existid);
         $exec->execute();
-        $clientes = $exec->fetchall(\PDO::FETCH_ASSOC);
-        return mb_convert_encoding($clientes, 'UTF-8');
+        $idex = $exec->fetchall(\PDO::FETCH_ASSOC);
+        if($idex){
+            return $idex;
+        }else{
+            $exis = "SELECT CODCLI, NOFCLI, TELCLI, EMACLI, TARCLI FROM F_CLI WHERE NOFCLI LIKE "."'%".$search."%'"." OR EMACLI LIKE "."'%".$search."%'"." OR TELCLI LIKE "."'%".$search."%'";
+            $exec = $this->conn->prepare($exis);
+            $exec->execute();
+            $clients = $exec->fetchall(\PDO::FETCH_ASSOC);
+            return $clients;
+        }
     }
 
     public function createClientSuc(Request $request){
