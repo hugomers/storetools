@@ -308,8 +308,7 @@ class accessController extends Controller
     }
 
     public function createClient(Request $request){
-        $client =  mb_convert_encoding($request->all(), 'UTF-8');
-        return response()->json($client);
+        $client = $request->all();
         $celphone = isset($client['celphone']) ? $client['celphone'] : '';
         $email = isset($client['email']) ? $client['email'] : '';
         if ($celphone  === '') {
@@ -335,15 +334,16 @@ class accessController extends Controller
             if (!$idmax) {
                 $idmax['ID'] = 1;
             }
+            // "name" => mb_convert_encoding((string)$provider['NOFPRO'], "UTF-8", "Windows-1252"),
             $ins = [
                 intval($idmax['ID']),
                 intval($idmax['ID']),
-                $client['nom_cli'],
-                $client['nom_cli'],
-                $client['street'] . " " . $client['num_int'] . " " . $client['num_ext'],
-                $client['estado'],
+                mb_convert_encoding((string)$client['nom_cli'], "UTF-8", "Windows-1252"),
+                mb_convert_encoding((string)$client['nom_cli'], "UTF-8", "Windows-1252"),
+                mb_convert_encoding((string)$client['street'] . " " . $client['num_int'] . " " . $client['num_ext'], "UTF-8", "Windows-1252"),
+                mb_convert_encoding((string)$client['estado'], "UTF-8", "Windows-1252"),
                 $client['cp'],
-                $client['mun'],
+                mb_convert_encoding((string)$client['mun'], "UTF-8", "Windows-1252"),
                 $celphone,
                 500,
                 'EFE',
