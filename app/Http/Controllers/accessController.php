@@ -308,74 +308,74 @@ class accessController extends Controller
         return response()->json("Regeneracion Hecha");
     }
 
-    // public function createClient(Request $request){
-    //     $client = $request->all();
-    //     $celphone = isset($client['celphone']) ? $client['celphone'] : '';
-    //     $email = isset($client['email']) ? $client['email'] : '';
-    //     if ($celphone  === '') {
-    //         if ($email === '') {
-    //             $msg = "No se puede dar de alta sin telefono y sin correo";
-    //             return response()->json(['msg' => $msg], 400);
-    //         } else {
-    //             $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE EMACLI = " . "'" . $email . "'";
-    //         }
-    //     } else {
-    //         $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE TELCLI = " . "'" . $celphone . "'";
-    //     }
+    public function createClient(Request $request){
+        $client = $request->all();
+        $celphone = isset($client['celphone']) ? $client['celphone'] : '';
+        $email = isset($client['email']) ? $client['email'] : '';
+        if ($celphone  === '') {
+            if ($email === '') {
+                $msg = "No se puede dar de alta sin telefono y sin correo";
+                return response()->json(['msg' => $msg], 400);
+            } else {
+                $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE EMACLI = " . "'" . $email . "'";
+            }
+        } else {
+            $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE TELCLI = " . "'" . $celphone . "'";
+        }
 
-    //     $existcli = $query;
-    //     $exec = $this->conn->prepare($existcli);
-    //     $exec->execute();
-    //     $clientes = $exec->fetch(\PDO::FETCH_ASSOC);
-    //     if (!$clientes) {
-    //         $maxid = "SELECT MAX(CODCLI) + 1 AS ID FROM F_CLI";
-    //         $exec = $this->conn->prepare($maxid);
-    //         $exec->execute();
-    //         $idmax = $exec->fetch(\PDO::FETCH_ASSOC);
-    //         if (!$idmax) {
-    //             $idmax['ID'] = 1;
-    //         }
-    //         // "name" => mb_convert_encoding((string)$provider['NOFPRO'], "UTF-8", "Windows-1252"),
-    //         $ins = [
-    //             intval($idmax['ID']),
-    //             intval($idmax['ID']),
-    //             mb_convert_encoding((string)$client['nom_cli'], "UTF-8", "Windows-1252"),
-    //             mb_convert_encoding((string)$client['nom_cli'], "UTF-8", "Windows-1252"),
-    //             mb_convert_encoding((string)$client['street'] . " " . $client['num_int'] . " " . $client['num_ext'], "UTF-8", "Windows-1252"),
-    //             mb_convert_encoding((string)$client['estado'], "UTF-8", "Windows-1252"),
-    //             $client['cp'],
-    //             mb_convert_encoding((string)$client['mun'], "UTF-8", "Windows-1252"),
-    //             $celphone,
-    //             500,
-    //             'EFE',
-    //             $client['price'],
-    //             'DIS',
-    //             $email,
-    //             8,
-    //             484,
-    //             'ESPAÑA',
-    //             'ESPAÑA',
-    //             'ESPAÑA',
-    //             'ESPAÑA',
-    //         ];
-    //         $inscli = "INSERT INTO F_CLI (CODCLI,CCOCLI,NOFCLI,NOCCLI,DOMCLI,POBCLI,CPOCLI,PROCLI,TELCLI,AGECLI,FPACLI,TARCLI,TCLCLI,EMACLI,DOCCLI,FUMCLI,FALCLI,PAICLI,APA1CLI,APA2CLI,APA3CLI,APA4CLI) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE(),DATE(),?,?,?,?,?)";
-    //         $exec = $this->conn->prepare($inscli);
-    //         $insertado = $exec->execute($ins);
-    //         if ($insertado) {
-    //             $res = [
-    //                 "id" => $idmax['ID'],
-    //                 "nombre" => $client['nom_cli']
-    //             ];
-    //             return response()->json($res);
-    //         } else {
-    //             $msg = "No se pudo generar el cliente";
-    //             return response()->json(['msg' => $msg], 400);
-    //         }
-    //     } else {
-    //         $msg = "El celular o email ya esta en uso favor de intentarlo de nuevo";
-    //         return response()->json(['msg' => $msg], 400);
-    //     }
-    // }
+        $existcli = $query;
+        $exec = $this->conn->prepare($existcli);
+        $exec->execute();
+        $clientes = $exec->fetch(\PDO::FETCH_ASSOC);
+        if (!$clientes) {
+            $maxid = "SELECT MAX(CODCLI) + 1 AS ID FROM F_CLI";
+            $exec = $this->conn->prepare($maxid);
+            $exec->execute();
+            $idmax = $exec->fetch(\PDO::FETCH_ASSOC);
+            if (!$idmax) {
+                $idmax['ID'] = 1;
+            }
+            // "name" => mb_convert_encoding((string)$provider['NOFPRO'], "UTF-8", "Windows-1252"),
+            $ins = [
+                intval($idmax['ID']),
+                intval($idmax['ID']),
+                utf8_decode($client['nom_cli']),
+                utf8_decode($client['nom_cli']),
+                utf8_decode($client['street'] . " " . $client['num_int'] . " " . $client['num_ext']),
+                utf8_decode($client['estado']),
+                $client['cp'],
+                utf8_decode($client['mun']),
+                $celphone,
+                500,
+                'EFE',
+                $client['price'],
+                'DIS',
+                $email,
+                8,
+                484,
+                'ESPAÑA',
+                'ESPAÑA',
+                'ESPAÑA',
+                'ESPAÑA',
+            ];
+            $inscli = "INSERT INTO F_CLI (CODCLI,CCOCLI,NOFCLI,NOCCLI,DOMCLI,POBCLI,CPOCLI,PROCLI,TELCLI,AGECLI,FPACLI,TARCLI,TCLCLI,EMACLI,DOCCLI,FUMCLI,FALCLI,PAICLI,APA1CLI,APA2CLI,APA3CLI,APA4CLI) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE(),DATE(),?,?,?,?,?)";
+            $exec = $this->conn->prepare($inscli);
+            $insertado = $exec->execute($ins);
+            if ($insertado) {
+                $res = [
+                    "id" => $idmax['ID'],
+                    "nombre" => $client['nom_cli']
+                ];
+                return response()->json($res);
+            } else {
+                $msg = "No se pudo generar el cliente";
+                return response()->json(['msg' => $msg], 400);
+            }
+        } else {
+            $msg = "El celular o email ya esta en uso favor de intentarlo de nuevo";
+            return response()->json(['msg' => $msg], 400);
+        }
+    }
 
     public function getsal(){
         $salid = "SELECT  TIPFAC&'-'&CODFAC AS SALIDA, REFFAC AS REFERENCIA, CNOFAC AS CLIENTE, FECFAC  AS FECHA, OB2FAC AS ENTRADA FROM F_FAC WHERE TIPFAC <> '8' AND REFFAC NOT LIKE '%TRASPASO%' AND FECFAC = DATE()";
@@ -434,12 +434,12 @@ class accessController extends Controller
             $ins = [
                 intval($client['fs_id']),
                 intval($client['fs_id']),
-                $client['nom_cli'],
-                $client['nom_cli'],
-                $client['street'] . " " . $client['num_int'] . " " . $client['num_ext'],
-                $client['estado'],
+                utf8_decode($client['nom_cli']),
+                utf8_decode($client['nom_cli']),
+                utf8_decode($client['street'] . " " . $client['num_int'] . " " . $client['num_ext']),
+                utf8_decode($client['estado']),
                 $client['cp'],
-                $client['mun'],
+                utf8_decode($client['mun']),
                 $celphone,
                 500,
                 'EFE',
@@ -473,73 +473,4 @@ class accessController extends Controller
             }
     }
 
-    public function createClient(Request $request){
-        $clb = $request->id;
-        $client = DB::table('forms')->where('id',$clb)->first();
-        $celphone = isset($client->celphone) ? $client->celphone : '';
-        $email = isset($client->email) ? $client->email : '';
-        if ($celphone  === '') {
-            if ($email === '') {
-                $msg = "No se puede dar de alta sin telefono y sin correo";
-                return response()->json(['msg' => $msg], 400);
-            } else {
-                $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE EMACLI = " . "'" . $email . "'";
-            }
-        } else {
-            $query = "SELECT CODCLI, NOFCLI FROM F_CLI WHERE TELCLI = " . "'" . $celphone . "'";
-        }
-
-        $existcli = $query;
-        $exec = $this->conn->prepare($existcli);
-        $exec->execute();
-        $clientes = $exec->fetch(\PDO::FETCH_ASSOC);
-        if (!$clientes) {
-            $maxid = "SELECT MAX(CODCLI) + 1 AS ID FROM F_CLI";
-            $exec = $this->conn->prepare($maxid);
-            $exec->execute();
-            $idmax = $exec->fetch(\PDO::FETCH_ASSOC);
-            if (!$idmax) {
-                $idmax['ID'] = 1;
-            }
-            // "name" => mb_convert_encoding((string)$provider['NOFPRO'], "UTF-8", "Windows-1252"),
-            $ins = [
-                intval($idmax['ID']),
-                intval($idmax['ID']),
-                mb_convert_encoding((string)$client->nom_cli, "Windows-1251", "UTF-8"),
-                mb_convert_encoding((string)$client->nom_cli, "Windows-1251", "UTF-8"),
-                mb_convert_encoding((string)$client->street . " " . $client->num_int . " " . $client->num_ext, "Windows-1251", "UTF-8"),
-                mb_convert_encoding((string)$client->estado, "Windows-1251", "UTF-8"),
-                $client->cp,
-                mb_convert_encoding((string)$client->mun, "Windows-1251", "UTF-8"),
-                $celphone,
-                500,
-                'EFE',
-                $client->price,
-                'DIS',
-                $email,
-                8,
-                484,
-                'ESPAÑA',
-                'ESPAÑA',
-                'ESPAÑA',
-                'ESPAÑA',
-            ];
-            $inscli = "INSERT INTO F_CLI (CODCLI,CCOCLI,NOFCLI,NOCCLI,DOMCLI,POBCLI,CPOCLI,PROCLI,TELCLI,AGECLI,FPACLI,TARCLI,TCLCLI,EMACLI,DOCCLI,FUMCLI,FALCLI,PAICLI,APA1CLI,APA2CLI,APA3CLI,APA4CLI) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE(),DATE(),?,?,?,?,?)";
-            $exec = $this->conn->prepare($inscli);
-            $insertado = $exec->execute($ins);
-            if ($insertado) {
-                $res = [
-                    "id" => $idmax['ID'],
-                    "nombre" => $client->nom_cli
-                ];
-                return response()->json($res);
-            } else {
-                $msg = "No se pudo generar el cliente";
-                return response()->json(['msg' => $msg], 400);
-            }
-        } else {
-            $msg = "El celular o email ya esta en uso favor de intentarlo de nuevo";
-            return response()->json(['msg' => $msg], 400);
-        }
-    }
 }
