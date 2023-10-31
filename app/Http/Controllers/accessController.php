@@ -405,13 +405,13 @@ class accessController extends Controller
         $exec->execute();
         $idex = $exec->fetchall(\PDO::FETCH_ASSOC);
         if($idex){
-            return $idex;
+            return mb_convert_encoding($idex, 'UTF-8');
         }else{
             $exis = "SELECT CODCLI, NOFCLI, TELCLI, EMACLI, TARCLI FROM F_CLI WHERE NOFCLI LIKE "."'%".$search."%'"." OR EMACLI LIKE "."'%".$search."%'"." OR TELCLI LIKE "."'%".$search."%'";
             $exec = $this->conn->prepare($exis);
             $exec->execute();
             $clients = $exec->fetchall(\PDO::FETCH_ASSOC);
-            return $clients;
+            return mb_convert_encoding($clients, 'UTF-8');
         }
     }
 
