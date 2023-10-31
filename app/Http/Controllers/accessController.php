@@ -309,6 +309,7 @@ class accessController extends Controller
 
     public function createClient(Request $request){
         $client =  $request->all();
+        return response()->json($client);
         $celphone = isset($client['celphone']) ? $client['celphone'] : '';
         $email = isset($client['email']) ? $client['email'] : '';
         if ($celphone  === '') {
@@ -337,12 +338,12 @@ class accessController extends Controller
             $ins = [
                 intval($idmax['ID']),
                 intval($idmax['ID']),
-                mb_convert_encoding($client['nom_cli'], 'UTF-8'),
-                mb_convert_encoding($client['nom_cli'], 'UTF-8'),
-                mb_convert_encoding($client['street'] . " " . $client['num_int'] . " " . $client['num_ext'], 'UTF-8'),
-                mb_convert_encoding($client['estado'], 'UTF-8'),
-                mb_convert_encoding($client['cp'], 'UTF-8'),
-                mb_convert_encoding($client['mun'], 'UTF-8'),
+                $client['nom_cli'],
+                $client['nom_cli'],
+                $client['street'] . " " . $client['num_int'] . " " . $client['num_ext'],
+                $client['estado'],
+                $client['cp'],
+                $client['mun'],
                 $celphone,
                 500,
                 'EFE',
