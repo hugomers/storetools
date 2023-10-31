@@ -308,7 +308,7 @@ class accessController extends Controller
     }
 
     public function createClient(Request $request){
-        $client =  $request->all();
+        $client =  mb_convert_encoding($request->all(), 'UTF-8');
         return response()->json($client);
         $celphone = isset($client['celphone']) ? $client['celphone'] : '';
         $email = isset($client['email']) ? $client['email'] : '';
