@@ -1266,9 +1266,9 @@ class ProductsController extends Controller
                 $pos++;
             }
             $res =$client['DOCCLI']."-".$id['ID'];
-            return response()->json($res);
+            return response()->json($res,200);
         }else{
-            return "No se genero el abono";
+            return response()->json("No se genero el abono",401);
         }
 
 
@@ -1745,14 +1745,17 @@ class ProductsController extends Controller
                     "TOTAL"=>$pros['TOTLFD']
                 ];
             }
+            $res = [
+                "devolucion"=>$devs['TIPFRD']."-".$devs['CODFRD'],
+                "referencia"=>$devs['REFFRD'],
+                "total"=>$devs['TOTFRD'],
+                "productos"=>$products
+            ];
+            return response()->json($res,200);
+        }else{
+            return response()->json("No existe la devolucion",404);
         }
-        $res = [
-            "devolucion"=>$devs['TIPFRD']."-".$devs['CODFRD'],
-            "referencia"=>$devs['REFFRD'],
-            "total"=>$devs['TOTFRD'],
-            "productos"=>$products
-        ];
-        return $res;
+
     }
 
     public function getinvoice(Request $request){

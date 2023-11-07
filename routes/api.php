@@ -77,5 +77,8 @@ Route::prefix('/Resources')->group(function(){
     Route::get('/getsal',[accessController::class, 'getsal']);
     Route::post('/updsal',[accessController::class, 'updsal']);
     Route::get('/getclient',[accessController::class, 'getclient']);
+    Route::get('/getdev',[accessController::class, 'getdev']);
+    Route::post('/upddev',[accessController::class, 'upddev']);
+
 
 });
