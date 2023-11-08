@@ -1349,7 +1349,7 @@ class ProductsController extends Controller
     }
 
     public function invoiceReceived(Request $request){//factura recibida
-        $datos = $request->data;
+        $datos = $request->all();
         $products = $datos['products'];
         $datprov =  "SELECT CODPRO,NOFPRO,DOMPRO,POBPRO,CPOPRO,PROPRO FROM F_PRO WHERE CODPRO = 5";
         $exec = $this->conn->prepare($datprov);
@@ -1408,9 +1408,9 @@ class ProductsController extends Controller
                 $pos++;
             }
             $res ="1"."-".$id['ID'];
-            return response()->json($res);
+        return response()->json($res,200);
         }else{
-            return "No se genero la factura recibida";
+            return response()->json("No se genero la factura recibida",401);
         }
     }
 
@@ -1759,13 +1759,13 @@ class ProductsController extends Controller
     }
 
     public function getinvoice(Request $request){
-        $data = $request->data;
-        $dev = "SELECT * FROM F_FAC WHERE TIPFAC&'-'&CODFAC = "."'".$data['fac']."'";
+        $data = $request->fac;
+        $dev = "SELECT * FROM F_FAC WHERE TIPFAC&'-'&CODFAC = "."'".$data."'";
         $exec = $this->conn->prepare($dev);
         $exec -> execute();
         $devs =$exec->fetch(\PDO::FETCH_ASSOC);
         if($devs){
-            $prodev = "SELECT * FROM F_LFA WHERE TIPLFA&'-'&CODLFA = "."'".$data['fac']."'";
+            $prodev = "SELECT * FROM F_LFA WHERE TIPLFA&'-'&CODLFA = "."'".$data."'";
             $exec = $this->conn->prepare($prodev);
             $exec -> execute();
             $psdevs =$exec->fetchall(\PDO::FETCH_ASSOC);
@@ -1778,14 +1778,16 @@ class ProductsController extends Controller
                     "TOTAL"=>$pros['TOTLFA']
                 ];
             }
+            $res = [
+                "factura"=>$devs['TIPFAC']."-".str_pad($devs['CODFAC'],6,"0",STR_PAD_LEFT),
+                "client"=>mb_convert_encoding($devs['CLIFAC'],'UTF-8'),
+                "referencia"=>mb_convert_encoding($devs['REFFAC'],'UTF-8'),
+                "total"=>$devs['TOTFAC'],
+                "productos"=>$products,
+                ];
+            return response()->json($res,200);
+        }else{
+            return response()->json("No existe la factura",404);
         }
-        $res = [
-            "factura"=>$devs['TIPFAC']."-".str_pad($devs['CODFAC'],6,"0",STR_PAD_LEFT),
-            "client"=>mb_convert_encoding($devs['CLIFAC'],'UTF-8'),
-            "referencia"=>mb_convert_encoding($devs['REFFAC'],'UTF-8'),
-            "total"=>$devs['TOTFAC'],
-            "productos"=>$products
-        ];
-        return $res;
     }
 }
