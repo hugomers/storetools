@@ -144,6 +144,8 @@ class UserController extends Controller
     }
 
     public function insuc(Request $request){
+        $accessfile = env('DBALIAS');
+        $year = date('Y');
         $user = $request->usuario;
         $codusu = $user['CODUSU'];
         $permisos = $request->permiso;
@@ -157,6 +159,7 @@ class UserController extends Controller
             $exec = $this->con->prepare($upcon);
             $inss = $exec -> execute();
         }else{
+            $user['EMPUSU'] ='FS'.$accessfile.$year;
             $column = array_keys($user);
             $values = array_values($user);
             $cols = implode(',',$column);
