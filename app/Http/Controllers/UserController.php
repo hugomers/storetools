@@ -154,13 +154,15 @@ class UserController extends Controller
             $exec = $this->con->prepare($upcon);
             $inss = $exec -> execute();
         }else{
-            $cols = implode(',',array_keys($user));
-            $signos = str_repeat(',?',count(array_keys($user)));
+            $column = array_keys($user);
+            $values = array_values($user);
+            $cols = implode(',',$column);
+            $signos = implode(',',array_fill(0,count($column),'?'));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
             return $ins;
             $exec = $this->con->prepare($ins);
-            $inss =$exec -> execute(array_values($user));
+            $inss =$exec -> execute($values);
         }
         return response()->json($ins);
     }
