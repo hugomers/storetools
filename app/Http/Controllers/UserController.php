@@ -163,6 +163,6 @@ class UserController extends Controller
             $exec = $this->con->prepare($ins);
             $inss =$exec -> execute(array_values($user));
         }
-        return response()->json($inss);
+        return response()->json($ins);
     }
 }
