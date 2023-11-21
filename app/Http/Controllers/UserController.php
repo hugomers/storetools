@@ -127,12 +127,12 @@ class UserController extends Controller
                 "usuario"=>$use,
                 "permiso"=>$pre,
             ];
-            // foreach($sucursales as $sucursal){
-                // $ip = $sucursal->ip_address;
+            foreach($sucursales as $sucursal){
+                $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
                 $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
                 $simon = $envusu->json();
-            // }
+            }
 
             $respu[] = [
                 "send"=>$simon,
