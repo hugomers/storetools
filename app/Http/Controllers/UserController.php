@@ -158,10 +158,12 @@ class UserController extends Controller
             $values = array_values($user);
             $cols = implode(',',$column);
             $signos = implode(',',array_fill(0,count($column),'?'));
+            try{
+                $ins = "INSERT INTO ($cols) VALUES ($signos)";
+                $exec = $this->con->prepare($ins);
+                $inss =$exec -> execute($values);
+            }catch(\PDOException $e){ die($e->getMessage()); }
 
-            $ins = "INSERT INTO ($cols) VALUES ($signos)";
-            $exec = $this->con->prepare($ins);
-            $inss =$exec -> execute($values);
         }
         return response()->json($inss);
     }
