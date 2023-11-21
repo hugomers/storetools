@@ -128,8 +128,7 @@ class UserController extends Controller
                 // $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
                 $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
-                $si = $envusu->json();
-                $simon = $si;
+                $simon = $envusu;
             // }
 
             // $respu[] = [
@@ -156,7 +155,7 @@ class UserController extends Controller
             $inss = $exec -> execute();
         }else{
             $cols = implode(',',array_keys($user));
-            $signos = str_repeat('?',count(array_keys($user)));
+            $signos = str_repeat(',?',count(array_keys($user)));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
             return $ins;
