@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class UserController extends Controller
 {
@@ -136,7 +137,7 @@ class UserController extends Controller
             ];
         }
 
-        return response()->json(mb_convert_encoding($respu,'UTF-8'));
+        return response()->json($respu);
     }
 
     public function insuc(Request $request){
@@ -145,7 +146,7 @@ class UserController extends Controller
         $permisos = $request->permiso;
 
         $existus = "SELECT * FROM F_USU WHERE CODUSU = $codusu";
-        $exec = $this->con->prepare($permiso);
+        $exec = $this->con->prepare($existus);
         $exec -> execute();
         $exist =$exec->fetch(\PDO::FETCH_ASSOC);
         if($exist){
