@@ -160,10 +160,9 @@ class UserController extends Controller
             $signos = implode(',',array_fill(0,count($column),'?'));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
-            return $ins;
             $exec = $this->con->prepare($ins);
             $inss =$exec -> execute($values);
         }
-        return response()->json($ins);
+        return response()->json($inss);
     }
 }
