@@ -137,7 +137,7 @@ class UserController extends Controller
             ];
         }
 
-        return mb_convert_encoding($respu,'UTF-8');
+        return $respu;
     }
 
     public function insuc(Request $request){
@@ -152,15 +152,15 @@ class UserController extends Controller
         if($exist){
             $upcon = "UPDATE F_USU SET CLAUSU = "."'".$user['CLAUSU']."'"." WHERE CODUSU = $codusu";
             $exec = $this->con->prepare($upcon);
-            $ins = $exec -> execute();
+            $inss = $exec -> execute();
         }else{
             $cols = implode(',',array_keys($user));
             $signos = str_repeat('?',count(array_keys($user)));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
             $exec = $this->con->prepare($ins);
-            $ins =$exec -> execute(array_values($user));
+            $inss =$exec -> execute(array_values($user));
         }
-        return $ins;
+        return $inss;
     }
 }
