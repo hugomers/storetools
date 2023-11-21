@@ -10,6 +10,8 @@ use App\Http\Controllers\cashierController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ReceivedController;
 use App\Http\Controllers\RequiredController;
+use App\Http\Controllers\UserController;
+
 
 
 
@@ -80,5 +82,11 @@ Route::prefix('/Resources')->group(function(){
     Route::get('/getdev',[accessController::class, 'getdev']);
     Route::post('/upddev',[accessController::class, 'upddev']);
 
+
+});
+
+Route::prefix('/Users')->group(function(){
+    Route::post('/create',[UserController::class, 'createUser']);
+    Route::post('/reply',[UserController::class, 'replyUser']);
 
 });
