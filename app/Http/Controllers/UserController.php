@@ -125,7 +125,7 @@ class UserController extends Controller
             ];
 
             foreach($sucursales as $sucursal){
-                $ip = $sucursal->ip_address;
+                // $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
                 $envusu = Http::post($ip.'/storetools/public/api/Users/insuc',$datos);
                 $simon[] = $envusu;
@@ -137,7 +137,7 @@ class UserController extends Controller
             ];
         }
 
-        return response()->json($respu);
+        return mb_convert_encoding($respu,'UTF-8');
     }
 
     public function insuc(Request $request){
@@ -152,15 +152,15 @@ class UserController extends Controller
         if($exist){
             $upcon = "UPDATE F_USU SET CLAUSU = "."'".$user['CLAUSU']."'"." WHERE CODUSU = $codusu";
             $exec = $this->con->prepare($upcon);
-            $exec -> execute();
+            $ins = $exec -> execute();
         }else{
             $cols = implode(',',array_keys($user));
             $signos = str_repeat('?',count(array_keys($user)));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
             $exec = $this->con->prepare($ins);
-            $exec -> execute(array_values($user));
+            $ins =$exec -> execute(array_values($user));
         }
-
+        return $ins;
     }
 }
