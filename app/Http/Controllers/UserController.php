@@ -118,12 +118,14 @@ class UserController extends Controller
             $exec -> execute();
             $permi =$exec->fetchall(\PDO::FETCH_ASSOC);
 
-
-
-
+            if($permi){
+                $pre = $permi;
+            }else{
+                $pre = [];
+            }
             $datos = [
                 "usuario"=>$use,
-                "permiso"=>$permi,
+                "permiso"=>$pre,
             ];
             // foreach($sucursales as $sucursal){
                 // $ip = $sucursal->ip_address;
@@ -186,7 +188,7 @@ class UserController extends Controller
                 $exec -> execute();
             }
 
-            }
+        }
 
         return response()->json('OK');
     }
