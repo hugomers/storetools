@@ -113,20 +113,33 @@ class UserController extends Controller
             $exec -> execute();
             $use =$exec->fetch(\PDO::FETCH_ASSOC);
 
-            $permiso = "SELECT * FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$id','PermisosTipoFactuSOL_$id')";
+            $permiso = "SELECT * FROM F_CFG WHERE CODCFG ='PermisosFactuSOL_$id'";
             $exec = $this->con->prepare($permiso);
             $exec -> execute();
-            $permi =$exec->fetchall(\PDO::FETCH_ASSOC);
+            $permi =$exec->fetch(\PDO::FETCH_ASSOC);
+
+            $env = [
+                'CODCFG'=>$permi['CODCFG'],
+                'NUMCFG'=>$permi['NUMCFG'],
+                'TEXCFG'=>base64_encode($permi['TEXCFG']),
+                'TIPCFG'=>$permi['TIPCFG']
+            ];
+
+            $program = "SELECT * FROM F_CFG WHERE CODCFG = 'PermisosTipoFactuSOL_$id'";
+            $exec = $this->con->prepare($program);
+            $exec -> execute();
+            $pro =$exec->fetch(\PDO::FETCH_ASSOC);
 
 
             $datos = [
                 "usuario"=>$use,
-                "permiso"=>$permi,
+                "permiso"=>$env,
+                "program"=>$pro
             ];
             // foreach($sucursales as $sucursal){
                 // $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
-                $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', base64_encode($datos,'UTF-8'));
+                $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
                 $simon = $envusu->json();
             // }
 
@@ -140,10 +153,9 @@ class UserController extends Controller
     }
 
     public function insuc(Request $request){
-        $decode = base64_decode($request->all());
-        $user = $decode['usuario'];
+        $user = $request->usuario;
         $codusu = $user['CODUSU'];
-        $permisos = $decode['permiso'];
+        $permisos = $request->permiso;
 
         $existus = "SELECT * FROM F_USU WHERE CODUSU = $codusu";
         $exec = $this->con->prepare($existus);
@@ -173,18 +185,15 @@ class UserController extends Controller
             $exec = $this->con->prepare($permisodel);
             $exec -> execute();
         }else{
-            foreach($permisos as $permiso){
-                $column = array_keys($permiso);
-                $values = array_values($permiso);
-                $cols = implode(',',$column);
-                $signos = implode(',',array_fill(0,count($column),'?'));
-                try{
-                    $ins = "INSERT INTO F_CFG ($cols) VALUES ($signos)";
-                    $exec = $this->con->prepare($ins);
-                    $inss =$exec -> execute($values);
-                }catch(\PDOException $e){ die($e->getMessage()); }
-            }
-
+            $insper = [
+                $permisos['CODCFG'],
+                $permisos['NUMCFG'],
+                base64_decode($permisos['TEXCFG']),
+                $permisos['TIPCFG']
+            ];
+            $insdel = "INSERT INTO F_CFG (CODCFG,NUMCFG,TEXCFG,TIPCFG) VALUES (?,?,?,?)";
+            $exec = $this->con->prepare($insdel);
+            $exec -> execute();
         }
 
         return response()->json('OK');
