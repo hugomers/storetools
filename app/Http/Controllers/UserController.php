@@ -181,15 +181,15 @@ class UserController extends Controller
                     $per['CODCFG'],
                     $per['NUMCFG'],
                     utf8_decode($per['TEXCFG']),
-                    $permisos['TIPCFG']
+                    $per['TIPCFG']
                 ];
                 $insdel = "INSERT INTO F_CFG (CODCFG,NUMCFG,TEXCFG,TIPCFG) VALUES (?,?,?,?)";
                 $exec = $this->con->prepare($insdel);
-                $exec -> execute($insper);
+                $ins = $exec -> execute($insper);
+                $ok[] = $ins;
             }
-
         }
 
-        return response()->json('OK');
+        return response()->json($ok);
     }
 }
