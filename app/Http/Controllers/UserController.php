@@ -185,7 +185,7 @@ class UserController extends Controller
                 ];
                 $insdel = "INSERT INTO F_CFG (CODCFG,NUMCFG,TEXCFG,TIPCFG) VALUES (?,?,?,?)";
                 $exec = $this->con->prepare($insdel);
-                $exec -> execute();
+                $exec -> execute($insper);
             }
 
         }
