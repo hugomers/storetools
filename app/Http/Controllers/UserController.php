@@ -113,28 +113,17 @@ class UserController extends Controller
             $exec -> execute();
             $use =$exec->fetch(\PDO::FETCH_ASSOC);
 
-            $permiso = "SELECT * FROM F_CFG WHERE CODCFG ='PermisosFactuSOL_$id'";
+            $permiso = "SELECT * FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$id','PermisosTipoFactuSOL_$id')";
             $exec = $this->con->prepare($permiso);
             $exec -> execute();
-            $permi =$exec->fetch(\PDO::FETCH_ASSOC);
+            $permi =$exec->fetchall(\PDO::FETCH_ASSOC);
 
-            $env = [
-                'CODCFG'=>$permi['CODCFG'],
-                'NUMCFG'=>$permi['NUMCFG'],
-                'TEXCFG'=>base64_encode($permi['TEXCFG']),
-                'TIPCFG'=>$permi['TIPCFG']
-            ];
 
-            $program = "SELECT * FROM F_CFG WHERE CODCFG = 'PermisosTipoFactuSOL_$id'";
-            $exec = $this->con->prepare($program);
-            $exec -> execute();
-            $pro =$exec->fetch(\PDO::FETCH_ASSOC);
 
 
             $datos = [
                 "usuario"=>$use,
-                "permiso"=>$env,
-                "program"=>$pro
+                "permiso"=>$permi,
             ];
             // foreach($sucursales as $sucursal){
                 // $ip = $sucursal->ip_address;
@@ -185,16 +174,19 @@ class UserController extends Controller
             // $exec = $this->con->prepare($permisodel);
             // $exec -> execute();
         }else{
-            $insper = [
-                $permisos['CODCFG'],
-                $permisos['NUMCFG'],
-                base64_decode($permisos['TEXCFG']),
-                $permisos['TIPCFG']
-            ];
-            $insdel = "INSERT INTO F_CFG (CODCFG,NUMCFG,TEXCFG,TIPCFG) VALUES (?,?,?,?)";
-            $exec = $this->con->prepare($insdel);
-            $exec -> execute();
-        }
+            foreach($permisos as $per){
+                $insper = [
+                    $per['CODCFG'],
+                    $per['NUMCFG'],
+                    utf8_decode($per['TEXCFG']),
+                    $permisos['TIPCFG']
+                ];
+                $insdel = "INSERT INTO F_CFG (CODCFG,NUMCFG,TEXCFG,TIPCFG) VALUES (?,?,?,?)";
+                $exec = $this->con->prepare($insdel);
+                $exec -> execute();
+            }
+
+            }
 
         return response()->json('OK');
     }
