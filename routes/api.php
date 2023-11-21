@@ -88,5 +88,7 @@ Route::prefix('/Resources')->group(function(){
 Route::prefix('/Users')->group(function(){
     Route::post('/create',[UserController::class, 'createUser']);
     Route::post('/reply',[UserController::class, 'replyUser']);
+    Route::post('/insuc',[UserController::class, 'insuc']);
+
 
 });
