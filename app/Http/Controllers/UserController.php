@@ -181,9 +181,9 @@ class UserController extends Controller
         $exec -> execute();
         $permi =$exec->fetchall(\PDO::FETCH_ASSOC);
         if($permi){
-            $permisodel = "DELETE FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$codusu','PermisosTipoFactuSOL_$codusu')";
-            $exec = $this->con->prepare($permisodel);
-            $exec -> execute();
+            // $permisodel = "DELETE FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$codusu','PermisosTipoFactuSOL_$codusu')";
+            // $exec = $this->con->prepare($permisodel);
+            // $exec -> execute();
         }else{
             $insper = [
                 $permisos['CODCFG'],
