@@ -108,7 +108,7 @@ class UserController extends Controller
             }
 
             //inicio de usuario
-            $user = "SELECT * FROM F_USU WHERE CODUSU = $id";
+            $user = "SELECT CODUSU,NOMUSU,CLAUSU,EMPUSU,GESUSU,CONUSU,LABUSU,ALMARTUSU,APPUSU,ALBUSU,FACUSU,PREUSU,PPRUSU,FREUSU,PCLUSU,RECUSU,ENTUSU,FABUSU,FRDUSU,IDIUSU,ELIUSU FROM F_USU WHERE CODUSU = $id";
             $exec = $this->con->prepare($user);
             $exec -> execute();
             $use =$exec->fetch(\PDO::FETCH_ASSOC);
@@ -159,7 +159,7 @@ class UserController extends Controller
             $cols = implode(',',$column);
             $signos = implode(',',array_fill(0,count($column),'?'));
             try{
-                $ins = "INSERT INTO ($cols) VALUES ($signos)";
+                $ins = "INSERT INTO F_USU ($cols) VALUES ($signos)";
                 $exec = $this->con->prepare($ins);
                 $inss =$exec -> execute($values);
             }catch(\PDOException $e){ die($e->getMessage()); }
