@@ -123,21 +123,21 @@ class UserController extends Controller
                 "usuario"=>$use,
                 "permiso"=>$permi,
             ];
-
-            // foreach($sucursales as $sucursal){
+            return mb_convert_encoding($datos,'UTF-8');
+            foreach($sucursales as $sucursal){
                 // $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
                 $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
-                $simon = $envusu;
-            // }
+                $simon = $envusu->json();
+            }
 
-            // $respu[] = [
-            //     "send"=>$simon,
-            //     "usuario"=>$id
-            // ];
+            $respu[] = [
+                "send"=>$simon,
+                "usuario"=>$id
+            ];
         }
 
-        return $simon;
+        return $respu;
     }
 
     public function insuc(Request $request){
@@ -163,8 +163,30 @@ class UserController extends Controller
                 $exec = $this->con->prepare($ins);
                 $inss =$exec -> execute($values);
             }catch(\PDOException $e){ die($e->getMessage()); }
+        }
+        $permiso = "SELECT * FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$codusu','PermisosTipoFactuSOL_$codusu')";
+        $exec = $this->con->prepare($permiso);
+        $exec -> execute();
+        $permi =$exec->fetchall(\PDO::FETCH_ASSOC);
+        if($permi){
+            $permisodel = "DELETE FROM F_CFG WHERE CODCFG IN ('PermisosFactuSOL_$codusu','PermisosTipoFactuSOL_$codusu')";
+            $exec = $this->con->prepare($permisodel);
+            $exec -> execute();
+        }else{
+            foreach($permisos as $permiso){
+                $column = array_keys($permiso);
+                $values = array_values($permiso);
+                $cols = implode(',',$column);
+                $signos = implode(',',array_fill(0,count($column),'?'));
+                try{
+                    $ins = "INSERT INTO F_CFG ($cols) VALUES ($signos)";
+                    $exec = $this->con->prepare($ins);
+                    $inss =$exec -> execute($values);
+                }catch(\PDOException $e){ die($e->getMessage()); }
+            }
 
         }
-        return response()->json($inss);
+
+        return response()->json('OK');
     }
 }
