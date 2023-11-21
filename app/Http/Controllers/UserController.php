@@ -150,7 +150,7 @@ class UserController extends Controller
         $exec -> execute();
         $exist =$exec->fetch(\PDO::FETCH_ASSOC);
         if($exist){
-            $upcon = "UPDATE F_USU SET CLAUSU = "."'".$usuario['CLAUSU']."'"." WHERE CODUSU = $codusu";
+            $upcon = "UPDATE F_USU SET CLAUSU = "."'".$user['CLAUSU']."'"." WHERE CODUSU = $codusu";
             $exec = $this->con->prepare($upcon);
             $exec -> execute();
         }else{
