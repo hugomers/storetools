@@ -132,11 +132,12 @@ class UserController extends Controller
                 // $ip = '192.168.10.177:1619';
                 $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
                 $simon = $envusu->json();
+                $suc[]=["respuesta"=>$simon,"sucursal"=>$sucursal->alias];
             }
 
             $respu[] = [
-                "send"=>$simon,
-                "usuario"=>$id
+                "send"=>$suc,
+                "usuario"=>$id,
             ];
         }
 
@@ -192,7 +193,11 @@ class UserController extends Controller
                 $ok[] = $ins;
             }
         }
+        $res = [
+            "usuario"=>$inss,
+            "permisos"=>$ok
+        ];
 
-        return response()->json($ok);
+        return response()->json($res);
     }
 }
