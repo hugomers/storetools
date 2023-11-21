@@ -124,20 +124,21 @@ class UserController extends Controller
                 "permiso"=>$permi,
             ];
 
-            foreach($sucursales as $sucursal){
+            // foreach($sucursales as $sucursal){
                 // $ip = $sucursal->ip_address;
                 $ip = '192.168.10.177:1619';
-                $envusu = Http::post($ip.'/storetools/public/api/Users/insuc',$datos);
-                $simon[] = $envusu;
-            }
+                $envusu = Http::post($ip.'/storetools/public/api/Users/insuc', mb_convert_encoding($datos,'UTF-8'));
+                $si = $envusu->json();
+                $simon = $si;
+            // }
 
-            $respu[] = [
-                "send"=>$simon,
-                "usuario"=>$id
-            ];
+            // $respu[] = [
+            //     "send"=>$simon,
+            //     "usuario"=>$id
+            // ];
         }
 
-        return $respu;
+        return $simon;
     }
 
     public function insuc(Request $request){
@@ -158,6 +159,7 @@ class UserController extends Controller
             $signos = str_repeat('?',count(array_keys($user)));
 
             $ins = "INSERT INTO ($cols) VALUES ($signos)";
+            return $ins;
             $exec = $this->con->prepare($ins);
             $inss =$exec -> execute(array_values($user));
         }
