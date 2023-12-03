@@ -1785,7 +1785,7 @@ class ProductsController extends Controller
                 "total"=>$devs['TOTFAC'],
                 "productos"=>$products,
                 ];
-            return response()->json($res,200);
+            return response()->json( mb_convert_encoding($res,'UTF-8'),200);
         }else{
             return response()->json("No existe la factura",404);
         }
