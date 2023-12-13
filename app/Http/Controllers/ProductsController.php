@@ -1349,7 +1349,7 @@ class ProductsController extends Controller
     }
 
     public function invoiceReceived(Request $request){//factura recibida
-        $datos = $request->data;
+        $datos = $request->all();
         $products = $datos['products'];
         $datprov =  "SELECT CODPRO,NOFPRO,DOMPRO,POBPRO,CPOPRO,PROPRO FROM F_PRO WHERE CODPRO = 5";
         $exec = $this->conn->prepare($datprov);
