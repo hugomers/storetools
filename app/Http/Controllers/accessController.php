@@ -474,7 +474,7 @@ class accessController extends Controller
     }
 
     public function getdev(){
-        $salid = "SELECT  TIPFRD&'-'&CODFRD AS DEVOLUCION, REFFRD AS REFERENCIA, PROFRD AS PROVEEDOR, FECFRD  AS FECHA, OB2FRD AS ABONO FROM F_FRD";
+        $salid = "SELECT  TIPFRD&'-'&CODFRD AS DEVOLUCION, REFFRD AS REFERENCIA, PROFRD AS PROVEEDOR, FECFRD  AS FECHA, OB2FRD AS ABONO FROM F_FRD WHERE PROFRD = 5";
         $exec = $this->conn->prepare($salid);
         $exec->execute();
         $salidas = $exec->fetchall(\PDO::FETCH_ASSOC);
@@ -499,6 +499,20 @@ class accessController extends Controller
             return response()->json("devolucion actualizada",200);
         } else {
             return response()->json("no se pudo actualizar la devolucion",401);
+        }
+    }
+
+    public function gettras(){
+        $salid = "SELECT  TIPFRD&'-'&CODFRD AS DEVOLUCION, REFFRD AS REFERENCIA, PROFRD AS PROVEEDOR, FECFRD  AS FECHA, COMFRD AS TRAZABILIDAD FROM F_FRD WHERE PROFRD >= 250";
+        $exec = $this->conn->prepare($salid);
+        $exec->execute();
+        $salidas = $exec->fetchall(\PDO::FETCH_ASSOC);
+        if($salidas){
+            $res = mb_convert_encoding($salidas, 'UTF-8');
+            return response()->json($res,200);
+        }else{
+            $res = [];
+            return response()->json($res,404);
         }
     }
 }
