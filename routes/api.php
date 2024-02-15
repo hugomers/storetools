@@ -82,14 +82,14 @@ Route::prefix('/Resources')->group(function(){
     Route::get('/getdev',[accessController::class, 'getdev']);
     Route::post('/upddev',[accessController::class, 'upddev']);
     Route::get('/gettras',[accessController::class, 'gettras']);
-
-
+    Route::post('/returndev',[accessController::class, 'returndev']);
+    Route::post('/createAbono',[accessController::class, 'createAbono']);
+    Route::post('/createSalidas',[accessController::class, 'createSalidas']);
+    Route::post('/createEntradas',[accessController::class, 'createEntradas']);
 });
 
 Route::prefix('/Users')->group(function(){
     Route::post('/create',[UserController::class, 'createUser']);
     Route::post('/reply',[UserController::class, 'replyUser']);
     Route::post('/insuc',[UserController::class, 'insuc']);
-
-
 });
