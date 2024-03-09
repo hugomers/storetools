@@ -93,7 +93,7 @@ class ReceivedController extends Controller
                         $exec = $this->conn->prepare($sql);
                         $exec -> execute($fac);
                         $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
-                        DB::table('requisition')->where('id',$id)->update(['invoice'=>$folio]);//se actualiza la columna invoice con el numero de la factura
+                        DB::connection('vizapi')->table('requisition')->where('id',$id)->update(['invoice'=>$folio]);//se actualiza la columna invoice con el numero de la factura
                         // $curl = curl_init();//inicia el curl para el envio de el mensaje via whats app
                         // curl_setopt_array($curl, array(
                         //   CURLOPT_URL => "https://api.ultramsg.com/instance9800/messages/chat",
@@ -123,7 +123,7 @@ class ReceivedController extends Controller
     public function productrequired($id,$rol,$codfac){//metoro de insercion de productos en factusol
 
 
-        $product_require = DB::table('product_required AS PR')//se crea el query para obteener los productos de la requisision
+        $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
             ->join('products AS P','P.id','=','PR._product')
             ->leftjoin('prices_product AS PP','PP._product','=','P.id')
             ->where('PR._requisition',$id)
