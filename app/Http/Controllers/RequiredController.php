@@ -26,13 +26,13 @@ class RequiredController extends Controller
             $date_format = Carbon::now()->format('d/m/Y');//se obtiene el dia que ocurre
             // $date_format = date("d/m/Y");//se formatea la fecha de el dia con el formato solo de fecha
             $hour = "01/01/1900 ".explode(" ", $date)[1];//se formatea la fecha de el dia de hoy poniendo solo la hora en la que se genera
-            $status = DB::table('requisition')->where('id',$id)->value('_status');
-            $id = DB::table('requisition')->where('id',$id)->value('id');
+            $status = DB::connection('vizapi')->table('requisition')->where('id',$id)->value('_status');
+            $id = DB::connection('vizapi')->table('requisition')->where('id',$id)->value('id');
             if($id){//SE VALIDA QUE LA REQUISICION EXISTA
                 if($status == 9){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 POR ENVIAR
-                    $count =DB::table('product_required')->where('_requisition',$id)->wherenotnull('toReceived')->where('toReceived','>',0)->count('_product');
+                    $count =DB::connection('vizapi')->table('product_required')->where('_requisition',$id)->wherenotnull('toReceived')->where('toReceived','>',0)->count('_product');
                     if($count > 0){//SE VALIDA QUE LA REQUISICION CONTENGA AL MENOS 1 ARTICULO CONTADO
-                        $requisitions = DB::table('requisition AS R')->where('R.id', $id)->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
+                        $requisitions = DB::connection('vizapi')->table('requisition AS R')->where('R.id', $id)->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
                         $not = $requisitions->notes;//se obtiene las notas de la requisision
                         $rol = "1";
                         $max = "SELECT max(CODFRE) as CODIGO FROM F_FRE WHERE TIPFRE = '".$rol."'";//query para sacar el numero de factura maximo de el tipo(serie)
@@ -73,11 +73,11 @@ class RequiredController extends Controller
                         $exec = $this->conn->prepare($sql);
                         $exec -> execute($fac);
                         $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
-                        DB::table('requisition')->where('id',$id)->update(['invoice_received'=>$folio]);//se actualiza la columna invoice con el numero de la factura
-                        $sumcase = DB::table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toReceived  WHEN PR._supply_by = 2  THEN PR.toReceived * 12  WHEN PR._supply_by = 3  THEN PR.toReceived * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toReceived * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where('PR._requisition', $id)->first(); //se cuenta cuantas piezas se validaron
+                        DB::connection('vizapi')->table('requisition')->where('id',$id)->update(['invoice_received'=>$folio]);//se actualiza la columna invoice con el numero de la factura
+                        $sumcase = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toReceived  WHEN PR._supply_by = 2  THEN PR.toReceived * 12  WHEN PR._supply_by = 3  THEN PR.toReceived * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toReceived * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where('PR._requisition', $id)->first(); //se cuenta cuantas piezas se validaron
                         $sum = $sumcase->CASESUM;
-                        $countde =DB::table('product_required')->where('_requisition',$id)->wherenotnull('checkout')->count('_product');//suma de conteo de productos enviadas
-                        $sumcasede = DB::table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.checkout  WHEN PR._supply_by = 2  THEN PR.checkout * 12  WHEN PR._supply_by = 3  THEN PR.checkout * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.checkout * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where('PR._requisition', $id)->first(); //se cuenta cuantas piezas se validaron
+                        $countde =DB::connection('vizapi')->table('product_required')->where('_requisition',$id)->wherenotnull('checkout')->count('_product');//suma de conteo de productos enviadas
+                        $sumcasede = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.checkout  WHEN PR._supply_by = 2  THEN PR.checkout * 12  WHEN PR._supply_by = 3  THEN PR.checkout * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.checkout * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where('PR._requisition', $id)->first(); //se cuenta cuantas piezas se validaron
                         $sumde = $sumcasede->CASESUM;
                         $difmod =  $count - $countde;//diferencia de conteos
                         $difcan = $sum - $sumde;//diferencias en cantidad
@@ -114,7 +114,7 @@ class RequiredController extends Controller
     }
     public function productreceived($id,$rol,$codfac){//metoro de insercion de productos en factusol
 
-        $product_require = DB::table('product_required AS PR')//se crea el query para obteener los productos de la requisision
+        $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
             ->join('products AS P','P.id','=','PR._product')
             ->leftjoin('prices_product AS PP','PP._product','=','P.id')
             ->where('PR._requisition',$id)
