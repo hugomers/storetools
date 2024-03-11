@@ -40,7 +40,8 @@ Route::prefix('/State')->group(function(){
 
 
 Route::prefix('/Cashier')->group(function(){
-    Route::post('/opencashier',[cashierController::class, 'opencashier']);
+    Route::post('/opencashier',[cashierController::class, 'opencash']);
+    Route::post('/changewithdrawal',[cashierController::class, 'changewithdrawal']);
     Route::get('/retirada',[cashierController::class, 'prinret']);
 });
 
