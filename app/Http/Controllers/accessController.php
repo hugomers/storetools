@@ -591,31 +591,31 @@ class accessController extends Controller
         $yes = $exec -> execute($insa);
         if($yes){
             $pos = 1;
-            foreach($products as $product){
-                $pco =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
-                $exec = $this->conn->prepare($pco);
-                $exec -> execute();
-                $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
+            // foreach($products as $product){
+                // $pco =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
+                // $exec = $this->conn->prepare($pco);
+                // $exec -> execute();
+                // $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
                 $inspro = [
                     $client['DOCCLI'],
                     $id['ID'],
                     $pos,
-                    $product['ARTLTR'],
-                    $product['DES'],
-                    $product['CANLTR'],
-                    $product['PRE'],
-                    $product['TOTAL'],
-                    $pcos['COSTO']
+                    'TRASPASO',
+                    'TRASPASO ENTRE SUCURSALES',
+                    1,
+                    $datos['total'],
+                    $datos['total'],
+                    $datos['total']
                 ];
                 $inspab = "INSERT INTO F_LFB (TIPLFB,CODLFB,POSLFB,ARTLFB,DESLFB,CANLFB,PRELFB,TOTLFB,COSLFB) VALUES (?,?,?,?,?,?,?,?,?)";
                 $exec = $this->conn->prepare($inspab);
                 $art = $exec -> execute($inspro);
 
-                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO + ".$product['CANLTR'].", DISSTO = DISSTO + ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO + 1 , DISSTO = DISSTO + 1  WHERE ARTSTO = 'TRASPASO' AND ALMSTO = 'GEN'";
                 $exec = $this->conn->prepare($updsto);
                 $art = $exec -> execute();
                 $pos++;
-            }
+            // }
             $res =$client['DOCCLI']."-".$id['ID'];
             return response()->json($res,200);
         }else{
@@ -664,31 +664,31 @@ class accessController extends Controller
             $yes = $exec -> execute($insa);
             if($yes){
                 $pos = 1;
-                foreach($products as $product){
-                    $cos =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
-                    $exec = $this->conn->prepare($cos);
-                    $exec -> execute();
-                    $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
+                // foreach($products as $product){
+                    // $cos =  "SELECT PCOART AS COSTO FROM F_ART WHERE CODART = "."'".$product['ARTLTR']."'";
+                    // $exec = $this->conn->prepare($cos);
+                    // $exec -> execute();
+                    // $pcos =$exec->fetch(\PDO::FETCH_ASSOC);
                     $inspro = [
                         $client['DOCCLI'],
                         $id['ID'],
                         $pos,
-                        $product['ARTLTR'],
-                        $product['DES'],
-                        $product['CANLTR'],
-                        $product['PRE'],
-                        $product['TOTAL'],
-                        $pcos['COSTO']
+                        'TRASPASO',
+                        'TRASPASOS ENTRE SUCURSALES',
+                        1,
+                        $datos['total'],
+                        $datos['total'],
+                        $datos['total']
                     ];
                     $inspab = "INSERT INTO F_LFA (TIPLFA,CODLFA,POSLFA,ARTLFA,DESLFA,CANLFA,PRELFA,TOTLFA,COSLFA) VALUES (?,?,?,?,?,?,?,?,?)";
                     $exec = $this->conn->prepare($inspab);
                     $art = $exec -> execute($inspro);
 
-                    $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO - ".$product['CANLTR'].", DISSTO = DISSTO - ".$product['CANLTR']." WHERE ARTSTO = "."'".$product['ARTLTR']."'"." AND ALMSTO = 'GEN'";
+                    $updsto = "UPDATE F_STO SET ACTSTO = ACTSTO - 1 , DISSTO = DISSTO - 1 WHERE ARTSTO = 'TRASPASO' AND ALMSTO = 'GEN'";
                     $exec = $this->conn->prepare($updsto);
                     $art = $exec -> execute();
-                    $pos++;
-                }
+                    // $pos++;
+                // }
 
                 $res =$client['DOCCLI']."-".str_pad($id['ID'], 6, "0", STR_PAD_LEFT);
                 return response()->json($res);
