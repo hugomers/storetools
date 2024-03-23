@@ -114,14 +114,23 @@ class RequiredController extends Controller
     }
     public function productreceived($id,$rol,$codfac){//metoro de insercion de productos en factusol
 
+        // $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
+        //     ->join('products AS P','P.id','=','PR._product')
+        //     ->leftjoin('prices_product AS PP','PP._product','=','P.id')
+        //     ->where('PR._requisition',$id)
+        //     ->wherenotnull('PR.toReceived')
+        //     ->where('PR.toReceived','>',0)
+        //     ->select('P.code AS codigo','P.description AS descripcion','PR.toReceived AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
+        //     ->get();
+
         $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
-            ->join('products AS P','P.id','=','PR._product')
-            ->leftjoin('prices_product AS PP','PP._product','=','P.id')
-            ->where('PR._requisition',$id)
-            ->wherenotnull('PR.toReceived')
-            ->where('PR.toReceived','>',0)
-            ->select('P.code AS codigo','P.description AS descripcion','PR.toReceived AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
-            ->get();
+        ->join('products AS P','P.id','=','PR._product')
+        ->leftjoin('prices_product AS PP','PP._product','=','P.id')
+        ->where('PR._requisition',$id)
+        ->wherenotnull('PR.toDelivered')
+        ->where('PR.toDelivered','>',0)
+        ->select('P.code AS codigo','P.description AS descripcion','PR.toDelivered AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
+        ->get();
 
         $pos= 1;//inicio contador de posision
         $ttotal=0;//inicio contador de total
