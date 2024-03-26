@@ -84,6 +84,7 @@ Route::prefix('/Resources')->group(function(){
     Route::post('/upddev',[accessController::class, 'upddev']);
     Route::get('/gettras',[accessController::class, 'gettras']);
     Route::post('/returndev',[accessController::class, 'returndev']);
+    Route::post('/returnFac',[accessController::class, 'returnFac']);
     Route::post('/createAbono',[accessController::class, 'createAbono']);
     Route::post('/createSalidas',[accessController::class, 'createSalidas']);
     Route::post('/createEntradas',[accessController::class, 'createEntradas']);

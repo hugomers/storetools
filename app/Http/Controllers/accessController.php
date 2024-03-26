@@ -764,4 +764,43 @@ class accessController extends Controller
         }
     }
 
+    public function returnFac(Request $request){
+        $data =  $request->salida;
+        $dev = "SELECT
+        F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000') AS FACTURA,
+        F_FAC.REFFAC AS FOLIO,
+        F_FAC.CNOFAC AS CLIENTE,
+        F_FAC.FECFAC AS FECHA,
+        F_FAC.ALMFAC AS AMACEN,
+        F_FAC.AGEFAC AS AGENTE,
+        F_FAC.FOPFAC AS FPAGO
+        FROM F_FAC
+        WHERE F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000') ="."'".$data."'";
+        $exec = $this->conn->prepare($dev);
+        $exec -> execute();
+        $devs =$exec->fetch(\PDO::FETCH_ASSOC);
+        if($devs){
+            $prodev = "SELECT F_LFA.ARTLFA AS ARTLFA, F_LFA.BULLFA AS BULLFA, F_ART.UPPART AS PXC, F_LFA.CANLFA AS CANLFA, F_LFA.DESLFA AS DESLFA FROM F_LFA INNER JOIN F_ART ON F_ART.CODART = F_LFA.ARTLFA  WHERE TIPLFA&'-'&FORMAT(CODLFA,'000000') = "."'".$data."'";
+            $exec = $this->conn->prepare($prodev);
+            $exec -> execute();
+            $psdevs =$exec->fetchall(\PDO::FETCH_ASSOC);
+            foreach($psdevs as $pros){
+                $products[] = [
+                    "ARTLTR"=>$pros['ARTLFA'],
+                    "BULLFA"=>$pros['BULLFA'] == null ? 0 : $pros['BULLFA'] ,
+                    "PXC"=> $pros['PXC'],
+                    "CANLTR"=>$pros['CANLFA'],
+                    "DES"=>mb_convert_encoding($pros['DESLFA'],'UTF-8'),
+                ];
+            }
+            $res = [
+                "salida"=>$devs,
+                "productos"=>$products
+            ];
+            return response()->json($res,200);
+        }else{
+            return response()->json("No existe la devolucion",401);
+        }
+    }
+
 }
