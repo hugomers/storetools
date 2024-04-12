@@ -160,7 +160,7 @@ class ReceivedController extends Controller
 
             $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO - ? , DISSTO = DISSTO - ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
             $exec = $this->conn->prepare($updatestock);
-            $exec -> execute([$pro->cantidad,$pro->cantidad,$pro->codigo, "GEN"]);
+            $exec -> execute([$canti,$canti,$pro->codigo, "GEN"]);
             $pos++;//contador
         }
 
