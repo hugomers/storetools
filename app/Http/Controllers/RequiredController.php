@@ -34,7 +34,7 @@ class RequiredController extends Controller
                 if($status == 8){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 POR ENVIAR
                     $count =DB::connection('vizapi')->table('product_required')->wherenotnull('toDelivered')->where([['_requisition',$id],['_suplier_id', $suply],['toDelivered','>',0]])->count('_product');
                     if($count > 0){//SE VALIDA QUE LA REQUISICION CONTENGA AL MENOS 1 ARTICULO CONTADO
-                        $requisitions = DB::connection('vizapi')->table('requisition AS R')->where('R.id', $id)->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
+                        $requisitions = DB::connection('vizapi')->table('requisition_partitions AS R')->where([['_requisition',$id],['_suplier_id',$suply]])->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
                         $not = $requisitions->notes;//se obtiene las notas de la requisision
                         $rol = "1";
                         $max = "SELECT max(CODFRE) as CODIGO FROM F_FRE WHERE TIPFRE = '".$rol."'";//query para sacar el numero de factura maximo de el tipo(serie)
@@ -47,7 +47,7 @@ class RequiredController extends Controller
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
                                 "FAC ".$requisitions->invoice,//codigo de factura de salida
-                                "P-".$requisitions->id,//codigo de requisision de la aplicacion
+                                "P-".$requisitions->_requisition,//codigo de requisision de la aplicacion
                                 $date_format,//fecha actual en formato
                                 $date_format,//fecha actual en formato
                                 5,
