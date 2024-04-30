@@ -24,16 +24,17 @@ class ReceivedController extends Controller
     public function invoice(Request $request){ //metodo para crear la salida a la sucursal
         try{
             $id = $request->id;//se recibe por metodo post el id de la requisicion
+            $supply = $request->supply;
             $date = date("Y/m/d H:i");//se gerera la fecha de el dia de hoy con  formato de fecha y hora
             $date_format = Carbon::now()->format('d/m/Y');
             // $date_format = date("d/m/Y");//se formatea la fecha de el dia con el formato solo de fecha
             $hour = "01/01/1900 ".explode(" ", $date)[1];//se formatea la fecha de el dia de hoy poniendo solo la hora en la que se genera
-            $status = DB::connection('vizapi')->table('requisition')->where('id',$id)->value('_status');//se obtiene el status de el la requisicion
-            $udb = DB::connection('vizapi')->table('requisition')->where('id',$id)->value('id');//se verifica que exista
+            $status = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$supply]])->value('_status');//se obtiene el status de el la requisicion
+            $udb = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$supply]])->value('id');//se verifica que exista
             if($udb){//SE VALIDA QUE LA REQUISICION EXISTA
                 if($status == 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 validando
-                    $count =DB::connection('vizapi')->table('product_required')->where('_requisition',$id)->wherenotnull('toDelivered')->where('toDelivered','>',0)->count('_product');//se cuentan cuantos articulos se validaron
-                    $sumcase = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toDelivered  WHEN PR._supply_by = 2  THEN PR.toDelivered * 12  WHEN PR._supply_by = 3  THEN PR.toDelivered * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toDelivered * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where('PR._requisition', $id)->first(); //se cuenta cuantas piezas se validaron
+                    $count =DB::connection('vizapi')->table('product_required')->where([['_requisition',$id],['_suplier_id',$supply] ])->wherenotnull('toDelivered')->where([['toDelivered','>',0],['checkout',1]])->count('_product');//se cuentan cuantos articulos se validaron
+                    $sumcase = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toDelivered  WHEN PR._supply_by = 2  THEN PR.toDelivered * 12  WHEN PR._supply_by = 3  THEN PR.toDelivered * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toDelivered * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where([['PR._requisition', $id],['PR._suplier_id',$supply]])->first(); //se cuenta cuantas piezas se validaron
                      $sum = $sumcase->CASESUM;
                     if($count > 0){//SE VALIDA QUE LA REQUISICION CONTENGA AL MENOS 1 ARTICULO CONTADO
                         $requisitions = DB::connection('vizapi')->table('requisition AS R')->join('workpoints AS W','W.id','=','R._workpoint_from')->where('R.id', $id)->select('R.*','W._client AS cliente')->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
@@ -55,9 +56,7 @@ class ReceivedController extends Controller
                         $exec -> execute();
                         $maxcode=$exec->fetch(\PDO::FETCH_ASSOC);//averS
                             $codfac = intval($maxcode["CODIGO"])+ 1;//se obtiene el nuevo numero de factura que se inserara
-
-                        $prouduct = $this->productrequired($id,$rol,$codfac);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
-
+                        $prouduct = $this->productrequired($id,$rol,$codfac,$supply);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
                             $fac = [//se crea el arrego para insertar en factusol
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
@@ -93,7 +92,7 @@ class ReceivedController extends Controller
                         $exec = $this->conn->prepare($sql);
                         $exec -> execute($fac);
                         $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
-                        DB::connection('vizapi')->table('requisition')->where('id',$id)->update(['invoice'=>$folio]);//se actualiza la columna invoice con el numero de la factura
+                        DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$supply]])->update(['invoice'=>$folio]);//se actualiza la columna invoice con el numero de la factura
                         // $curl = curl_init();//inicia el curl para el envio de el mensaje via whats app
                         // curl_setopt_array($curl, array(
                         //   CURLOPT_URL => "https://api.ultramsg.com/instance9800/messages/chat",
@@ -120,15 +119,16 @@ class ReceivedController extends Controller
             }else{return response()->json("EL CODIGO DE REQUISICION NO EXITE",404);}
         }catch (\PDOException $e){ die($e->getMessage());}
     }
-    public function productrequired($id,$rol,$codfac){//metoro de insercion de productos en factusol
+    public function productrequired($id,$rol,$codfac,$supply){//metoro de insercion de productos en factusol
 
 
         $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
             ->join('products AS P','P.id','=','PR._product')
             ->leftjoin('prices_product AS PP','PP._product','=','P.id')
             ->where('PR._requisition',$id)
+            ->where('PR._suplier_id',$supply)
             ->wherenotnull('PR.toDelivered')
-            ->where('PR.toDelivered','>',0)
+            ->where([['PR.toDelivered','>',0],['checkout',1]])
             ->select('P.code AS codigo','P.description AS descripcion','PR.toDelivered AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
             ->get();
 
