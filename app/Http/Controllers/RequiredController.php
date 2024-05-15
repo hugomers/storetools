@@ -31,7 +31,7 @@ class RequiredController extends Controller
             $status = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$suply]])->value('_status');
             $oid = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id', $suply]])->value('id');
             if($oid){//SE VALIDA QUE LA REQUISICION EXISTA
-                if($status == 8){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 POR ENVIAR
+                if($status == 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 POR ENVIAR
                     $count =DB::connection('vizapi')->table('product_required')->wherenotnull('toDelivered')->where([['_requisition',$id],['_suplier_id', $suply],['toDelivered','>',0]])->count('_product');
                     if($count > 0){//SE VALIDA QUE LA REQUISICION CONTENGA AL MENOS 1 ARTICULO CONTADO
                         $requisitions = DB::connection('vizapi')->table('requisition_partitions AS R')->where([['_requisition',$id],['_suplier_id',$suply]])->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
@@ -83,27 +83,27 @@ class RequiredController extends Controller
                         $sumde = $sumcasede->CASESUM;
                         $difmod =  $count - $countde;//diferencia de conteos
                         $difcan = $sum - $sumde;//diferencias en cantidad
-                        if(($difcan == 0) && ($difmod == 0)){//se valida que no haya diferencia
-                            // $message = "El pedido numero P-$id se recibio con $count  Modelos y $sum piezas. No hay diferencias!!!😎🫡🤙. El numero de Factura Recibida es $folio";//se redacta el mensaje a enviar por whatsapp
-                        }else{$message = "El pedido numero P-$id se recibio con $count  Modelos y $sum piezas obteniendo una dIferencia de $difmod modelos y $difcan piezas. El numero de Factura Recibida es $folio ❗❗*favor de revisar las diferencias*❗❗";
-                            $curl = curl_init();//inicia el curl para enviar mensaje via whatsapp
-                            curl_setopt_array($curl, array(
-                              CURLOPT_URL => "https://api.ultramsg.com/instance9800/messages/chat",
-                              CURLOPT_RETURNTRANSFER => true,
-                              CURLOPT_ENCODING => "",
-                              CURLOPT_MAXREDIRS => 10,
-                              CURLOPT_TIMEOUT => 30,
-                              CURLOPT_SSL_VERIFYHOST => 0,
-                              CURLOPT_SSL_VERIFYPEER => 0,
-                              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                              CURLOPT_CUSTOMREQUEST => "POST",
-                              CURLOPT_POSTFIELDS => "token=$token&to=+525573461022&body=$message&priority=1&referenceId=",//se coloca la variable a cambiar
-                              CURLOPT_HTTPHEADER => array(
-                                "content-type: application/x-www-form-urlencoded"),));
-                            $response = curl_exec($curl);//respuesta
-                            $err = curl_error($curl);         //errror
-                            curl_close($curl);//se cierra curl
-                         }//si hay diferencia se envia un mensaje con la cantidad de difeerencia
+                        // if(($difcan == 0) && ($difmod == 0)){//se valida que no haya diferencia
+                        //     // $message = "El pedido numero P-$id se recibio con $count  Modelos y $sum piezas. No hay diferencias!!!😎🫡🤙. El numero de Factura Recibida es $folio";//se redacta el mensaje a enviar por whatsapp
+                        // }else{$message = "El pedido numero P-$id se recibio con $count  Modelos y $sum piezas obteniendo una dIferencia de $difmod modelos y $difcan piezas. El numero de Factura Recibida es $folio ❗❗*favor de revisar las diferencias*❗❗";
+                        //     $curl = curl_init();//inicia el curl para enviar mensaje via whatsapp
+                        //     curl_setopt_array($curl, array(
+                        //       CURLOPT_URL => "https://api.ultramsg.com/instance9800/messages/chat",
+                        //       CURLOPT_RETURNTRANSFER => true,
+                        //       CURLOPT_ENCODING => "",
+                        //       CURLOPT_MAXREDIRS => 10,
+                        //       CURLOPT_TIMEOUT => 30,
+                        //       CURLOPT_SSL_VERIFYHOST => 0,
+                        //       CURLOPT_SSL_VERIFYPEER => 0,
+                        //       CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        //       CURLOPT_CUSTOMREQUEST => "POST",
+                        //       CURLOPT_POSTFIELDS => "token=$token&to=+525573461022&body=$message&priority=1&referenceId=",//se coloca la variable a cambiar
+                        //       CURLOPT_HTTPHEADER => array(
+                        //         "content-type: application/x-www-form-urlencoded"),));
+                        //     $response = curl_exec($curl);//respuesta
+                        //     $err = curl_error($curl);         //errror
+                        //     curl_close($curl);//se cierra curl
+                        //  }//si hay diferencia se envia un mensaje con la cantidad de difeerencia
 
                         return response()->json([
                         "folio"=>$folio,
