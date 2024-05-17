@@ -130,7 +130,7 @@ class RequiredController extends Controller
         ->leftjoin('prices_product AS PP','PP._product','=','P.id')
         ->where([['PR._requisition',$id],['PR._suplier_id',$suply]])
         ->wherenotnull('PR.toDelivered')
-        ->where('PR.toDelivered','>',0)
+        ->where([['PR.toDelivered','>',0],['checkout',1]])
         ->select('P.code AS codigo','P.description AS descripcion','PR.toDelivered AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
         ->get();
 
