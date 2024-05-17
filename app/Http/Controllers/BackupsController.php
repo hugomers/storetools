@@ -15,6 +15,10 @@ class BackupsController extends Controller
         $sucursal = env('STORE');
         $store = env('SUCURSAL');
         $pathcomplete = env('RESPALDOCOMPLETO');
+        $factusol = env('FACTUSOL');
+        $constasol = env('CONTASOL');
+        $pathdat = env('DATOS');
+
         $datetime = date('Y-m-d_his');
         $filename = 'RES'.$store.'_'.$datetime.'.zip';
         $archivosCopiados = [];
@@ -23,10 +27,10 @@ class BackupsController extends Controller
         if($sucursal == 1){
 
             $archivos = [
-                'C:\Software DELSOL\FACTUSOL\Datos\Datos generales'=>'C:\DATOS\General\FS',
-                'C:\Software DELSOL\CONTASOL\Datos\Datos generales'=>'C:\DATOS\General\CS',
-                'C:\Software DELSOL\FACTUSOL\Datos\FS'=>'C:\DATOS\Datos\FS',
-                'C:\Software DELSOL\CONTASOL\Datos\CS'=>'C:\DATOS\Datos\CS'
+                $factusol.'\Datos generales'=>$pathdat.'\General\FS',
+                $constasol.'\Datos generales'=>$pathdat.'\General\CS',
+                $factusol.'\FS'=>$pathdat.'\Datos\FS',
+                $constasol.'\CS'=>$pathdat.'\Datos\CS'
             ];
 
             foreach($archivos as $rutaOrigen => $rutaDestino) {
@@ -47,7 +51,7 @@ class BackupsController extends Controller
                 "goal"=>$archivosCopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = 'C:/DATOS';
+            $comprimir = $pathdat;
 
             // // Ruta donde se guardara el archivo
             $guardar = $pathcomplete.$filename;//aqui entra el de google para
@@ -80,8 +84,8 @@ class BackupsController extends Controller
             }
         }else {
             $archivos = [
-                'C:\Software DELSOL\FACTUSOL\Datos\Datos generales'=>'C:\DATOS\General\FS',
-                'C:\Software DELSOL\FACTUSOL\Datos\FS'=>'C:\DATOS\Datos\FS',
+                $factusol.'\Datos generales'=>$pathdat.'\General\FS',
+                $factusol.'\FS'=>$pathdat.'\Datos\FS',
             ];
 
             foreach($archivos as $rutaOrigen => $rutaDestino) {
@@ -102,7 +106,7 @@ class BackupsController extends Controller
                 "goal"=>$archivosCopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = 'C:\DATOS';
+            $comprimir = $pathdat;
 
             // // Ruta donde se guardara el archivo
             $guardar = $pathcomplete.$filename;//aqui entra el de google para
@@ -139,6 +143,9 @@ class BackupsController extends Controller
         $store = env('SUCURSAL');
         $sucursal = env('STORE');
         $respaldodiario = env('RESPALDODIARIO');
+        $factusol = env('FACTUSOL');
+        $constasol = env('CONTASOL');
+        $reseje = env('RESEJERCICIO');
         $datetime = date('Y-m-d_his');
         $filename = 'RES'.$store.'_'.$datetime.'.zip';
         $copiados = [];
@@ -149,12 +156,12 @@ class BackupsController extends Controller
         if($sucursal == 1){
 
             $archivos = [
-                'C:/Software DELSOL/FACTUSOL/Datos/Datos generales/General.accdb' => 'C:/RESEJERCICIO/GENERAL/FS/General.accdb',
-                'C:/Software DELSOL/FACTUSOL/Datos/Datos generales/Modelos.accdb' => 'C:/RESEJERCICIO/GENERAL/FS/Modelos.accdb',
-                'C:/Software DELSOL/CONTASOL/Datos/Datos generales/General.accdb' => 'C:/RESEJERCICIO/GENERAL/CS/General.accdb',
-                'C:/Software DELSOL/CONTASOL/Datos/Datos generales/Modelos.accdb' => 'C:/RESEJERCICIO/GENERAL/CS/Modelos.accdb',
-                'C:/Software DELSOL/FACTUSOL/Datos/FS/'.$database =>'C:/RESEJERCICIO/DATOS/FS/'.$database,
-                'C:/Software DELSOL/CONTASOL/Datos/CS/'.$database =>'C:/RESEJERCICIO/DATOS/CS/'.$database
+                $factusol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/FS/General.accdb',
+                $factusol.'/Datos generales/Modelos.accdb' => $reseje.'/GENERAL/FS/Modelos.accdb',
+                $contasol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/CS/General.accdb',
+                $constasol.'/Datos generales/Modelos.accdb' => $reseje.'/GENERAL/CS/Modelos.accdb',
+                $factusol.'/FS/'.$database =>$reseje.'/DATOS/FS/'.$database,
+                $contasol.'/CS/'.$database =>$reseje.'/DATOS/CS/'.$database
             ];
 
             foreach ($archivos as $archivo => $destino) {
@@ -169,7 +176,7 @@ class BackupsController extends Controller
                 "no_copiados"=>$nocopiados
             ];
             // // Ruta de la carpeta a comprimir
-            $comprimir = 'C:\RESEJERCICIO';
+            $comprimir = $reseje;
 
             // // Ruta donde se guardara el archivo
             $guardar = $respaldodiario.$filename;//AQUI ENTRA GOOGLE EN ESTE CASO RESPALDO DIARIO CADA 3 HORAS
@@ -201,9 +208,9 @@ class BackupsController extends Controller
             }
         }else {
             $archivos = [
-                'C:/Software DELSOL/FACTUSOL/Datos/Datos generales/General.accdb' => 'C:/RESEJERCICIO/GENERAL/FS/General.accdb',
-                'C:/Software DELSOL/FACTUSOL/Datos/Datos generales/Modelos.accdb' => 'C:/RESEJERCICIO/GENERAL/FS/Modelos.accdb',
-                'C:/Software DELSOL/FACTUSOL/Datos/FS/'.$database =>'C:/RESEJERCICIO/DATOS/FS/'.$database,
+                $factusol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/FS/General.accdb',
+                $factusol.'/Datos generales/Modelos.accdb' => $reseje.'/GENERAL/FS/Modelos.accdb',
+                $factusol.'/FS/'.$database =>$reseje.'/DATOS/FS/'.$database,
             ];
 
             foreach ($archivos as $archivo => $destino) {
@@ -218,7 +225,7 @@ class BackupsController extends Controller
                 "no_copiados"=>$nocopiados
             ];
                 // // Ruta de la carpeta a comprimir
-                $comprimir = 'C:\RESEJERCICIO';
+                $comprimir = $reseje;
 
                 // // Ruta donde se guardara el archivo
                 $guardar = $respaldodiario.$filename;//AQUI ENTRA GOOGLE EN ESTE CASO RESPALDO DIARIO CADA 3 HORAS
