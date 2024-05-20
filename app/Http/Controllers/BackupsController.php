@@ -158,10 +158,10 @@ class BackupsController extends Controller
             $archivos = [
                 $factusol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/FS/General.accdb',
                 $factusol.'/Datos generales/Modelos.accdb' => $reseje.'/GENERAL/FS/Modelos.accdb',
-                $contasol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/CS/General.accdb',
+                $constasol.'/Datos generales/General.accdb' => $reseje.'/GENERAL/CS/General.accdb',
                 $constasol.'/Datos generales/Modelos.accdb' => $reseje.'/GENERAL/CS/Modelos.accdb',
                 $factusol.'/FS/'.$database =>$reseje.'/DATOS/FS/'.$database,
-                $contasol.'/CS/'.$database =>$reseje.'/DATOS/CS/'.$database
+                $constasol.'/CS/'.$database =>$reseje.'/DATOS/CS/'.$database
             ];
 
             foreach ($archivos as $archivo => $destino) {
