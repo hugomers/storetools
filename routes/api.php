@@ -88,6 +88,10 @@ Route::prefix('/Resources')->group(function(){
     Route::post('/createAbono',[accessController::class, 'createAbono']);
     Route::post('/createSalidas',[accessController::class, 'createSalidas']);
     Route::post('/createEntradas',[accessController::class, 'createEntradas']);
+    Route::get('/Invoices',[accessController::class, 'Invoices']);
+    Route::get('/Entries',[accessController::class, 'Entries']);
+
+
 });
 
 Route::prefix('/Users')->group(function(){
