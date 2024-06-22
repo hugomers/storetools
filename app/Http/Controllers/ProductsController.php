@@ -440,25 +440,25 @@ class ProductsController extends Controller
             "goals"=>[],
             "fails"=>[]
         ];
-        // $suc  = $request->sucursal;
-        // $tienda = isset($suc) ?  $suc : "all" ;
-        // if($tienda === "all"){
-        //     $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
-        //     foreach($sucursales as $sucursal){
-        //         $tiendas [] =  [
-        //             "dominio"=>$sucursal->dominio,
-        //             "alias"=>$sucursal->alias
-        //         ];
-        //     }
-        // }else{
-        //     $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
-        //     foreach($sucursales as $sucursal){
-        //         $tiendas [] =  [
-        //             "dominio"=>$sucursal->dominio,
-        //             "alias"=>$sucursal->alias
-        //         ];
-        //     }
-        // }
+        $suc  = $request->sucursal;
+        $tienda = isset($suc) ?  $suc : "all" ;
+        if($tienda === "all"){
+            $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
+            foreach($sucursales as $sucursal){
+                $tiendas [] =  [
+                    "dominio"=>$sucursal->dominio,
+                    "alias"=>$sucursal->alias
+                ];
+            }
+        }else{
+            $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
+            foreach($sucursales as $sucursal){
+                $tiendas [] =  [
+                    "dominio"=>$sucursal->dominio,
+                    "alias"=>$sucursal->alias
+                ];
+            }
+        }
         $prices = $request->prices;
         foreach($prices as $price){
             $codigo = $price['MODELO'];
