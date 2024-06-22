@@ -419,6 +419,7 @@ class ProductsController extends Controller
     public function regisprice(Request $request){
         $date_format = date("d/m/Y");
         $date_time = date("Y-m-d H:m:s");
+        $prduct_prices =[];
         $actualizados = [
             "goals"=>[],
             "fails"=>[]
@@ -439,29 +440,29 @@ class ProductsController extends Controller
             "goals"=>[],
             "fails"=>[]
         ];
-        $suc  = $request->sucursal;
-        $tienda = isset($suc) ?  $suc : "all" ;
-        if($tienda === "all"){
-            $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
-            foreach($sucursales as $sucursal){
-                $tiendas [] =  [
-                    "dominio"=>$sucursal->dominio,
-                    "alias"=>$sucursal->alias
-                ];
-            }
-        }else{
-            $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
-            foreach($sucursales as $sucursal){
-                $tiendas [] =  [
-                    "dominio"=>$sucursal->dominio,
-                    "alias"=>$sucursal->alias
-                ];
-            }
-        }
+        // $suc  = $request->sucursal;
+        // $tienda = isset($suc) ?  $suc : "all" ;
+        // if($tienda === "all"){
+        //     $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
+        //     foreach($sucursales as $sucursal){
+        //         $tiendas [] =  [
+        //             "dominio"=>$sucursal->dominio,
+        //             "alias"=>$sucursal->alias
+        //         ];
+        //     }
+        // }else{
+        //     $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
+        //     foreach($sucursales as $sucursal){
+        //         $tiendas [] =  [
+        //             "dominio"=>$sucursal->dominio,
+        //             "alias"=>$sucursal->alias
+        //         ];
+        //     }
+        // }
         $prices = $request->prices;
         foreach($prices as $price){
             $codigo = $price['MODELO'];
-            $vercod = "SELECT PCOART, PRELTA FROM F_ART INNER JOIN F_LTA ON F_ART.CODART = F_LTA.ARTLTA WHERE TARLTA = 7 AND CODART = "."'".$codigo."'";
+            $vercod = "SELECT F_ART.PCOART, F_LTA.PRELTA, F_ART.FAMART FROM F_ART INNER JOIN F_LTA ON F_ART.CODART = F_LTA.ARTLTA WHERE TARLTA = 7 AND CODART = "."'".$codigo."'";
             $exec = $this->conn->prepare($vercod);
             $exec->execute();
             $codver = $exec->fetch(\PDO::FETCH_ASSOC);
@@ -475,6 +476,12 @@ class ProductsController extends Controller
                 $mayoreo = round($price['MAYOREO'],0);
                 if(isset($price['MENUDEO'])){
                     $menudeo = round($price['MENUDEO'],0);
+                }else if($codver['FAMART'] == 'MBP'){ //mochila
+                    $menudeo = $mayoreo + 20;
+                }else if($codver['FAMART'] == 'MLB' ){ //lonchera
+                    $menudeo = $mayoreo + 10;
+                }else if($codver['FAMART'] == 'MPC') { //lapicer
+                    $menudeo = $mayoreo + 10;
                 }else if($mayoreo == $centro){
                     $menudeo = $caja;
                 }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
@@ -488,6 +495,8 @@ class ProductsController extends Controller
                 }elseif($mayoreo >= 1000){
                     $menudeo =  $mayoreo + 100;
                 }
+
+
                 if($costo <= $aaa){
                     if($aaa <= $centro){
                         if($centro <= $especial){
@@ -504,9 +513,9 @@ class ProductsController extends Controller
                                             $mayoreoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$mayoreo,$codigo,2]);
                                             $menudeoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$menudeo,$codigo,1]);
                                             if($costoupd && $aaaupd && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
-                                                $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
+                                                $actualizados['goals'][]= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
-                                                $actualizados['fails']= ['product'=>$codigo,'prices'=>['factusol' => 0]];
+                                                $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
                                             }
                                             $cosms = DB::connection('vizapi')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
                                             $aaams = DB::connection('vizapi')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',7)->update(['PP.price'=>$aaa]);
@@ -517,9 +526,9 @@ class ProductsController extends Controller
                                             $mayoreoms = DB::connection('vizapi')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
                                             $menudeoms = DB::connection('vizapi')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
                                             if($cosms || $aaams || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
-                                                $mysql['goals']['actualizados']= ['product'=>$codigo,'prices'=>['mysql' => 7]];
+                                                $mysql['goals']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 7]];
                                             }else{
-                                                $mysql['fail']['actualizados']= ['product'=>$codigo,'prices'=>['mysql' => 0]];
+                                                $mysql['fail']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 0]];
                                             }
                                             $prduct_prices [] = [
                                                 "MODELO"=>$codigo,
@@ -587,14 +596,51 @@ class ProductsController extends Controller
         }
         curl_close($sucpub);//cirre de curl
 
+        $dionisio = [
+            [
+                "dominio"=>'192.168.140.121:1619',
+                "alias"=>"GR2",
+            ],
+            [
+                "dominio"=>'192.168.140.45:1619',
+                "alias"=>"GR1",
+
+            ]
+
+            ];
+        foreach($dionisio as $st){//inicio de foreach de sucursales
+            $url = $st['dominio']."/storetools/public/api/Stores/regispricesproduct";//se optiene el inicio del dominio de la sucursal
+            $ch = curl_init($url);//inicio de curl
+            $data = json_encode(["prices" => $prduct_prices]);//se codifica el arreglo de los proveedores
+            //inicio de opciones de curl
+            curl_setopt($ch,CURLOPT_POSTFIELDS,$data);//se envia por metodo post
+            curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+            //fin de opciones e curl
+            $exec = curl_exec($ch);//se executa el curl
+            $exc = json_decode($exec);//se decodifican los datos decodificados
+            if(is_null($exc)){//si me regresa un null
+                $dion['fails'][] =["sucursal"=>$st['alias'], "mssg"=>$exc];
+            }else{
+                // $dion['goals'][] = $st->alias." cambios hechos";//de lo contrario se almacenan en sucursales
+                $dion['goals'][] =["sucursal"=>$st['alias'], "mssg"=>$exc];;//la sucursal se almacena en sucursales fallidas
+            }
+            curl_close($ch);//cirre de curl
+        }//fin de foreach de sucursales
+
 
         $res = [
             "actualizados"=>$actualizados,
             "mysql"=>$mysql,
             "stores"=>$stor,
             "storefor"=>$pub,
+            "dionisio"=>$dion
         ];
         return response()->json($res);
+        // return response()->json($prduct_prices);
     }
 
     public function regispricesstores(Request $request){
@@ -620,6 +666,12 @@ class ProductsController extends Controller
                 $mayoreo = round($price['MAYOREO'],0);
                 if(isset($price['MENUDEO'])){
                     $menudeo = round($price['MENUDEO'],0);
+                }else if($codver['FAMART'] == 'MBP'){ //mochila
+                    $menudeo = $mayoreo + 20;
+                }else if($codver['FAMART'] == 'MLB' ){ //lonchera
+                    $menudeo = $mayoreo + 10;
+                }else if($codver['FAMART'] == 'MPC') { //lapicer
+                    $menudeo = $mayoreo + 10;
                 }else if($mayoreo == $centro){
                     $menudeo = $caja;
                 }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
@@ -647,9 +699,9 @@ class ProductsController extends Controller
                                             $mayoreoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$mayoreo,$codigo,2]);
                                             $menudeoupd = $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$menudeo,$codigo,1]);
                                             if($costoupd && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
-                                                $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
+                                                $actualizados['goals'][]= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
-                                                $actualizados['fails']= ['product'=>$codigo,'prices'=>['factusol' => 0]];
+                                                $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
                                             }
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
@@ -690,6 +742,12 @@ class ProductsController extends Controller
                     $mayoreo = round($price['MAYOREO'],0);
                     if(isset($price['MENUDEO'])){
                         $menudeo = round($price['MENUDEO'],0);
+                    }else if($codver['FAMART'] == 'MBP'){ //mochila
+                        $menudeo = $mayoreo + 20;
+                    }else if($codver['FAMART'] == 'MLB' ){ //lonchera
+                        $menudeo = $mayoreo + 10;
+                    }else if($codver['FAMART'] == 'MPC') { //lapicer
+                        $menudeo = $mayoreo + 10;
                     }else if($mayoreo == $centro){
                         $menudeo = $caja;
                     }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
@@ -712,6 +770,12 @@ class ProductsController extends Controller
                     $mayoreo = round($price['MAYOREO']*$margin,0);
                     if(isset($price['MENUDEO'])){
                         $menudeo = round($price['MENUDEO']*$margin,0);
+                    }else if($codver['FAMART'] == 'MBP'){ //mochila
+                        $menudeo = $mayoreo + 20;
+                    }else if($codver['FAMART'] == 'MLB' ){ //lonchera
+                        $menudeo = $mayoreo + 10;
+                    }else if($codver['FAMART'] == 'MPC') { //lapicer
+                        $menudeo = $mayoreo + 10;
                     }else if($mayoreo == $centro){
                         $menudeo = $caja;
                     }elseif(($mayoreo >= 0) && ($mayoreo <= 49)){
@@ -749,9 +813,9 @@ class ProductsController extends Controller
                                             $menudeoms = DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
 
                                             if($costoupd  && $centroupd && $especiaupd && $cajaupd && $docenaupd && $mayoreoupd && $menudeoupd){
-                                                $actualizados['goals']= ['product'=>$codigo,'prices'=>['factusol' => 7]];
+                                                $actualizados['goals'][]= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
-                                                $actualizados['fails']= ['product'=>$codigo,'prices'=>['factusol' => 0]];
+                                                $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
                                             }
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
