@@ -793,7 +793,6 @@ class ProductsController extends Controller
                                                 $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
                                             }
                                             $cosms = DB::connection('local')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
-                                            $aaams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',7)->update(['PP.price'=>$aaa]);
                                             $centroms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',6)->update(['PP.price'=>$centro]);
                                             $especialms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',5)->update(['PP.price'=>$especial]);
                                             $cajams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',4)->update(['PP.price'=>$caja]);
