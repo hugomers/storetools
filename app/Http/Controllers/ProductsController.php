@@ -338,8 +338,11 @@ class ProductsController extends Controller
             $menav = isset($product['MEDIDAS NAV']) ? $product['MEDIDAS NAV'] : null;
             $date_format = date("d/m/Y");
 
-            $caty = DB::connection('vizapi')->table('product_categories as PC')->join('product_categories as PF', 'PF.id', '=','PC.root')->where('PC.alias', $categoria)->where('PF.alias', $fam)->value('PC.id');
+            $caty = DB::connection('local')->table('product_categories as PC')->join('product_categories as PF', 'PF.id', '=','PC.root')->where('PC.alias', $categoria)->where('PF.alias', $fam)->value('PC.id');
             if($caty){
+                $units = DB::connection('local')->table('product_units')->where('name',$umc)->value('id');
+                $esispro = DB::connection('local')->table('providers')->where('id',$pro)->value('id');
+                $existfab = DB::connection('local')->table('makers')->where('id',$fab)->value('id');
                 $existcco = "SELECT CODART FROM F_ART WHERE CCOART =".$cco;
                 $exec = $this->conn->prepare($existcco);
                 $exec->execute();
