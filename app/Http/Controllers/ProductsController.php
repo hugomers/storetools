@@ -799,7 +799,7 @@ class ProductsController extends Controller
                                             $docenams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',3)->update(['PP.price'=>$docena]);
                                             $mayoreoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
                                             $menudeoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
-                                            if($cosms || $aaams || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
+                                            if($cosms || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
                                                 $actualizados['goals']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 7]];
                                             }else{
                                                 $actualizados['fail']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 0]];
