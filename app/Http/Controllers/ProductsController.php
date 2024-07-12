@@ -17,6 +17,8 @@ class ProductsController extends Controller
     }
 
     public function productRegis(Request $request){
+        $actproldb = [];
+        $insproldb = [];
         $insertados = [
             "goals"=>[],
             "fails"=>[]
@@ -84,7 +86,7 @@ class ProductsController extends Controller
             $destic = trim(substr($product["DESCRIPCION"],0,20));
             $pro = $product['PROVEEDOR'];//validar
             $ref = trim($product['REFERENCIA']);
-            $fab = trim($product['FABRICANTE']);
+            $fab = trim($product['FABRICANTE']);//validar
             $pxc = $product['PXC'];
             $categoria = trim($product['CATEGORIA']);//validar
             $umc = trim($product['UNIDA MED COMPRA']);
@@ -99,10 +101,16 @@ class ProductsController extends Controller
             if($caty){
                 $units = DB::connection('vizapi')->table('product_units')->where('name',$umc)->value('id');
                 $esispro = DB::connection('vizapi')->table('providers')->where('id',$pro)->value('id');
+                $existfab = DB::connection('vizapi')->table('makers')->where('id',$fab)->value('id');
                 if($esispro){
                     $provider = $esispro;
                 }else{
                     $provider = 67;
+                }
+                if($existfab){
+                    $maker = $existfab;
+                }else{
+                    $maker = 2;
                 }
                 $existcco = "SELECT CODART FROM F_ART WHERE CCOART =".$cco;
                 $exec = $this->conn->prepare($existcco);
@@ -194,10 +202,13 @@ class ProductsController extends Controller
                                 'updated_at'=>now(),
                                 'cost'=>$cost,
                                 'barcode'=>$ean,
-                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>''])
+                                '_maker'=>$maker,
+                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                                'large'=>''
                             ];
 
                             $updmys = DB::connection('vizapi')->table('products')->where('id',$promsexist)->update($updms);
+                            // $actproldb [] = $updms;
                             if($updmys){
                                 $mysql['goals']['actualizados'][] = "Se actualizo el codigo ".$codigo." correctamente ".$updmys;
                             }else{
@@ -220,8 +231,13 @@ class ProductsController extends Controller
                                 'cost'=>$cost,
                                 'barcode'=>$ean,
                                 'refillable'=>1,
+                                '_maker'=>$maker,
+                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                                'large'=>''
                             ];
                             $insms = DB::connection('vizapi')->table('products')->insert($articulosms);
+
+                            // $insproldb [] = $articulosms;
                             if($insms){
                                 $mysql['goals']['insertados'][] = "Se inserto el codigo ".$codigo." correctamente";
                             }else{
@@ -261,8 +277,6 @@ class ProductsController extends Controller
             }
             curl_close($ch);//cirre de curl
         }//fin de foreach de sucursales
-
-
         $res = [
             "insertados"=>$insertados,
             "actualizados"=>$actualizados,
@@ -286,6 +300,10 @@ class ProductsController extends Controller
             "categoria"=>[],
             "codigo_barras"=>[],
             "codigo_corto"=>[]
+        ];
+        $mysql = [
+            "goals"=>[],
+            "fails"=>[]
         ];
 
         $almacenes ="SELECT CODALM FROM F_ALM";
@@ -396,7 +414,65 @@ class ProductsController extends Controller
                                 $insertados['fails'][]="El producto ".$codigo." no se Inserto correctamente";
                             }
                         }
-                        $promsexist = DB::connection('vizapi')->table('products')->where('code',$codigo)->value('id');
+                        $promsexist = DB::connection('local')->table('products')->where('code',$codigo)->value('id');
+                        if($promsexist){
+                            $updms = [
+                                'name'=>$cco,
+                                'description'=>$deslarga,
+                                'label'=>$deset,
+                                'reference'=>$ref,
+                                'pieces'=>$pxc,
+                                '_category'=>$caty,
+                                '_status'=>1,
+                                '_unit'=>$units,
+                                '_provider'=>$provider,
+                                'updated_at'=>now(),
+                                'cost'=>$cost,
+                                'barcode'=>$ean,
+                                '_maker'=>$maker,
+                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                                'large'=>''
+                            ];
+
+                            $updmys = DB::connection('local')->table('products')->where('id',$promsexist)->update($updms);
+                            // $actproldb [] = $updms;
+                            if($updmys){
+                                $mysql['goals']['actualizados'][] = "Se actualizo el codigo ".$codigo." correctamente ".$updmys;
+                            }else{
+                                $mysql['fails']['actualizados'][] = "No se pudo actualizar el codigo ".$codigo." correctamente";
+                            }
+                        }else{
+                            $articulosms =[
+                                'code'=>$codigo,
+                                'name'=>$cco,
+                                'description'=>$deslarga,
+                                'label'=>$deset,
+                                'reference'=>$ref,
+                                'pieces'=>$pxc,
+                                '_category'=>$caty,
+                                '_status'=>1,
+                                '_unit'=>$units,
+                                '_provider'=>$provider,
+                                'created_at'=>now(),
+                                'updated_at'=>now(),
+                                'cost'=>$cost,
+                                'barcode'=>$ean,
+                                'refillable'=>1,
+                                '_maker'=>$maker,
+                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                                'large'=>''
+                            ];
+                            $insms = DB::connection('local')->table('products')->insert($articulosms);
+
+                            // $insproldb [] = $articulosms;
+                            if($insms){
+                                $mysql['goals']['insertados'][] = "Se inserto el codigo ".$codigo." correctamente";
+                            }else{
+                                $mysql['fails']['insertados'][] = "No se pudo insertar el codigo ".$codigo." correctamente";
+                            }
+                        }
+
+
                     }else{
                         $fail["codigo_barras"][] = "El codigo de barras ".$ean." ya esta en uso en el modelo ".$eans['CODIGO'];
                     }
@@ -702,6 +778,19 @@ class ProductsController extends Controller
                                                 $actualizados['goals'][]= ['product'=>$codigo,'prices'=>['factusol' => 7]];
                                             }else{
                                                 $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
+                                            }
+                                            $cosms = DB::connection('local')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
+                                            $aaams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',7)->update(['PP.price'=>$aaa]);
+                                            $centroms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',6)->update(['PP.price'=>$centro]);
+                                            $especialms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',5)->update(['PP.price'=>$especial]);
+                                            $cajams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',4)->update(['PP.price'=>$caja]);
+                                            $docenams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',3)->update(['PP.price'=>$docena]);
+                                            $mayoreoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
+                                            $menudeoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
+                                            if($cosms || $aaams || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
+                                                $actualizados['goals']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 7]];
+                                            }else{
+                                                $actualizados['fail']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 0]];
                                             }
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}

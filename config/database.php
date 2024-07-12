@@ -103,6 +103,25 @@ return [
             ]) : [],
         ],
 
+        'local' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('LC_HOST', '127.0.0.1'),
+            'port' => env('LC_PORT', '3306'),
+            'database' => env('LC_DATABASE', 'forge'),
+            'username' => env('LC_USERNAME', 'forge'),
+            'password' => env('LC_PASSWORD', ''),
+            'unix_socket' => env('LC_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
 
         'pgsql' => [
             'driver' => 'pgsql',
