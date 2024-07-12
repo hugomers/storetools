@@ -343,6 +343,16 @@ class ProductsController extends Controller
                 $units = DB::connection('local')->table('product_units')->where('name',$umc)->value('id');
                 $esispro = DB::connection('local')->table('providers')->where('id',$pro)->value('id');
                 $existfab = DB::connection('local')->table('makers')->where('id',$fab)->value('id');
+                if($esispro){
+                    $provider = $esispro;
+                }else{
+                    $provider = 67;
+                }
+                if($existfab){
+                    $maker = $existfab;
+                }else{
+                    $maker = 2;
+                }
                 $existcco = "SELECT CODART FROM F_ART WHERE CCOART =".$cco;
                 $exec = $this->conn->prepare($existcco);
                 $exec->execute();
