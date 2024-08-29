@@ -821,6 +821,72 @@ class accessController extends Controller
         }
     }
 
+    public function returnTra(Request $request)
+    {
+        $data =  $request->traspaso;
+        $hed = "SELECT
+            F_EMP.DENEMP,
+            F_EMP.DOMEMP,
+            F_EMP.NUMEMP,
+            F_EMP.CPOEMP,
+            F_EMP.POBEMP,
+            F_EMP.PROEMP,
+            F_EMP.TELEMP,
+            F_EMP.FAXEMP
+            FROM F_EMP";
+        $exec = $this->conn->prepare($hed);
+        $exec->execute();
+        $header = $exec->fetch(\PDO::FETCH_ASSOC);
+
+
+        $dev = "SELECT
+                AOR.CODALM AS ALMOR,
+                AOR.NOMALM AS ALDMOR,
+                ADE.CODALM AS ALMDES,
+                ADE.NOMALM AS ALDDES,
+                F_TRA.DOCTRA AS TRASPASO,
+                F_TRA.FECTRA AS FECHA,
+                F_TRA.COMTRA AS COMENTARIO
+                FROM ((F_TRA
+                INNER JOIN F_ALM AS AOR ON AOR.CODALM = F_TRA.AORTRA)
+                INNER JOIN F_ALM AS ADE ON ADE.CODALM = F_TRA.ADETRA)
+                WHERE F_TRA.DOCTRA =  $data";
+        $exec = $this->conn->prepare($dev);
+        $exec->execute();
+        $devs = $exec->fetch(\PDO::FETCH_ASSOC);
+        if ($devs) {
+            $prodev = "SELECT
+            F_LTR.ARTLTR AS ARTLTR,
+            F_LTR.BULLTR AS BULLTR,
+            F_ART.UPPART AS PXC,
+            F_LTR.CANLTR AS CANLTR,
+            F_ART.DESART AS DESCRIPCION
+            FROM F_LTR
+            INNER JOIN F_ART ON F_ART.CODART = F_LTR.ARTLTR
+            WHERE F_LTR.DOCLTR = $data ";
+            $exec = $this->conn->prepare($prodev);
+            $exec->execute();
+            $psdevs = $exec->fetchall(\PDO::FETCH_ASSOC);
+            foreach ($psdevs as $pros) {
+                $products[] = [
+                    "ARTLTR" => $pros['ARTLTR'],
+                    "BULLFA" => $pros['BULLTR'] == null ? 0 : $pros['BULLTR'],
+                    "PXC" => $pros['PXC'],
+                    "CANLTR" => $pros['CANLTR'],
+                    "DES" => mb_convert_encoding($pros['DESCRIPCION'], 'UTF-8'),
+                ];
+            }
+            $res = [
+                "heades" => $header,
+                "traspaso" => $devs,
+                "productos" => $products
+            ];
+            return response()->json($res, 200);
+        } else {
+            return response()->json("No existe la devolucion", 401);
+        }
+    }
+
     public function Invoices()
     {
 

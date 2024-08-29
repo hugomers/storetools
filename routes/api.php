@@ -10,6 +10,7 @@ use App\Http\Controllers\cashierController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\ReceivedController;
 use App\Http\Controllers\RequiredController;
+use App\Http\Controllers\TransferController;
 use App\Http\Controllers\UserController;
 
 
@@ -74,6 +75,12 @@ Route::prefix('/Required')->group(function(){
     Route::post('/Required',[RequiredController::class, 'invoice_received']);
 });
 
+Route::prefix('/Transfer')->group(function(){
+    Route::post('/Transfer',[TransferController::class, 'transfer']);
+    Route::post('/TransferRec',[TransferController::class, 'transferRec']);
+
+});
+
 Route::prefix('/Resources')->group(function(){
     Route::post('/createClient',[accessController::class, 'createClient']);
     Route::post('/createClientSuc',[accessController::class, 'createClientSuc']);
@@ -85,6 +92,7 @@ Route::prefix('/Resources')->group(function(){
     Route::get('/gettras',[accessController::class, 'gettras']);
     Route::post('/returndev',[accessController::class, 'returndev']);
     Route::post('/returnFac',[accessController::class, 'returnFac']);
+    Route::post('/returnTra',[accessController::class, 'returnTra']);
     Route::post('/createAbono',[accessController::class, 'createAbono']);
     Route::post('/createSalidas',[accessController::class, 'createSalidas']);
     Route::post('/createEntradas',[accessController::class, 'createEntradas']);
