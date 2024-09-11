@@ -338,11 +338,11 @@ class ProductsController extends Controller
             $menav = isset($product['MEDIDAS NAV']) ? $product['MEDIDAS NAV'] : null;
             $date_format = date("d/m/Y");
 
-            $caty = DB::connection('local')->table('product_categories as PC')->join('product_categories as PF', 'PF.id', '=','PC.root')->where('PC.alias', $categoria)->where('PF.alias', $fam)->value('PC.id');
+            $caty = DB::connection('vizapi')->table('product_categories as PC')->join('product_categories as PF', 'PF.id', '=','PC.root')->where('PC.alias', $categoria)->where('PF.alias', $fam)->value('PC.id');
             if($caty){
-                $units = DB::connection('local')->table('product_units')->where('name',$umc)->value('id');
-                $esispro = DB::connection('local')->table('providers')->where('id',$pro)->value('id');
-                $existfab = DB::connection('local')->table('makers')->where('id',$fab)->value('id');
+                $units = DB::connection('vizapi')->table('product_units')->where('name',$umc)->value('id');
+                $esispro = DB::connection('vizapi')->table('providers')->where('id',$pro)->value('id');
+                $existfab = DB::connection('vizapi')->table('makers')->where('id',$fab)->value('id');
                 if($esispro){
                     $provider = $esispro;
                 }else{
@@ -427,63 +427,63 @@ class ProductsController extends Controller
                                 $insertados['fails'][]="El producto ".$codigo." no se Inserto correctamente";
                             }
                         }
-                        $promsexist = DB::connection('local')->table('products')->where('code',$codigo)->value('id');
-                        if($promsexist){
-                            $updms = [
-                                'name'=>$cco,
-                                'description'=>$deslarga,
-                                'label'=>$deset,
-                                'reference'=>$ref,
-                                'pieces'=>$pxc,
-                                '_category'=>$caty,
-                                '_status'=>1,
-                                '_unit'=>$units,
-                                '_provider'=>$provider,
-                                'updated_at'=>now(),
-                                'cost'=>$cost,
-                                'barcode'=>$ean,
-                                '_maker'=>$maker,
-                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
-                                'large'=>''
-                            ];
+                        // $promsexist = DB::connection('local')->table('products')->where('code',$codigo)->value('id');
+                        // if($promsexist){
+                        //     $updms = [
+                        //         'name'=>$cco,
+                        //         'description'=>$deslarga,
+                        //         'label'=>$deset,
+                        //         'reference'=>$ref,
+                        //         'pieces'=>$pxc,
+                        //         '_category'=>$caty,
+                        //         '_status'=>1,
+                        //         '_unit'=>$units,
+                        //         '_provider'=>$provider,
+                        //         'updated_at'=>now(),
+                        //         'cost'=>$cost,
+                        //         'barcode'=>$ean,
+                        //         '_maker'=>$maker,
+                        //         'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                        //         'large'=>''
+                        //     ];
 
-                            $updmys = DB::connection('local')->table('products')->where('id',$promsexist)->update($updms);
-                            // $actproldb [] = $updms;
-                            if($updmys){
-                                $mysql['goals']['actualizados'][] = "Se actualizo el codigo ".$codigo." correctamente ".$updmys;
-                            }else{
-                                $mysql['fails']['actualizados'][] = "No se pudo actualizar el codigo ".$codigo." correctamente";
-                            }
-                        }else{
-                            $articulosms =[
-                                'code'=>$codigo,
-                                'name'=>$cco,
-                                'description'=>$deslarga,
-                                'label'=>$deset,
-                                'reference'=>$ref,
-                                'pieces'=>$pxc,
-                                '_category'=>$caty,
-                                '_status'=>1,
-                                '_unit'=>$units,
-                                '_provider'=>$provider,
-                                'created_at'=>now(),
-                                'updated_at'=>now(),
-                                'cost'=>$cost,
-                                'barcode'=>$ean,
-                                'refillable'=>1,
-                                '_maker'=>$maker,
-                                'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
-                                'large'=>''
-                            ];
-                            $insms = DB::connection('local')->table('products')->insert($articulosms);
+                        //     $updmys = DB::connection('local')->table('products')->where('id',$promsexist)->update($updms);
+                        //     // $actproldb [] = $updms;
+                        //     if($updmys){
+                        //         $mysql['goals']['actualizados'][] = "Se actualizo el codigo ".$codigo." correctamente ".$updmys;
+                        //     }else{
+                        //         $mysql['fails']['actualizados'][] = "No se pudo actualizar el codigo ".$codigo." correctamente";
+                        //     }
+                        // }else{
+                        //     $articulosms =[
+                        //         'code'=>$codigo,
+                        //         'name'=>$cco,
+                        //         'description'=>$deslarga,
+                        //         'label'=>$deset,
+                        //         'reference'=>$ref,
+                        //         'pieces'=>$pxc,
+                        //         '_category'=>$caty,
+                        //         '_status'=>1,
+                        //         '_unit'=>$units,
+                        //         '_provider'=>$provider,
+                        //         'created_at'=>now(),
+                        //         'updated_at'=>now(),
+                        //         'cost'=>$cost,
+                        //         'barcode'=>$ean,
+                        //         'refillable'=>1,
+                        //         '_maker'=>$maker,
+                        //         'dimensions'=>json_encode(["length"=>'',"height"=>'',"width"=>'']),
+                        //         'large'=>''
+                        //     ];
+                        //     $insms = DB::connection('local')->table('products')->insert($articulosms);
 
-                            // $insproldb [] = $articulosms;
-                            if($insms){
-                                $mysql['goals']['insertados'][] = "Se inserto el codigo ".$codigo." correctamente";
-                            }else{
-                                $mysql['fails']['insertados'][] = "No se pudo insertar el codigo ".$codigo." correctamente";
-                            }
-                        }
+                        //     // $insproldb [] = $articulosms;
+                        //     if($insms){
+                        //         $mysql['goals']['insertados'][] = "Se inserto el codigo ".$codigo." correctamente";
+                        //     }else{
+                        //         $mysql['fails']['insertados'][] = "No se pudo insertar el codigo ".$codigo." correctamente";
+                        //     }
+                        // }
 
 
                     }else{
@@ -792,18 +792,18 @@ class ProductsController extends Controller
                                             }else{
                                                 $actualizados['fails'][]= ['product'=>$codigo,'prices'=>['factusol' => 0]];
                                             }
-                                            $cosms = DB::connection('local')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
-                                            $centroms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',6)->update(['PP.price'=>$centro]);
-                                            $especialms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',5)->update(['PP.price'=>$especial]);
-                                            $cajams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',4)->update(['PP.price'=>$caja]);
-                                            $docenams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',3)->update(['PP.price'=>$docena]);
-                                            $mayoreoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
-                                            $menudeoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
-                                            if($cosms || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
-                                                $actualizados['goals']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 7]];
-                                            }else{
-                                                $actualizados['fail']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 0]];
-                                            }
+                                            // $cosms = DB::connection('local')->table('products')->where('code',$codigo)->update(['cost'=>$costo,'updated_at'=>$date_time]);
+                                            // $centroms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',6)->update(['PP.price'=>$centro]);
+                                            // $especialms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',5)->update(['PP.price'=>$especial]);
+                                            // $cajams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',4)->update(['PP.price'=>$caja]);
+                                            // $docenams = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',3)->update(['PP.price'=>$docena]);
+                                            // $mayoreoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',2)->update(['PP.price'=>$mayoreo]);
+                                            // $menudeoms = DB::connection('local')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',1)->update(['PP.price'=>$menudeo]);
+                                            // if($cosms || $centroms || $especialms || $cajams || $docenams || $mayoreoms || $menudeoms){
+                                            //     $actualizados['goals']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 7]];
+                                            // }else{
+                                            //     $actualizados['fail']['actualizados'][]= ['product'=>$codigo,'prices'=>['mysql' => 0]];
+                                            // }
                                         }else{$actualizados['fails'][]= $codigo." precio Mayoreo mayor que Menudeo";}
                                     }else{$actualizados['fails'][]= $codigo." precio Docena mayor que Mayoreo";}
                                 }else{$actualizados['fails'][]= $codigo." precio Caja mayor que Docena";}
