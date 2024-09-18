@@ -12,6 +12,8 @@ use App\Http\Controllers\ReceivedController;
 use App\Http\Controllers\RequiredController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TransferBWController;
+
 
 
 
@@ -106,4 +108,9 @@ Route::prefix('/Users')->group(function(){
     Route::post('/create',[UserController::class, 'createUser']);
     Route::post('/reply',[UserController::class, 'replyUser']);
     Route::post('/insuc',[UserController::class, 'insuc']);
+});
+
+Route::prefix('/TransferBW')->group(function(){
+    Route::post('/addTransfer',[TransferBWController::class, 'addTransfer']);
+    Route::post('/endTransfer',[TransferBWController::class, 'endTransfer']);
 });
