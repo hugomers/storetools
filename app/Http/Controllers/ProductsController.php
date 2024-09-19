@@ -508,6 +508,10 @@ class ProductsController extends Controller
     public function regisprice(Request $request){
         $date_format = date("d/m/Y");
         $date_time = date("Y-m-d H:m:s");
+        $fams = [
+            "goals"=>0,
+            "fails"=>0,
+        ];
         $prduct_prices =[];
         $actualizados = [
             "goals"=>[],
@@ -529,25 +533,25 @@ class ProductsController extends Controller
             "goals"=>[],
             "fails"=>[]
         ];
-        $suc  = $request->sucursal;
-        $tienda = isset($suc) ?  $suc : "all" ;
-        if($tienda === "all"){
-            $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
-            foreach($sucursales as $sucursal){
-                $tiendas [] =  [
-                    "dominio"=>$sucursal->dominio,
-                    "alias"=>$sucursal->alias
-                ];
-            }
-        }else{
-            $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
-            foreach($sucursales as $sucursal){
-                $tiendas [] =  [
-                    "dominio"=>$sucursal->dominio,
-                    "alias"=>$sucursal->alias
-                ];
-            }
-        }
+        // $suc  = $request->sucursal;
+        // $tienda = isset($suc) ?  $suc : "all" ;
+        // if($tienda === "all"){
+        //     $sucursales = DB::connection('vizapi')->table('workpoints')->where('active',1)->where('_type',2)->whereNotIn('id',[18])->get();
+        //     foreach($sucursales as $sucursal){
+        //         $tiendas [] =  [
+        //             "dominio"=>$sucursal->dominio,
+        //             "alias"=>$sucursal->alias
+        //         ];
+        //     }
+        // }else{
+        //     $sucursales =  DB::connection('vizapi')->table('workpoints')->whereIn('id',$tienda)->where('active',1)->where('_type',2)->get();
+        //     foreach($sucursales as $sucursal){
+        //         $tiendas [] =  [
+        //             "dominio"=>$sucursal->dominio,
+        //             "alias"=>$sucursal->alias
+        //         ];
+        //     }
+        // }
         $prices = $request->prices;
         foreach($prices as $price){
             $codigo = $price['MODELO'];
@@ -563,6 +567,41 @@ class ProductsController extends Controller
                 $caja = round($price['CAJA'],0);
                 $docena = round($price['DOCENA'],0);
                 $mayoreo = round($price['MAYOREO'],0);
+
+                if(isset($price['FAMILIA'])){
+                    $familia = round($price['FAMILIA'],2);
+                    $fam = [37,46];
+                    foreach($fam as $fami){
+                        $existfam = "SELECT * FROM F_PRC WHERE CLIPRC = $fami AND ARTPRC = "."'".$codigo."'";
+                        $exec = $this->conn->prepare($existfam);
+                        $exec->execute();
+                        $existe = $exec->fetch(\PDO::FETCH_ASSOC);
+                        if($existe){
+                            $upd = "UPDATE F_PRC SET PREPRC = ? WHERE CLIPRC = ? AND ARTPRC = ?";
+                            $exec = $this->conn->prepare($upd);
+                            $ch = $exec->execute([$familia,$fami,$codigo]);
+                            if($ch){
+                                $fams['goals']++;
+                            }else{
+                                $fams['fails']++;
+                            }
+
+                        }else{
+                            $ins = "INSERT INTO F_PRC (CLIPRC,ARTPRC, PREPRC) VALUES (?,?,?)";
+                            $exec = $this->conn->prepare($ins);
+                            $ch = $exec->execute([$fami,$codigo,$familia]);
+                            if($ch){
+                                $fams['goals']++;
+                            }else{
+                                $fams['fails']++;
+                            }
+                        }
+                    }
+                }
+
+
+
+
                 if(isset($price['MENUDEO'])){
                     $menudeo = round($price['MENUDEO'],0);
                 }else if($codver['FAMART'] == 'MBP'){ //mochila
@@ -726,7 +765,8 @@ class ProductsController extends Controller
             "mysql"=>$mysql,
             "stores"=>$stor,
             "storefor"=>$pub,
-            "dionisio"=>$dion
+            "dionisio"=>$dion,
+            "familia"=>$fams
         ];
         return response()->json($res);
         // return response()->json($prduct_prices);
