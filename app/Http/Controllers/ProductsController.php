@@ -866,7 +866,7 @@ class ProductsController extends Controller
             "fails"=>[]
         ];
         $prices = $request->prices;
-        $margin = 1.0;
+        $margin = 1.5;
         foreach($prices as $price){
             $codigo = $price['MODELO'];
             $vercod = "SELECT F_ART.PCOART AS COSTO, F_FAM.SECFAM AS SECCION FROM F_ART INNER JOIN F_FAM ON F_FAM.CODFAM = F_ART.FAMART  WHERE F_ART.CODART = "."'".$codigo."'";
