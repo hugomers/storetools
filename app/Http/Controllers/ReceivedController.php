@@ -60,7 +60,7 @@ class ReceivedController extends Controller
                             $fac = [//se crea el arrego para insertar en factusol
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
-                                "P-".$requisitions->id,//codigo de requisision de la aplicacion
+                                "P-".$requisitions->id."N-".$not,//codigo de requisision de la aplicacion
                                 $date_format,//fecha actual en formato
                                 "GEN",//almacen de donde sale la mercancia siempre sera GEN
                                 500,//agente que atiende la factura siempre sera 500 cuando es de cedis
