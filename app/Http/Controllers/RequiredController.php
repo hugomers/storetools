@@ -63,7 +63,7 @@ class RequiredController extends Controller
                                 "02-01-00",
                                 27,
                                 27,
-                                "GEN",//almacen de donde sale la mercancia siempre sera GEN
+                                $requisitions->_warehouse,//almacen de donde sale la mercancia siempre sera GEN jaja ya no jijitl
                                 "MEXICO",
                                 100,
                                 1,
