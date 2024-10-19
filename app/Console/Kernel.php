@@ -7,6 +7,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Http\Controllers\ZktecoController;
 use App\Http\Controllers\accessController;
 use App\Http\Controllers\BackupsController;
+use App\Http\Controllers\StateController;
 use Illuminate\Support\Facades\DB;
 
 
@@ -42,6 +43,11 @@ class Kernel extends ConsoleKernel
             $controller = new BackupsController();
             $controller->Backups();
         })->everyTwoHours()->between('10:00', '22:00')->name("Respaldo Local");//Respaldo solo de el ejercico actual
+
+        $schedule->call(function () {
+            $controller = new StateController();
+            $controller->bills();
+        })->dailyAt(5,20)->name("Replicacion Resultados");//Respaldo solo de el ejercico actual
 
         // $schedule->call(function () {
         //     $controller = new accessController();

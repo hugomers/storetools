@@ -178,17 +178,21 @@ class StateController extends Controller
         $store = env("STORE");
         if($store == 1){
             try{
+            echo 'Inicio de replicacion de cedis';
             $account = "SELECT
             F_APU.ASIAPU AS ASIENTO,
             F_APU.CUEAPU AS CUENTA,
             F_MAE.NOMMAE AS NAMECUEN,
-            F_APU.CONAPU AS CONCEPTO,
             FORMAT(F_APU.FCRAPU,'YYYY-mm-dd')&' '&'00:00:00' AS CREATED,
-            F_APU.IMPAPU AS IMPORTE
+            SUM(F_APU.IMPAPU) AS IMPORTE
             FROM F_APU
             INNER JOIN F_MAE ON F_MAE.CODMAE = F_APU.CUEAPU
             WHERE [D-HAPU] = 'D' AND CUEAPU LIKE '410%'
-            ";
+            GROUP BY
+                F_APU.ASIAPU,
+                F_APU.CUEAPU,
+                F_MAE.NOMMAE,
+                FORMAT(F_APU.FCRAPU,'YYYY-mm-dd')&' '&'00:00:00'";
             // return $account;
 
             $exec = $this->con->prepare($account);
@@ -196,7 +200,7 @@ class StateController extends Controller
             $exec->execute();
             $entries = $exec->fetchall(\PDO::FETCH_ASSOC);
             foreach($entries as $entrie){
-                $exist = DB::table('accounting_entries')->where('entrie',$entrie['ASIENTO'])->first();
+                $exist = DB::table('accounting_entries')->where([['entrie',$entrie['ASIENTO']],['_account',$entrie['CUENTA']],['created_at',$entrie['CREATED']]])->first();
                 if($exist){
 
                 }else{
@@ -205,15 +209,16 @@ class StateController extends Controller
                         "entrie"=>$entrie['ASIENTO'],
                         "_account"=>$entrie['CUENTA'],
                         "name_account"=>utf8_encode($entrie['NAMECUEN']),
-                        "concept"=>utf8_encode($entrie['CONCEPTO']),
+                        "concept"=>utf8_encode(''),
                         "created_at"=>$entrie['CREATED'],
                         "import"=>$entrie['IMPORTE']
                     ];
                     $insert = DB::table('accounting_entries')->insert($inscon);
                 }
-                return $inscon;
-                }
+            }
+            echo 'Finalizacion de replicacion de cedis';
         }else{
+            echo 'Inicio de replicacion de sucursal';
             $with = "SELECT
             CODRET,
             IIF( HORRET = '', FORMAT(FECRET,'YYYY-mm-dd')&' '&'00:00:00' ,FORMAT(FECRET,'YYYY-mm-dd')&' '&FORMAT(HORRET,'HH:mm:ss')) AS CREACION,
@@ -222,12 +227,13 @@ class StateController extends Controller
             F_PRO.NOFPRO as nombre
             FROM F_RET
             INNER JOIN F_PRO ON F_PRO.CODPRO = F_RET.PRORET
-            WHERE PRORET >800 AND YEAR(FECRET) = 2023";
+            WHERE PRORET >800 AND YEAR(FECRET) = 2024";
             $exec = $this->conn->prepare($with);
             $exec->execute();
             $withdrawals = $exec->fetchall(\PDO::FETCH_ASSOC);
+            // return mb_convert_encoding($withdrawals,'UTF-8');
             foreach($withdrawals as $withdrawal){
-                $exisw = DB::table('withdrawals')->where('_store',$store)->where('code',$withdrawal['CODRET'])->first();
+                $exisw = DB::table('withdrawals')->where([['_store',$store],['code',$withdrawal['CODRET']]])->first();
                 if(!$exisw){
                     $inse = [
                         "code"=>$withdrawal['CODRET'],
@@ -238,12 +244,11 @@ class StateController extends Controller
                         "_store"=>$store,
                     ];
                 $insret = DB::table('withdrawals')->insert($inse);
-
+                }else{
+                    $upd = DB::table('withdrawals')->where([['_store',$store],['code',$withdrawal['CODRET']]])->update(['import'=>$withdrawal['IMPRET']]);
                 }
-
-                }
-                return "hola";
-
+            }
+            echo 'Finalizacion de replicacion de sucursal';
         }
     }
 }
