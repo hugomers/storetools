@@ -15,7 +15,7 @@ class StateController extends Controller
         }else{ die("$access no es un origen de datos valido."); }
 
         if(env("STORE") == 1){
-            $contasol = env("CONTASOL");//conexion a access de sucursal
+            $contasol = env("CONTASOLDB");//conexion a access de sucursal
             if(file_exists($contasol)){
             try{  $this->con  = new \PDO("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};charset=UTF-8; DBQ=".$contasol."; Uid=; Pwd=;");
                 }catch(\PDOException $e){ die($e->getMessage()); }
