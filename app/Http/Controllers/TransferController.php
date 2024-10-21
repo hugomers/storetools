@@ -106,8 +106,8 @@ class TransferController extends Controller
         $ttotal=0;//inicio contador de total
 
         foreach($product_require as $pro){//inicio de cliclo para obtener productos
-            $precio = $pro->precio;//se optiene el precio de cada producto
-            $bull = null;
+            // $precio = $pro->precio;//se optiene el precio de cada producto
+            $bull = 0;
             if($pro->medida == 1){$canti = $pro->cantidad ;}elseif($pro->medida == 2){$canti = $pro->cantidad * 12; }elseif($pro->medida == 3){$canti = $pro->cantidad * $pro->PXC ; $bull = $pro->cantidad; }elseif($pro->medida == 4){$canti = ($pro->cantidad * ($pro->PXC / 2)) ;}//se valida la unidad de medida de el surtio
             // $bul = $bull > 0 ? $bull : null;
             // $total = $precio * $canti ;//se obtiene el total de la linea
