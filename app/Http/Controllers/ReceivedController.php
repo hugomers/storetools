@@ -40,6 +40,23 @@ class ReceivedController extends Controller
                         $requisitions = DB::connection('vizapi')->table('requisition AS R')->join('workpoints AS W','W.id','=','R._workpoint_from')->where('R.id', $id)->select('R.*','W._client AS cliente')->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
                         $clien = $requisitions->cliente;//se obtiene el cliente de el query que es el numero de cliente de la sucursal que pide la mercancia
                         $not = $requisitions->notes;//se obtiene las notas de la requisision
+                        switch($requisitions->_workpoint_to){
+                            case 1://cedis
+                                $almfrom = 'GEN';
+                            break;
+                            case 2://texcoco
+                                $almfrom = 'STC';
+                            break;
+                            case 16://brasil
+                                $almfrom = 'BRA';
+                            break;
+                            case 21://pantaco
+                                $almfrom = 'PAN';
+                            break;
+                            case 24://bolivia
+                                $almfrom = 'BOL';
+                            break;
+                        }
                         $client = "SELECT * FROM F_CLI WHERE CODCLI = $clien";//query para obtener los datos de el cliente directamente de factusol
                         $exec = $this->conn->prepare($client);
                         $exec -> execute();
@@ -56,13 +73,13 @@ class ReceivedController extends Controller
                         $exec -> execute();
                         $maxcode=$exec->fetch(\PDO::FETCH_ASSOC);//averS
                             $codfac = intval($maxcode["CODIGO"])+ 1;//se obtiene el nuevo numero de factura que se inserara
-                        $prouduct = $this->productrequired($id,$rol,$codfac,$supply);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
+                        $prouduct = $this->productrequired($id,$rol,$codfac,$supply,$almfrom);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
                             $fac = [//se crea el arrego para insertar en factusol
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
                                 "P-".$requisitions->id."N-".$not,//codigo de requisision de la aplicacion
                                 $date_format,//fecha actual en formato
-                                "GEN",//almacen de donde sale la mercancia siempre sera GEN
+                                $almfrom,//almacen de donde sale la mercancia siempre sera GEN
                                 500,//agente que atiende la factura siempre sera 500 cuando es de cedis
                                 $clien,//numero de cliente
                                 $nofcli,//nombre de cliente
@@ -119,7 +136,7 @@ class ReceivedController extends Controller
             }else{return response()->json("EL CODIGO DE REQUISICION NO EXITE",404);}
         }catch (\PDOException $e){ die($e->getMessage());}
     }
-    public function productrequired($id,$rol,$codfac,$supply){//metoro de insercion de productos en factusol
+    public function productrequired($id,$rol,$codfac,$supply,$alm){//metoro de insercion de productos en factusol
 
 
         $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
@@ -160,7 +177,7 @@ class ReceivedController extends Controller
 
             $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO - ? , DISSTO = DISSTO - ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
             $exec = $this->conn->prepare($updatestock);
-            $exec -> execute([$canti,$canti,$pro->codigo, "GEN"]);
+            $exec -> execute([$canti,$canti,$pro->codigo, $alm]);
             $pos++;//contador
         }
 

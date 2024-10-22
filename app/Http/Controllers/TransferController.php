@@ -47,9 +47,9 @@ class TransferController extends Controller
                             case 2://texcoco
                                 $aor = 'STC';
                             break;
-                            // case 16://brasil
-                            //     $aor = 'GEN'
-                            // break;
+                            case 16://brasil
+                                $aor = 'BRA';
+                            break;
                             case 21://pantaco
                                 $aor = 'PAN';
                             break;
@@ -170,9 +170,9 @@ class TransferController extends Controller
                             case 2://texcoco
                                 $ade = 'STC';
                             break;
-                            // case 16://brasil
-                            //     $aor = 'GEN'
-                            // break;
+                            case 16://brasil
+                                $ade = 'BRA';
+                            break;
                             case 21://pantaco
                                 $ade = 'PAN';
                             break;

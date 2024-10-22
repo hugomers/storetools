@@ -37,12 +37,13 @@ class RequiredController extends Controller
                         $requisitions = DB::connection('vizapi')->table('requisition_partitions AS R')->where([['_requisition',$id],['_suplier_id',$suply]])->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
                         // $not = $requisitions->notes;//se obtiene las notas de la requisision
                         $rol = "1";
+                        $warehouse = $requisitions->_warehouse;
                         $max = "SELECT max(CODFRE) as CODIGO FROM F_FRE WHERE TIPFRE = '".$rol."'";//query para sacar el numero de factura maximo de el tipo(serie)
                         $exec = $this->conn->prepare($max);
                         $exec -> execute();
                         $maxcode=$exec->fetch(\PDO::FETCH_ASSOC);//averS
                         $codfac = intval($maxcode["CODIGO"])+ 1;//se obtiene el nuevo numero de factura que se inserara
-                        $product = $this->productreceived($id,$rol,$codfac,$suply);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
+                        $product = $this->productreceived($id,$rol,$codfac,$suply,$warehouse);//se envian datos id de la requisision, tipo de factura(serie) y codigo de factura a insertar hacia el metodo
                             $fac = [//se crea el arrego para insertar en factusol
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
@@ -63,7 +64,7 @@ class RequiredController extends Controller
                                 "02-01-00",
                                 27,
                                 27,
-                                $requisitions->_warehouse,//almacen de donde sale la mercancia siempre sera GEN jaja ya no jijitl
+                                $warehouse,//almacen de donde sale la mercancia siempre sera GEN jaja ya no jijitl
                                 "MEXICO",
                                 100,
                                 1,
@@ -114,7 +115,7 @@ class RequiredController extends Controller
             }else{return response()->json("EL CODIGO DE REQUISICION NO EXITE",404);}
         }catch (\PDOException $e){ die($e->getMessage());}
     }
-    public function productreceived($id,$rol,$codfac,$suply){//metoro de insercion de productos en factusol
+    public function productreceived($id,$rol,$codfac,$suply,$alm){//metoro de insercion de productos en factusol
 
         // $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
         //     ->join('products AS P','P.id','=','PR._product')
@@ -158,7 +159,7 @@ class RequiredController extends Controller
 
             $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO + ? , DISSTO = DISSTO + ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
             $exec = $this->conn->prepare($updatestock);
-            $exec -> execute([$canti,$canti,$pro->codigo, "GEN"]);
+            $exec -> execute([$canti,$canti,$pro->codigo, $alm]);
 
             $pos++;//contador
         }
