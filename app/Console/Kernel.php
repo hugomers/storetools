@@ -22,15 +22,15 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // envir las asistencias cada min de 9 a 10
-        // $device = DB::table('assist_devices')->where('_store',env('STORE'))->first();
-        // if($device){
-        //     $schedule->call([ZktecoController::class,'replyAssist'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
-        //     $schedule->call([ZktecoController::class,'replyAssist'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
-        //     if(env('STORE') == 1){
-        //         $schedule->call([ZktecoController::class,'replyAssisttexc'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
-        //         $schedule->call([ZktecoController::class,'replyAssisttexc'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
-        //     }
-        // }
+        $device = DB::table('assist_devices')->where('_store',env('STORE'))->first();
+        if($device){
+            $schedule->call([ZktecoController::class,'replyAssist'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
+            $schedule->call([ZktecoController::class,'replyAssist'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
+            if(env('STORE') == 1){
+                $schedule->call([ZktecoController::class,'replyAssisttexc'])->everyfiveMinutes()->between('9:00','11:00')->name("Replicador Asistencias cada 5 min");//cada 5 min de 8 a 10 de la manana
+                $schedule->call([ZktecoController::class,'replyAssisttexc'])->hourly()->between('11:00', '22:00')->name("Replicador Asostemcias cada hora");//cada hora entre las 10:01 de la manana hasta las 9:00 de la noche
+            }
+        }
 
 
 
