@@ -208,42 +208,44 @@ class cashierController extends Controller
 
     public function opencash(Request $request){
         $caja = $request->_cash;
-        switch($caja){
-            case 1:
-                $terminal  = "CAJAUNO";
-            break;
-            case 2:
-                $terminal  = "CAJADOS";
-            break;
-            case 3:
-                $terminal  = "CAJATRES";
-            break;
-            case 4:
-                $terminal  = "CAJACUATRO";
-            break;
-            case 5:
-                $terminal  = "CAJACINCO";
-            break;
-            case 6:
-                $terminal  = "CAJASEIS";
-            break;
-            case 7:
-                $terminal  = "CAJASIETE";
-            break;
-            case 8:
-                $terminal  = "CAJAOCHO";
-            break;
-            case 9:
-                $terminal  = "CAJANUEVE";
-            break;
-        }
-        $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
-        $exec = $this->conn->prepare($cajaob);
-        $exec->execute();
-        $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
+        // return intval($caja);
+        // switch($caja){
+        //     case 1:
+        //         $terminal  = "CAJAUNO";
+        //     break;
+        //     case 2:
+        //         $terminal  = "CAJADOS";
+        //     break;
+        //     case 3:
+        //         $terminal  = "CAJATRES";
+        //     break;
+        //     case 4:
+        //         $terminal  = "CAJACUATRO";
+        //     break;
+        //     case 5:
+        //         $terminal  = "CAJACINCO";
+        //     break;
+        //     case 6:
+        //         $terminal  = "CAJASEIS";
+        //     break;
+        //     case 7:
+        //         $terminal  = "CAJASIETE";
+        //     break;
+        //     case 8:
+        //         $terminal  = "CAJAOCHO";
+        //     break;
+        //     case 9:
+        //         $terminal  = "CAJANUEVE";
+        //     break;
+        // }
+        // $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
+        // $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = 51";
+        // $exec = $this->conn->prepare($cajaob);
+        // $exec->execute();
+        // $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
 
 
-        $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
+        $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = $caja ";
         $exec = $this->conn->prepare($apertura);
         $result = $exec->execute();
 
@@ -257,36 +259,37 @@ class cashierController extends Controller
 
     public function changewithdrawal(Request $request){
         $caja = $request->_cash;
-        switch($caja){
-            case 1:
-                $terminal  = "CAJAUNO";
-            break;
-            case 2:
-                $terminal  = "CAJADOS";
-            break;
-            case 3:
-                $terminal  = "CAJATRES";
-            break;
-            case 4:
-                $terminal  = "CAJACUATRO";
-            break;
-            case 5:
-                $terminal  = "CAJACINCO";
-            break;
-            case 6:
-                $terminal  = "CAJASEIS";
-            break;
-            case 7:
-                $terminal  = "CAJASIETE";
-            break;
-            case 8:
-                $terminal  = "CAJAOCHO";
-            break;
-            case 9:
-                $terminal  = "CAJANUEVE";
-            break;
-        }
-        $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
+        // switch($caja){
+        //     case 1:
+        //         $terminal  = "CAJAUNO";
+        //     break;
+        //     case 2:
+        //         $terminal  = "CAJADOS";
+        //     break;
+        //     case 3:
+        //         $terminal  = "CAJATRES";
+        //     break;
+        //     case 4:
+        //         $terminal  = "CAJACUATRO";
+        //     break;
+        //     case 5:
+        //         $terminal  = "CAJACINCO";
+        //     break;
+        //     case 6:
+        //         $terminal  = "CAJASEIS";
+        //     break;
+        //     case 7:
+        //         $terminal  = "CAJASIETE";
+        //     break;
+        //     case 8:
+        //         $terminal  = "CAJAOCHO";
+        //     break;
+        //     case 9:
+        //         $terminal  = "CAJANUEVE";
+        //     break;
+        // }
+        // $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
+        $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = $caja";
         $exec = $this->conn->prepare($cajaob);
         $exec->execute();
         $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
