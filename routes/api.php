@@ -102,7 +102,9 @@ Route::prefix('/Resources')->group(function(){
     Route::post('/getInvoices',[accessController::class, 'getInvoices']);
     Route::post('/getEntries',[accessController::class, 'getEntries']);
     Route::get('/Entries',[accessController::class, 'Entries']);
-
+    Route::post('/getInvoiceBudget',[accessController::class,'getInvoiceBudget']);
+    Route::post('/getCommand',[accessController::class,'getCommand']);
+    Route::post('/createBudget',[accessController::class,'createBudget']);
 
 });
 

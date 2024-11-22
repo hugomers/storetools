@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 
 class accessController extends Controller
 {
@@ -1008,4 +1010,164 @@ class accessController extends Controller
         $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
         return response()->json(mb_convert_encoding($facs, 'UTF-8'));
     }
+
+    public function getInvoiceBudget(Request $request){
+        $folio = $request->number;
+        $price = $request->client;
+        $store = $request->store;
+        $client = DB::table('stores')->where('id',$store)->first();
+        $select = "SELECT TIPFAC&'-'&CODFAC AS FOLIO, REFFAC ,Format(FECFAC, 'YYYY-mm-dd') AS FECHA  FROM F_FAC WHERE TIPFAC&'-'&CODFAC = "."'".$folio."'"." AND CLIFAC = ".$client->_client;
+        $exec = $this->conn->prepare($select);
+        $exec->execute();
+        $fac = $exec->fetch(\PDO::FETCH_ASSOC);
+        if($fac){
+            $existclient = "SELECT CODCLI, NOFCLI, DOMCLI,POBCLI,CPOCLI,PROCLI,TARCLI , NVCCLI FROM F_CLI WHERE  CODCLI = $price";
+            $exec = $this->conn->prepare($existclient);
+            $exec->execute();
+            $excli = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($excli){
+                if($excli['NVCCLI']== 0){
+                    $linfac = "SELECT
+                    F_LFA.ARTLFA,
+                    F_LFA.DESLFA,
+                    F_LFA.CANLFA,
+                    F_LTA.PRELTA,
+                    F_LTA.PRELTA * F_LFA.CANLFA  AS TOTAL,
+                    F_LFA.PRELFA AS COSLFA
+                    FROM F_LFA
+                    INNER JOIN F_LTA ON F_LTA.ARTLTA = F_LFA.ARTLFA
+                    WHERE F_LFA.TIPLFA&'-'&F_LFA.CODLFA = "."'".$folio."'"." AND F_LTA.TARLTA = ".$excli['TARCLI'];
+                $exec = $this->conn->prepare($linfac);
+                $exec->execute();
+                $lnsfac = $exec->fetchall(\PDO::FETCH_ASSOC);
+                $res = [
+                    "factura"=>mb_convert_encoding($fac, 'UTF-8'),
+                    "cliente"=>mb_convert_encoding($excli, 'UTF-8'),
+                    "productos"=>mb_convert_encoding($lnsfac, 'UTF-8'),
+                ];
+                return response()->json($res,200);
+                }else{
+                    return response()->json(['message'=>'No se permite vender al cliente '.$price], 404);
+                }
+            }else{
+                return response()->json(['message'=>'No se encuentra el cliente '.$price], 404);
+            }
+        }else{
+
+            return response()->json(['message'=>'No se encuentra la Salida '.$folio], 404);
+        }
+    }
+
+    public function getCommand(Request $request){
+        $store = $request->store;
+        $comanda = $request->number;
+        $price = $request->client;
+        $coman =  DB::connection('vizapi')->table('orders')->where([['_status','>',1],['_workpoint_from',$store],['id',$comanda]])->select('id AS FOLIO','name AS REFFAC')->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d') as FECHA")->first();
+        if($coman){
+            $existclient = "SELECT CODCLI, NOFCLI, DOMCLI,POBCLI,CPOCLI,PROCLI,TARCLI , NVCCLI FROM F_CLI WHERE  CODCLI = $price";
+            $exec = $this->conn->prepare($existclient);
+            $exec->execute();
+            $excli = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($excli){
+                if($excli['NVCCLI']== 0){
+                $products  = DB::connection('vizapi')->table('product_ordered AS OP')->join('products AS P','P.id','OP._product')->join('product_prices AS PP','PP._product','P.id')
+                ->where([['PP._type',$excli['TARCLI']],['OP._order',$comanda]])
+                ->select('P.code AS ARTLFA',
+                        'P.description AS DESLFA',
+                        'OP.units AS CANLFA',
+                        'PP.price AS PRELTA',
+                        'P.cost AS COSLFA')
+                ->selectRaw('PP.price * OP.units AS TOTAL')
+                ->get();
+                $res = [
+                    "factura"=>$coman,
+                    "cliente"=>$excli,
+                    "productos"=>$products
+                ];
+                return response()->json($res,200);
+                }else{
+                    return response()->json(['message'=>'No se permite vender al cliente '.$price], 404);
+                }
+            }else{
+                return response()->json(['message'=>'No se encuentra el cliente '.$price], 404);
+            }
+        }else{
+            return response()->json(['message'=>'No se encuentra el pedido'],404);
+        }
+    }
+
+    public function createBudget(Request $request){
+        $client = $request->client;
+        $factura = $request->factura;
+        $products = $request->products;
+
+        $date = date("Y/m/d H:i");//se gerera la fecha de el dia de hoy con  formato de fecha y hora
+        $date_format = Carbon::now()->format('d/m/Y');//se obtiene el dia que ocurre
+        $hour = "01/01/1900 ".explode(" ", $date)[1];//se formatea la fecha de el dia de hoy poniendo solo la hora en la que se genera
+        $max = "SELECT max(CODPRE) as CODIGO FROM F_PRE WHERE TIPPRE = '8'";//query para sacar el numero de factura maximo de el tipo(serie)
+        $exec = $this->conn->prepare($max);
+        $exec -> execute();
+        $maxcode=$exec->fetch(\PDO::FETCH_ASSOC);//averS
+        $codigo = $maxcode['CODIGO'] + 1;
+
+        $fac = [
+            "8",
+            $codigo,
+            "REF ".$factura['REFFAC'],
+            $date_format,
+            500,
+            $client['CODCLI'],
+            $client['NOFCLI'],
+            $client['DOMCLI'],
+            $client['POBCLI'],
+            $client['CPOCLI'],
+            $client['PROCLI'],
+            'GEN',
+            $factura['TOTAL'],
+            $factura['TOTAL'],
+            $factura['TOTAL'],
+            'EFE',
+            'Creado Por Vhelpers',
+            27,
+            27,
+            $hour,
+            $date_format
+        ];
+        $sql = "INSERT INTO F_PRE (TIPPRE,CODPRE,REFPRE,FECPRE,AGEPRE,CLIPRE,CNOPRE,CDOPRE,CPOPRE,CCPPRE,CPRPRE,ALMPRE,NET1PRE,BAS1PRE,TOTPRE,FOPPRE,OB1PRE,USUPRE,USMPRE,HORPRE,FUMPRE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";//se crea el query para insertar en la tabla
+        $exec = $this->conn->prepare($sql);
+        $res = $exec -> execute($fac);
+
+        if($res){
+            $pos = 1;
+            foreach($products as $product){
+                $values = [//se genera el arreglo para la insercion a factusol
+                    "8",
+                    $codigo,
+                     $pos,//posision de la linea
+                     $product['ARTLFA'],
+                     $product['DESLFA'],
+                     $product['CANLFA'],
+                     $product['PRELTA'],
+                     $product['TOTAL'],
+                     $product['COSLFA']
+                 ];
+                 $insert = "INSERT INTO F_LPS (TIPLPS,CODLPS,POSLPS,ARTLPS,DESLPS,CANLPS,PRELPS,TOTLPS,COSLPS) VALUES (?,?,?,?,?,?,?,?,?)";//query para insertar las lineas de la factura creada en factusol
+                 $exec = $this->conn->prepare($insert);
+                 $res = $exec -> execute($values);//envia el arreglo
+                 if($res){
+                    $pos ++;
+                 }
+            }
+            $res = [
+                "message"=>"Presupuesto Creado",
+                "folio"=>"8-".$codigo,
+                "productos"=>$pos - 1,
+                "status"=>true
+            ];
+            return response()->json($res,200);
+        }else{
+            return response()->json(['message'=>'No se genero el presupuesto ', 'status'=>false], 500);
+        }
+    }
+
 }
