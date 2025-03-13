@@ -730,7 +730,7 @@ class ProductsController extends Controller
                 "alias"=>"GR2",
             ],
             [
-                "dominio"=>'192.168.140.254:1619',
+                "dominio"=>'szkdfabd-tkkhkmjbrv.dynamic-m.com:1619',
                 "alias"=>"GR1",
 
             ]
@@ -1994,5 +1994,13 @@ class ProductsController extends Controller
         }else{
             return response()->json("No existe la factura",404);
         }
+    }
+
+    public function getReceived(Request $request){
+        $recividas = "SELECT ARTLFR, SUM(CANLFR) AS COMPRA FROM F_LFR GROUP BY ARTLFR";
+        $exec = $this->conn->prepare($recividas);
+        $exec -> execute();
+        $rec =$exec->fetchall(\PDO::FETCH_ASSOC);
+        return response()->json($rec);
     }
 }

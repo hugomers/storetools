@@ -60,7 +60,7 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/replacecode',[ProductsController::class, 'replacecode']);
     Route::post('/getdev',[ProductsController::class, 'getdev']);
     Route::post('/getinvoice',[ProductsController::class, 'getinvoice']);
-
+    Route::get('/getReceived',[ProductsController::class, 'getReceived']);
 });
 //regispricepub
 Route::prefix('/Stores')->group(function(){
