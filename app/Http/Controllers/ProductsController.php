@@ -726,7 +726,7 @@ class ProductsController extends Controller
 
         $dionisio = [
             [
-                "dominio"=>'192.168.140.253:1619',
+                "dominio"=>'szkdfabd-tkkhkmjbrv.dynamic-m.com:1620',
                 "alias"=>"GR2",
             ],
             [
