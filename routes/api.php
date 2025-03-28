@@ -12,6 +12,7 @@ use App\Http\Controllers\ReceivedController;
 use App\Http\Controllers\RequiredController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ModificationController;
 use App\Http\Controllers\TransferBWController;
 
 
@@ -75,6 +76,12 @@ Route::prefix('/Received')->group(function(){
 
 Route::prefix('/Required')->group(function(){
     Route::post('/Required',[RequiredController::class, 'invoice_received']);
+});
+
+Route::prefix('/Modification')->group(function(){
+    Route::post('/deleteProduct',[ModificationController::class, 'deleteProduct']);
+    Route::post('/changeDelivered',[ModificationController::class, 'changeDelivered']);
+    Route::post('/changeReceived',[ModificationController::class, 'changeReceived']);
 });
 
 Route::prefix('/Transfer')->group(function(){

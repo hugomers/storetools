@@ -31,8 +31,10 @@ class RequiredController extends Controller
             $status = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$suply]])->value('_status');
             $oid = DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id', $suply]])->value('id');
             if($oid){//SE VALIDA QUE LA REQUISICION EXISTA
-                if($status == 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 POR ENVIAR
-                    $count =DB::connection('vizapi')->table('product_required')->wherenotnull('toDelivered')->where([['_requisition',$id],['_suplier_id', $suply],['toDelivered','>',0]])->count('_product');
+                if($status == 10){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 10 COMPLETO
+                    // $count =DB::connection('vizapi')->table('product_required')->wherenotnull('toDelivered')->where([['_requisition',$id],['_suplier_id', $suply],['toDelivered','>',0]])->count('_product');conteo de productos recibidos
+                    $count =DB::connection('vizapi')->table('product_required')->wherenotnull('toReceived')->where([['_requisition',$id],['_suplier_id', $suply],['toReceived','>',0]])->count('_product');
+
                     if($count > 0){//SE VALIDA QUE LA REQUISICION CONTENGA AL MENOS 1 ARTICULO CONTADO
                         $requisitions = DB::connection('vizapi')->table('requisition_partitions AS R')->where([['_requisition',$id],['_suplier_id',$suply]])->first();//se realiza el query para pasar los datos de la requisicion con la condicion de el id recibido
                         // $not = $requisitions->notes;//se obtiene las notas de la requisision
@@ -77,7 +79,7 @@ class RequiredController extends Controller
                         $exec -> execute($fac);
                         $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
                         DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$suply]])->update(['invoice_received'=>$folio]);//se actualiza la columna invoice con el numero de la factura
-                        $sumcase = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toDelivered  WHEN PR._supply_by = 2  THEN PR.toDelivered * 12  WHEN PR._supply_by = 3  THEN PR.toDelivered * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toDelivered * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where([['PR._requisition', $id],['PR._suplier_id',$suply]])->first(); //se cuenta cuantas piezas se validaron
+                        $sumcase = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.toReceived  WHEN PR._supply_by = 2  THEN PR.toReceived * 12  WHEN PR._supply_by = 3  THEN PR.toReceived * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.toReceived * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where([['PR._requisition', $id],['PR._suplier_id',$suply]])->first(); //se cuenta cuantas piezas se validaron
                         $sum = $sumcase->CASESUM;
                         $countde =DB::connection('vizapi')->table('product_required')->where('_requisition',$id)->wherenotnull('checkout')->count('_product');//suma de conteo de productos enviadas
                         $sumcasede = DB::connection('vizapi')->table('product_required AS PR')->select(DB::raw('SUM(CASE WHEN PR._supply_by = 1 THEN PR.checkout  WHEN PR._supply_by = 2  THEN PR.checkout * 12  WHEN PR._supply_by = 3  THEN PR.checkout * PR.ipack   WHEN PR._supply_by = 4    THEN (PR.checkout * (PR.ipack / 2))  ELSE 0  END) AS CASESUM'))->where([['PR._requisition', $id],['PR._suplier_id',$suply]])->first(); //se cuenta cuantas piezas se validaron
@@ -130,9 +132,9 @@ class RequiredController extends Controller
         ->join('products AS P','P.id','=','PR._product')
         ->leftjoin('prices_product AS PP','PP._product','=','P.id')
         ->where([['PR._requisition',$id],['PR._suplier_id',$suply]])
-        ->wherenotnull('PR.toDelivered')
-        ->where([['PR.toDelivered','>',0],['checkout',1]])
-        ->select('P.code AS codigo','P.description AS descripcion','PR.toDelivered AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
+        ->wherenotnull('PR.toReceived')
+        ->where([['PR.toReceived','>',0],['checkout',1]])
+        ->select('P.code AS codigo','P.description AS descripcion','PR.toReceived AS cantidad','PP.AAA AS precio' ,'P.cost as costo','PR._supply_by AS medida','PR.ipack AS PXC')
         ->get();
 
         $pos= 1;//inicio contador de posision
