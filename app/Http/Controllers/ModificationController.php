@@ -67,9 +67,10 @@ class ModificationController extends Controller
                 $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO - ? , DISSTO = DISSTO - ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
                 $exec = $this->conn->prepare($updatestock);
                 $exec -> execute([$cantidad,$cantidad,$product['code'], 'GEN']);
-                return response()->json('Productos Cambiados',201);//se retorna el folio de la factura
+
             }
         }
+        return response()->json('Productos Cambiados',201);//se retorna el folio de la factura
       }
 
       public function changeReceived(Request $request){
@@ -106,9 +107,11 @@ class ModificationController extends Controller
                 $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO + ? , DISSTO = DISSTO + ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
                 $exec = $this->conn->prepare($updatestock);
                 $exec -> execute([$cantidad,$cantidad,$product['code'], 'GEN']);
-                return response()->json('Productos Cambiados',201);//se retorna el folio de la factura
+
             }
+
         }
+        return response()->json('Productos Cambiados',201);//se retorna el folio de la factura
       }
 
 
