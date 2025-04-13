@@ -14,6 +14,8 @@ use App\Http\Controllers\TransferController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ModificationController;
 use App\Http\Controllers\TransferBWController;
+use App\Http\Controllers\ReportController;
+
 
 
 
@@ -124,4 +126,13 @@ Route::prefix('/Users')->group(function(){
 Route::prefix('/TransferBW')->group(function(){
     Route::post('/addTransfer',[TransferBWController::class, 'addTransfer']);
     Route::post('/endTransfer',[TransferBWController::class, 'endTransfer']);
+});
+
+Route::prefix('/reports')->group(function(){
+    Route::get('/getCuts',[ReportController::class, 'getCuts']);
+    Route::get('/getWithdrawals',[ReportController::class, 'getWithdrawals']);
+    Route::post('/printCut',[ReportController::class, 'printCut']);
+    Route::post('/printWitrawal',[ReportController::class, 'printWitrawal']);
+
+
 });
