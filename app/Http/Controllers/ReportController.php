@@ -220,9 +220,11 @@ class ReportController extends Controller
             TR.DESTER,
             R.CONRET,
             R.IMPRET,
-            R.PRORET
-            FROM F_RET AS R
-            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
             WHERE YEAR(R.FECRET) = 2025";
         $exec = $this->conn->prepare($sql);
         $exec -> execute();
@@ -233,7 +235,7 @@ class ReportController extends Controller
         $exec -> execute();
         $terminales = $exec->fetchall(\PDO::FETCH_ASSOC);
 
-        $prov = "SELECT CODPRO, NOFPRO FROM F_PRO";
+        $prov = "SELECT CODPRO, NOFPRO FROM F_PRO WHERE CODPRO BETWEEN 800 AND 900";
         $exec = $this->conn->prepare($prov);
         $exec -> execute();
         $proveedor = $exec->fetchall(\PDO::FETCH_ASSOC);
@@ -241,29 +243,26 @@ class ReportController extends Controller
       }
 
 
-
-
-
       public function printWitrawal(Request $request){
-        $documento = env('DOCUMENTO');
 
         $sql = "SELECT
-        Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
-        Format(R.HORRET, 'HH:mm:ss') as HORA,
-        R.CODRET,
-        R.CAJRET,
-        TR.DESTER,
-        R.CONRET,
-        R.IMPRET,
-        R.PRORET
-        FROM F_RET AS R
-        INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET
+            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORRET, 'HH:mm:ss') as HORA,
+            R.CODRET,
+            R.CAJRET,
+            TR.DESTER,
+            R.CONRET,
+            R.IMPRET,
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
         WHERE R.CODRET  = " .$request->codret;
 
         $exec = $this->conn->prepare($sql);
         $exec -> execute();
         $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
-
 
 
         $header = [
@@ -277,9 +276,16 @@ class ReportController extends Controller
             "valor"=>$cuts['IMPRET'],
             "notas"=>$cuts['CONRET']
         ];
+
+        $print = $this->printWith($header);
+        return $print;
+      }
+
+      public function printWith($header){
+        $documento = env('DOCUMENTO');
         $printers = $header['print'];
 
-        $pro = "SELECT * FROM F_PRO WHERE CODPRO =". $cuts['PRORET'];
+        $pro = "SELECT * FROM F_PRO WHERE CODPRO =". $header['proveedor'];
         $exec = $this->conn->prepare($pro);
         $exec->execute();
         $proveedor = $exec->fetch(\PDO::FETCH_ASSOC);//OK
@@ -330,6 +336,299 @@ class ReportController extends Controller
             return true;
         }
             return false;
+    }
 
+    public function  modifyWithdrawal(Request $request){
+        $codret = $request->CODRET;
+        $provider = $request->PROVEEDOR;
+        $importe = $request->IMPRET;
+        $concepto = $request->CONRET;
+        $impresora = $request->Print;
+
+        $sqlupdate = "UPDATE F_RET SET PRORET = ? , IMPRET = ?, CONRET = ? WHERE CODRET = ?";
+        $exec = $this->conn->prepare($sqlupdate);
+        $res = $exec->execute([$provider['CODPRO'],$importe,$concepto,$codret]);
+        if($res){
+            $sql = "SELECT
+            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORRET, 'HH:mm:ss') as HORA,
+            R.CODRET,
+            R.CAJRET,
+            TR.DESTER,
+            R.CONRET,
+            R.IMPRET,
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
+            WHERE R.CODRET  = " .$codret;
+
+            $exec = $this->conn->prepare($sql);
+            $exec -> execute();
+            $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+            $header = [
+                "print"=>$impresora,
+                "proveedor"=>$cuts['PRORET'],
+                "retirada"=>$codret,
+                "terminal"=>$cuts['DESTER'],
+                "fecha"=>$cuts['FECHA'],
+                "hora"=>$cuts['HORA'],
+                // "dependiente"=>$request->by,
+                "valor"=>$cuts['IMPRET'],
+                "notas"=>$cuts['CONRET']
+            ];
+
+            $print = $this->printWith($header);
+            return response()->json($cuts,200);
+
+        }else{
+            return response()->json('No se modifico la retirada',500);
+        }
+
+    }
+
+    public function getAdvances(){
+        $sql = "SELECT
+            Format(R.FECANT, 'YYYY-MM-DD') as FECHA,
+            R.CODANT,
+            R.CAJANT,
+            TR.DESTER,
+            R.OBSANT,
+            R.IMPANT,
+            R.CLIANT,
+            FP.NOFCLI
+            FROM ((F_ANT AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJANT)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIANT)
+            WHERE YEAR(R.FECANT) = 2025 AND R.CRIANT = 0 AND R.ESTANT = 0";
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $term = "SELECT CODTER, DESTER FROM T_TER";
+        $exec = $this->conn->prepare($term);
+        $exec -> execute();
+        $terminales = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $prov = "SELECT CODCLI, NOFCLI FROM F_CLI";
+        $exec = $this->conn->prepare($prov);
+        $exec -> execute();
+        $clientes = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return response()->json(mb_convert_encoding(["anticipos"=>$cuts, "terminal"=>$terminales, "clientes"=>$clientes], 'UTF-8'));
+      }
+
+
+      public function printAdvance(Request $request){
+        $sql = "SELECT
+            Format(R.FECANT, 'YYYY-MM-DD') as FECHA,
+            R.CODANT,
+            R.CAJANT,
+            TR.DESTER,
+            R.OBSANT,
+            R.IMPANT,
+            R.CLIANT,
+            FP.NOFCLI
+            FROM ((F_ANT AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJANT)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIANT)
+        WHERE R.CODANT  = " .$request->codant;
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+
+
+        $header = [
+            "print"=>$request->print,
+            "client"=>$cuts['CLIANT'],
+            "retirada"=>$request->codant,
+            "terminal"=>$cuts['DESTER'],
+            "fecha"=>$cuts['FECHA'],
+            // "hora"=>$cuts['HORA'],
+            // "dependiente"=>$request->by,
+            "valor"=>$cuts['IMPANT'],
+            "notas"=>$cuts['OBSANT']
+        ];
+
+        $print = $this->printAdv($header);
+        return $print;
+      }
+
+
+      public function  modifyAdvances(Request $request){
+        $codret = $request->CODANT;
+        $provider = $request->CLIENTE;
+        $importe = $request->IMPANT;
+        $concepto = $request->OBSANT;
+        $impresora = $request->Print;
+
+        $sqlupdate = "UPDATE F_ANT SET CLIANT = ? , IMPANT = ?, OBSANT = ? WHERE CODANT = ?";
+        $exec = $this->conn->prepare($sqlupdate);
+        $res = $exec->execute([$provider['CODCLI'],$importe,$concepto,$codret]);
+        if($res){
+            $sql = "SELECT
+            Format(R.FECANT, 'YYYY-MM-DD') as FECHA,
+            R.CODANT,
+            R.CAJANT,
+            TR.DESTER,
+            R.OBSANT,
+            R.IMPANT,
+            R.CLIANT,
+            FP.NOFCLI
+            FROM ((F_ANT AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJANT)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIANT)
+            WHERE R.CODANT  = " .$codret;
+
+            $exec = $this->conn->prepare($sql);
+            $exec -> execute();
+            $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+
+            $header = [
+                "print"=>$impresora,
+                "client"=>$cuts['CLIANT'],
+                "retirada"=>$request->codant,
+                "terminal"=>$cuts['DESTER'],
+                "fecha"=>$cuts['FECHA'],
+                // "hora"=>$cuts['HORA'],
+                // "dependiente"=>$request->by,
+                "valor"=>$cuts['IMPANT'],
+                "notas"=>$cuts['OBSANT']
+            ];
+
+            $print = $this->printAdv($header);
+            return response()->json($cuts,200);
+
+        }else{
+            return response()->json('No se modifico la retirada',500);
+        }
+
+    }
+
+    public function addAdvances(Request $request){
+        $impresora = $request->Print;
+        $maxi = "SELECT MAX(CODANT) AS CODIGO FROM F_ANT";
+        $exec = $this->conn->prepare($maxi);
+        $exec -> execute();
+        $codant = $exec->fetch(\PDO::FETCH_ASSOC);
+        $codigo = $codant['CODIGO']+ 1;
+
+        $idterminal = str_pad($request->DESTER['CODTER'], 4, "0", STR_PAD_LEFT)."00".date('ymd');
+
+        $insert = "INSERT INTO F_ANT (CODANT,FECANT,CLIANT,IMPANT,ESTANT,DOCANT,TDOANT,CDOANT,SDOANT,OBSANT,CRIANT,CAJANT,TPVIDANT) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($insert);
+        $res = $exec -> execute([
+            $codigo,
+            date('d-m-Y'),
+            $request->CLIENTE['CODCLI'],
+            $request->IMPANT,
+            0,
+            0,
+            0,
+            0,
+            0,
+            $request->OBSANT,
+            0,
+            $request->DESTER['CODTER'],
+            $idterminal
+        ]);
+        if($res){
+
+
+            $sql = "SELECT
+            Format(R.FECANT, 'YYYY-MM-DD') as FECHA,
+            R.CODANT,
+            R.CAJANT,
+            TR.DESTER,
+            R.OBSANT,
+            R.IMPANT,
+            R.CLIANT,
+            FP.NOFCLI
+            FROM ((F_ANT AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJANT)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIANT)
+            WHERE R.CODANT  = " .$codigo;
+
+            $exec = $this->conn->prepare($sql);
+            $exec -> execute();
+            $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+
+            $header = [
+                "print"=>$impresora,
+                "client"=>$cuts['CLIANT'],
+                "retirada"=>$request->codant,
+                "terminal"=>$cuts['DESTER'],
+                "fecha"=>$cuts['FECHA'],
+                // "hora"=>$cuts['HORA'],
+                // "dependiente"=>$request->by,
+                "valor"=>$cuts['IMPANT'],
+                "notas"=>$cuts['OBSANT']
+            ];
+
+            $print = $this->printAdv($header);
+            return response()->json($cuts,200);
+
+
+        }else{
+            return response()->json('No se realizo el anticipo',500);
+        }
+    }
+
+
+      public function printAdv($header){
+        $documento = env('DOCUMENTO');
+        $printers = $header['print'];
+
+        $pro = "SELECT * FROM F_CLI WHERE CODCLI =". $header['client'];
+        $exec = $this->conn->prepare($pro);
+        $exec->execute();
+        $proveedor = $exec->fetch(\PDO::FETCH_ASSOC);//OK
+
+        $sql = "SELECT CTT1TPV, CTT2TPV, CTT3TPV, CTT4TPV, CTT5TPV, PTT1TPV, PTT2TPV, PTT3TPV, PTT4TPV, PTT5TPV, PTT6TPV, PTT7TPV, PTT8TPV FROM T_TPV WHERE CODTPV = $documento";
+        $exec = $this->conn->prepare($sql);
+        $exec->execute();
+        $text = $exec->fetch(\PDO::FETCH_ASSOC);//OK
+
+        try{
+            $connector = new NetworkPrintConnector($printers, 9100, 3);
+            $printer = new Printer($connector);
+        }catch(\Exception $e){ return null;}
+        try {
+            try{
+                $printer->setJustification(printer::JUSTIFY_LEFT);
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(" \n");
+                $printer->text($text["CTT1TPV"]."\n");
+                $printer->text($text["CTT3TPV"]." \n");
+                $printer->text($text["CTT5TPV"]." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text("VALE DE TERMINAL ".$header['terminal']." \n");
+                $printer->text("N° ".$header['retirada']." Fecha: ".$header["fecha"]." \n");
+                // $printer->text("Le atendio :".$header["dependiente"]." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text($proveedor['NOFCLI']." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("00000"." \n");
+                $printer->text(" \n");
+                $printer->text("GVC"." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(str_pad("IMPORTE DE VALE: ",14));
+                $printer->text(number_format($header['valor'],2)." \n");
+                $printer->text("Concepto:"." \n");
+                $printer->text($header['notas']." \n");
+                $printer -> cut();
+                $printer -> close();
+            }catch(Exception $e){}
+
+        } finally {
+            $printer -> close();
+            return true;
+        }
+            return false;
     }
 }

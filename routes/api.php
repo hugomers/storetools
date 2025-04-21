@@ -131,8 +131,12 @@ Route::prefix('/TransferBW')->group(function(){
 Route::prefix('/reports')->group(function(){
     Route::get('/getCuts',[ReportController::class, 'getCuts']);
     Route::get('/getWithdrawals',[ReportController::class, 'getWithdrawals']);
+    Route::get('/getAdvances',[ReportController::class, 'getAdvances']);
     Route::post('/printCut',[ReportController::class, 'printCut']);
+    Route::post('/modifyWithdrawal',[ReportController::class, 'modifyWithdrawal']);
+    Route::post('/modifyAdvances',[ReportController::class, 'modifyAdvances']);
     Route::post('/printWitrawal',[ReportController::class, 'printWitrawal']);
-
+    Route::post('/printAdvance',[ReportController::class, 'printAdvance']);
+    Route::post('/addAdvances',[ReportController::class, 'addAdvances']);
 
 });
