@@ -556,7 +556,7 @@ class ReportController extends Controller
             $header = [
                 "print"=>$impresora,
                 "client"=>$cuts['CLIANT'],
-                "retirada"=>$request->codant,
+                "retirada"=>$codigo,
                 "terminal"=>$cuts['DESTER'],
                 "fecha"=>$cuts['FECHA'],
                 // "hora"=>$cuts['HORA'],
