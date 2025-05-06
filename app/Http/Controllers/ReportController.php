@@ -14,9 +14,9 @@ class ReportController extends Controller
         try{  $this->conn  = new \PDO("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};charset=UTF-8; DBQ=".$access."; Uid=; Pwd=;");
             }catch(\PDOException $e){ die($e->getMessage()); }
         }else{ die("$access no es un origen de datos valido."); }
-      }
+    }
 
-      public function getCuts(){
+    public function getCuts(){
         $sql = "SELECT
             Format(T.FECATE, 'YYYY/MM/DD') as FECHA,
             T.TERATE,
@@ -38,21 +38,15 @@ class ReportController extends Controller
         $exec -> execute();
         $terminales = $exec->fetchall(\PDO::FETCH_ASSOC);
         return response()->json(["cuts"=>$cuts, "terminal"=>$terminales]);
-      }
+    }
 
-      public function printCut(Request $request){
+    public function printCut(Request $request){
         $terminal = $request->terminal;
         // $terminal = 36;
-
         $fecha = $request->fecha;
         // $fecha = "2025-04-11";
-
         $print = $request->print;
-
-
-
         // $print = '192.168.10.100';
-
         $sql = "SELECT
             Format(T.FECATE, 'YYYY/MM/DD') as FECHA,
             Format(T.HOCATE, 'HH:MM:SS') as HORA,
@@ -209,9 +203,9 @@ class ReportController extends Controller
         }else{
             return "No se pudo imprimir";
         }
-      }
+    }
 
-      public function getWithdrawals(){
+    public function getWithdrawals(){
         $sql = "SELECT
             Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
             Format(R.HORRET, 'HH:mm:ss') as HORA,
@@ -240,48 +234,46 @@ class ReportController extends Controller
         $exec -> execute();
         $proveedor = $exec->fetchall(\PDO::FETCH_ASSOC);
         return response()->json(mb_convert_encoding(["cuts"=>$cuts, "terminal"=>$terminales, "proveedores"=>$proveedor], 'UTF-8'));
-      }
+    }
+
+    public function printWitrawal(Request $request){
+    $sql = "SELECT
+        Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+        Format(R.HORRET, 'HH:mm:ss') as HORA,
+        R.CODRET,
+        R.CAJRET,
+        TR.DESTER,
+        R.CONRET,
+        R.IMPRET,
+        R.PRORET,
+        FP.NOFPRO
+        FROM ((F_RET AS R
+        INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+        INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
+    WHERE R.CODRET  = " .$request->codret;
+
+    $exec = $this->conn->prepare($sql);
+    $exec -> execute();
+    $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
 
 
-      public function printWitrawal(Request $request){
+    $header = [
+        "print"=>$request->print,
+        "proveedor"=>$cuts['PRORET'],
+        "retirada"=>$request->codret,
+        "terminal"=>$cuts['DESTER'],
+        "fecha"=>$cuts['FECHA'],
+        "hora"=>$cuts['HORA'],
+        // "dependiente"=>$request->by,
+        "valor"=>$cuts['IMPRET'],
+        "notas"=>$cuts['CONRET']
+    ];
 
-        $sql = "SELECT
-            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
-            Format(R.HORRET, 'HH:mm:ss') as HORA,
-            R.CODRET,
-            R.CAJRET,
-            TR.DESTER,
-            R.CONRET,
-            R.IMPRET,
-            R.PRORET,
-            FP.NOFPRO
-            FROM ((F_RET AS R
-            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
-            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
-        WHERE R.CODRET  = " .$request->codret;
+    $print = $this->printWith($header);
+    return $print;
+    }
 
-        $exec = $this->conn->prepare($sql);
-        $exec -> execute();
-        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
-
-
-        $header = [
-            "print"=>$request->print,
-            "proveedor"=>$cuts['PRORET'],
-            "retirada"=>$request->codret,
-            "terminal"=>$cuts['DESTER'],
-            "fecha"=>$cuts['FECHA'],
-            "hora"=>$cuts['HORA'],
-            // "dependiente"=>$request->by,
-            "valor"=>$cuts['IMPRET'],
-            "notas"=>$cuts['CONRET']
-        ];
-
-        $print = $this->printWith($header);
-        return $print;
-      }
-
-      public function printWith($header){
+    public function printWith($header){
         $documento = env('DOCUMENTO');
         $printers = $header['print'];
 
@@ -336,6 +328,66 @@ class ReportController extends Controller
             return true;
         }
             return false;
+    }
+
+    public function addWithdrawal(Request $request){
+        $impresora = $request->Print;
+        // return date('ymd', strtotime($request->FECHA));
+        $date = date('ymd', strtotime($request->FECHA));
+        $maxi = "SELECT MAX(CODRET) AS CODIGO FROM F_RET";
+        $exec = $this->conn->prepare($maxi);
+        $exec -> execute();
+        $codant = $exec->fetch(\PDO::FETCH_ASSOC);
+        $codigo = $codant['CODIGO']+ 1;
+        // return $codigo;
+        $idterminal = str_pad($request->DESTER['CODTER'], 4, "0", STR_PAD_LEFT)."00".$date;
+        $insert = "INSERT INTO F_RET (CODRET, CAJRET, FECRET, HORRET, CONRET, IMPRET, PRORET, TPVIDRET ) VALUES (?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($insert);
+        $res = $exec -> execute([
+            $codigo,
+            $request->DESTER['CODTER'],
+            date('d-m-y', strtotime($request->FECHA)),
+            date('h:i'),
+            $request->CONRET,
+            $request->IMPRET,
+            $request->PROVEEDOR['CODPRO'],
+            $idterminal
+        ]);
+        if($res){
+            $sql = "SELECT
+            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORRET, 'HH:mm:ss') as HORA,
+            R.CODRET,
+            R.CAJRET,
+            TR.DESTER,
+            R.CONRET,
+            R.IMPRET,
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
+            WHERE R.CODRET  = " .$codigo;
+            $exec = $this->conn->prepare($sql);
+            $exec -> execute();
+            $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+            $header = [
+                "print"=>$impresora,
+                "proveedor"=>$cuts['PRORET'],
+                "retirada"=>$codigo,
+                "terminal"=>$cuts['DESTER'],
+                "fecha"=>$cuts['FECHA'],
+                "hora"=>$cuts['HORA'],
+                // "dependiente"=>$request->by,
+                "valor"=>$cuts['IMPRET'],
+                "notas"=>$cuts['CONRET']
+            ];
+
+            $print = $this->printWith($header);
+            return response()->json($cuts,200);
+        }else{
+            return response()->json('No se realizo la retirada',500);
+        }
     }
 
     public function  modifyWithdrawal(Request $request){
@@ -574,8 +626,7 @@ class ReportController extends Controller
         }
     }
 
-
-      public function printAdv($header){
+    public function printAdv($header){
         $documento = env('DOCUMENTO');
         $printers = $header['print'];
 
@@ -631,4 +682,5 @@ class ReportController extends Controller
         }
             return false;
     }
+
 }

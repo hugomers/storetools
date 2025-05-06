@@ -15,6 +15,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ModificationController;
 use App\Http\Controllers\TransferBWController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\OutputsController;
+
 
 
 
@@ -128,6 +130,11 @@ Route::prefix('/TransferBW')->group(function(){
     Route::post('/endTransfer',[TransferBWController::class, 'endTransfer']);
 });
 
+Route::prefix('/outsInternal')->group(function(){
+    Route::post('/addOuts',[OutputsController::class, 'addOutputs']);
+    Route::post('/endOuts',[OutputsController::class, 'endOutput']);
+});
+
 Route::prefix('/reports')->group(function(){
     Route::get('/getCuts',[ReportController::class, 'getCuts']);
     Route::get('/getWithdrawals',[ReportController::class, 'getWithdrawals']);
@@ -138,5 +145,5 @@ Route::prefix('/reports')->group(function(){
     Route::post('/printWitrawal',[ReportController::class, 'printWitrawal']);
     Route::post('/printAdvance',[ReportController::class, 'printAdvance']);
     Route::post('/addAdvances',[ReportController::class, 'addAdvances']);
-
+    Route::post('/addWithdrawal',[ReportController::class, 'addWithdrawal']);
 });
