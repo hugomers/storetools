@@ -92,6 +92,11 @@ class ReportController extends Controller
         $exec -> execute();
         $mov = $exec->fetch(\PDO::FETCH_ASSOC);
 
+        $empresa = "SELECT DENEMP  FROM F_EMP";
+        $exec = $this->conn->prepare($empresa);
+        $exec -> execute();
+        $emp = $exec->fetch(\PDO::FETCH_ASSOC);
+
         $connector = new NetworkPrintConnector($print, 9100, 3);
         if($connector){
             $printer = new Printer($connector);
@@ -102,7 +107,7 @@ class ReportController extends Controller
             $printer->text(" \n");
             $printer->text(str_repeat("─", 48) . "\n");
             $printer->text("CIERRE DE TERMINAL"." \n");
-            $printer->text("SUCURSAL "."APARTADO 1"." \n");
+            $printer->text($emp['DENEMP']." \n");
             $printer->text(str_repeat("─", 48) . "\n");
             $printer->text("Terminal: ".$cuts['DESTER']." \n");
             $printer->text("Fecha: ".$cuts['FECHA']." \n");
