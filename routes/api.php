@@ -16,6 +16,8 @@ use App\Http\Controllers\ModificationController;
 use App\Http\Controllers\TransferBWController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\OutputsController;
+use App\Http\Controllers\RefundController;
+
 
 
 
@@ -134,6 +136,19 @@ Route::prefix('/outsInternal')->group(function(){
     Route::post('/addOuts',[OutputsController::class, 'addOutputs']);
     Route::post('/endOuts',[OutputsController::class, 'endOutput']);
 });
+
+Route::prefix('/refunds')->group(function(){
+    Route::post('/addRefund',[RefundController::class, 'addRefund']);
+    Route::post('/genAbono',[RefundController::class, 'genAbono']);
+    Route::post('/genAbonoTras',[RefundController::class, 'genAbonoTras']);
+    Route::post('/genEntry',[RefundController::class, 'genEntry']);
+
+
+
+});
+
+
+
 
 Route::prefix('/reports')->group(function(){
     Route::get('/getCuts',[ReportController::class, 'getCuts']);
