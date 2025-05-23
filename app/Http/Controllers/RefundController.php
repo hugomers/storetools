@@ -352,8 +352,8 @@ class RefundController extends Controller
         $insa = [
             '1',
             $id['ID'],
-            'FAC '.$datos['invoice'],
             'DEV '.$datos['fs_id'],
+            'FAC '.$datos['invoice'],
             $provider['CODPRO'],
             $provider['NOFPRO'],
             $provider['DOMPRO'],
