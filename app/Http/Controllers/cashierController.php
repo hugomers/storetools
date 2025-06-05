@@ -59,200 +59,14 @@ class cashierController extends Controller
 
     }
 
-    // public function opencashier(Request $request){
-    //     $numer = env('number');
-    //     if($request->has("mensaje")){
-    //       $msg= "No se realizo la apertura por falta de firmas";
-    //       $this->msg($msg,$numer);
-    //     }else{
-    //         $caja = $request->caja;
-    //         switch($caja){
-    //             case 1:
-    //               $terminal  = "CAJAUNO";
-    //             break;
-    //             case 2:
-    //               $terminal  = "CAJADOS";
-    //             break;
-    //             case 3:
-    //               $terminal  = "CAJATRES";
-    //             break;
-    //             case 4:
-    //               $terminal  = "CAJACUATRO";
-    //             break;
-    //             case 5:
-    //               $terminal  = "CAJACINCO";
-    //             break;
-    //             case 6:
-    //               $terminal  = "CAJASEIS";
-    //             break;
-    //             case 7:
-    //               $terminal  = "CAJASIETE";
-    //             break;
-    //             case 8:
-    //               $terminal  = "CAJAOCHO";
-    //             break;
-    //             case 9:
-    //               $terminal  = "CAJANUEVE";
-    //             break;
-    //         }
-    //         $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
-    //         $exec = $this->conn->prepare($cajaob);
-    //         $exec->execute();
-    //         $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
-
-    //     if($request->tipo_mov == "MAL DEVOLUCION"){
-    //       $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
-    //       $exec = $this->conn->prepare($apertura);
-    //       $result = $exec->execute();
-    //       if($result){
-    //           $msg = "la ".$terminal." se abrio por solicitud de: ".$request->solicitante." con la observacion: ".$request->obs." el ticket original: ".$request->tcko." ticket devolucion: ".$request->tckd;
-    //           $this->msg($msg,$numer);
-    //           return response()->json($result);
-    //       }else{
-    //           return response()->json("no se pudo abrir la caja");
-    //       }
-    //     }else if($request->tipo_mov == "RETIRADA MAL"){
-    //         if($request->montonuevo == 0 ){
-    //             $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo.", CONRET = '', PRORET = 0 WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
-    //             $exec = $this->conn->prepare($retob);
-    //             $result = $exec->execute();
-    //             if($result){
-    //                 $msg = "La retirada ".$request->retirada." se elimino correctamente";
-    //             }else{
-    //                 $msg = "La retirada ".$request->retirada." no se elimino correctamente";
-    //             }
-    //             $this->msg($msg,$number);
-    //         }else{
-    //             $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo." WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
-    //             $exec = $this->conn->prepare($retob);
-    //             $result = $exec->execute();
-    //             if($result){
-    //                 $impresora = $this->prinret($terminal,$request->retirada,$request->montonuevo);
-    //                 if($impresora === "impreso con exito"){
-    //                     $msg = "La retirada ".$request->retirada." se modifico correctamente";
-    //                 }else{
-    //                     $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
-    //                     $exec = $this->conn->prepare($apertura);
-    //                     $result = $exec->execute();
-    //                     if($result){
-    //                         $msg = "La retirada ".$request->retirada." se modifico correctamente pero no se logro imprimir la caja esta abierta para realizar la impresion";
-    //                     }else{
-    //                         $msg = "La retirada ".$request->retirada." se modifico chido pero no se abrio tu caja ni se imprimio hablale a Dieguito parito";
-    //                     }
-    //                 }
-    //                 $this->msg($msg,$numer);
-    //                 return response()->json($result);
-    //             }else{
-    //                 return response()->json("no se pudo modificar la retirada");
-    //             }
-    //         }
-    //     }else if($request->tipo_mov == "DESCUADRE"){
-    //         $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
-    //         $exec = $this->conn->prepare($apertura);
-    //         $result = $exec->execute();
-    //         if($result){
-    //             $msg = "la ".$terminal." se abrio por para revision de descuadre";
-    //             $this->msg($msg,$numer);
-    //             return response()->json($result);
-    //         }else{
-    //             return response()->json("no se pudo abrir la caja");
-    //         }
-    //     }
-    //   }
-    // }
-
-    // public function prinret($caja,$retiro,$import){
-    //     $store = env('STORE');
-    //     $print = DB::table('cash_printers')->where('name',$caja)->where('_store',$store)->value('ip_address');
-    //     $empresa = "SELECT TOP 1 * FROM F_EMP";
-    //     $exec = $this->conn->prepare($empresa);
-    //     $exec->execute();
-    //     $emp =$exec->fetch(\PDO::FETCH_ASSOC);
-    //     $retirada = "SELECT * FROM F_RET INNER JOIN F_PRO ON F_PRO.CODPRO = F_RET.PRORET WHERE CODRET =".$retiro;
-    //     $exec = $this->conn->prepare($retirada);
-    //     $exec->execute();
-    //     $ret =$exec->fetch(\PDO::FETCH_ASSOC);
-    //     $suc = DB::table('stores')->where('id',$store)->first();
-
-    //     $connector = new NetworkPrintConnector($print, 9100, 3);
-    //     if($connector){
-    //         $printer = new Printer($connector);
-    //         $printer->text(" \n");
-    //         $printer->text(" \n");
-    //         $printer->text("           --MODIFICACION DE RETIRADA--           \n");
-    //         $printer->text(" \n");
-    //         $printer->text(" \n");
-    //         $printer->text($emp['NOMEMP']." \n");
-    //         $printer->text($emp['DOMEMP']." (".$emp['POBEMP'].") "." \n");
-    //         $printer->text("Tfno:".$emp['TELEMP']." \n");
-    //         $printer->text("______________________________________________"." \n");
-    //         $printer->text("SALIDA DE TERMINAL: ".$ret['CAJRET']." \n");
-    //         $printer->text("Nº:".$ret['CODRET']."   ".date('d/m/Y',strtotime($ret['FECRET']))."-".$ret['HORRET']." \n");
-    //         $printer->text("DEPENDIENTE:"."MONDAY"." \n");
-    //         $printer->text("______________________________________________"." \n");
-    //         $printer->text($ret['NOFPRO']." \n");
-    //         $printer->text(" \n");
-    //         $printer->text("00000"." \n");
-    //         $printer->text(" \n");
-    //         $printer->text("GVC:"." \n");
-    //         $printer->text("______________________________________________"." \n");
-    //         $printer->text("IMPORTE RETIRADO:                   ".$import." \n");
-    //         $printer->text("Concepto:"." \n");
-    //         $printer->text($ret['CONRET']." \n");
-    //         $printer->text("______________________________________________"." \n");
-    //         $printer->cut();
-    //         $printer->close();
-    //         return "impreso con exito";
-    //     }else{
-    //         return "No se pudo imprimir";
-    //     }
-    // }
-
     public function opencash(Request $request){
         $caja = $request->_cash;
-        // return intval($caja);
-        // switch($caja){
-        //     case 1:
-        //         $terminal  = "CAJAUNO";
-        //     break;
-        //     case 2:
-        //         $terminal  = "CAJADOS";
-        //     break;
-        //     case 3:
-        //         $terminal  = "CAJATRES";
-        //     break;
-        //     case 4:
-        //         $terminal  = "CAJACUATRO";
-        //     break;
-        //     case 5:
-        //         $terminal  = "CAJACINCO";
-        //     break;
-        //     case 6:
-        //         $terminal  = "CAJASEIS";
-        //     break;
-        //     case 7:
-        //         $terminal  = "CAJASIETE";
-        //     break;
-        //     case 8:
-        //         $terminal  = "CAJAOCHO";
-        //     break;
-        //     case 9:
-        //         $terminal  = "CAJANUEVE";
-        //     break;
-        // }
-        // $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
-        // $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = 51";
-        // $exec = $this->conn->prepare($cajaob);
-        // $exec->execute();
-        // $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
-
-
         $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = $caja ";
         $exec = $this->conn->prepare($apertura);
         $result = $exec->execute();
-
         if($result){
-            return response()->json($result,201);
+            $response = $this->getCurrenCut($caja);
+            return response()->json($response,201);
         }else{
             return response()->json("no se pudo abrir la caja",400);
         }
@@ -261,46 +75,25 @@ class cashierController extends Controller
 
     public function changewithdrawal(Request $request){
         $caja = $request->_cash;
-        // switch($caja){
-        //     case 1:
-        //         $terminal  = "CAJAUNO";
-        //     break;
-        //     case 2:
-        //         $terminal  = "CAJADOS";
-        //     break;
-        //     case 3:
-        //         $terminal  = "CAJATRES";
-        //     break;
-        //     case 4:
-        //         $terminal  = "CAJACUATRO";
-        //     break;
-        //     case 5:
-        //         $terminal  = "CAJACINCO";
-        //     break;
-        //     case 6:
-        //         $terminal  = "CAJASEIS";
-        //     break;
-        //     case 7:
-        //         $terminal  = "CAJASIETE";
-        //     break;
-        //     case 8:
-        //         $terminal  = "CAJAOCHO";
-        //     break;
-        //     case 9:
-        //         $terminal  = "CAJANUEVE";
-        //     break;
-        // }
-        // $cajaob = "SELECT CODTER FROM T_TER WHERE DESTER LIKE "."'"."%%".$terminal."'";
         $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = $caja";
         $exec = $this->conn->prepare($cajaob);
         $exec->execute();
         $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
+        $aunRet = "SELECT * FROM F_RET WHERE CODRET = ".$request->retirada;
+        $exec = $this->conn->prepare($aunRet);
+        $exec->execute();
+        $retirada =$exec->fetch(\PDO::FETCH_ASSOC);
+        $response = $this->getCurrenCut($caja);
             if(is_null($request->montonuevo)){
                 $retob = "UPDATE F_RET SET IMPRET = 0, CONRET = '', PRORET = 0 WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
                 if($result){
-                    return response()->json($result,201);
+                    $res = [
+                        "monto_original"=>$retirada['IMPRET'],
+                        "corte"=>$response,
+                    ];
+                    return response()->json($res,201);
                 }else{
                     return response()->json("Hubo un problema al modificar la retirada",500);
                 }
@@ -309,15 +102,12 @@ class cashierController extends Controller
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
                 if($result){
-                    $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = ".$cajat['CODTER'];
-                    $exec = $this->conn->prepare($apertura);
-                    $result = $exec->execute();
-                    if($result){
-                        return response()->json($result,201);
-                    }else{
-                        return respnse()->json('No se abrio la caja para la reimpresion');
-                    }
-
+                    $impresion = $this->printWitrawal($request->print,$request->retirada);
+                    $res = [
+                        "monto_original"=>$retirada['IMPRET'],
+                        "corte"=>$response,
+                    ];
+                    return response()->json($res,201);
                 }else{
                     return response()->json("no se pudo modificar la retirada");
                 }
@@ -593,4 +383,157 @@ class cashierController extends Controller
         return $response;
     }
 
+    public function printWitrawal($print, $codret){
+        $sql = "SELECT
+            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORRET, 'HH:mm:ss') as HORA,
+            R.CODRET,
+            R.CAJRET,
+            TR.DESTER,
+            R.CONRET,
+            R.IMPRET,
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
+            WHERE R.CODRET  = " .$codret;
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+
+        $header = [
+            "print"=>$print,
+            "proveedor"=>$cuts['PRORET'],
+            "retirada"=>$codret,
+            "terminal"=>$cuts['DESTER'],
+            "fecha"=>$cuts['FECHA'],
+            "hora"=>$cuts['HORA'],
+            "valor"=>$cuts['IMPRET'],
+            "notas"=>$cuts['CONRET']
+        ];
+
+        $print = $this->printWith($header);
+        return $print;
+    }
+
+    public function printWith($header){
+        $documento = env('DOCUMENTO');
+        $printers = $header['print'];
+
+        $pro = "SELECT * FROM F_PRO WHERE CODPRO =". $header['proveedor'];
+        $exec = $this->conn->prepare($pro);
+        $exec->execute();
+        $proveedor = $exec->fetch(\PDO::FETCH_ASSOC);//OK
+
+        $sql = "SELECT CTT1TPV, CTT2TPV, CTT3TPV, CTT4TPV, CTT5TPV, PTT1TPV, PTT2TPV, PTT3TPV, PTT4TPV, PTT5TPV, PTT6TPV, PTT7TPV, PTT8TPV FROM T_TPV WHERE CODTPV = $documento";
+        $exec = $this->conn->prepare($sql);
+        $exec->execute();
+        $text = $exec->fetch(\PDO::FETCH_ASSOC);//OK
+
+        try{
+            $connector = new NetworkPrintConnector($printers, 9100, 3);
+            $printer = new Printer($connector);
+        }catch(\Exception $e){ return null;}
+        try {
+            try{
+                $printer->setJustification(printer::JUSTIFY_LEFT);
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->setJustification(printer::JUSTIFY_CENTER);
+                $printer->text("Retirada Modificada \n");
+                $printer->setJustification(printer::JUSTIFY_LEFT);
+                $printer->text(" \n");
+                $printer->text($text["CTT1TPV"]."\n");
+                $printer->text($text["CTT3TPV"]." \n");
+                $printer->text($text["CTT5TPV"]." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text("SALIDA DE TERMINAL ".$header['terminal']." \n");
+                $printer->text("N° ".$header['retirada']." Fecha: ".$header["fecha"]." ".$header["hora"] ." \n");
+                // $printer->text("Le atendio :".$header["dependiente"]." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text($proveedor['NOFPRO']." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("00000"." \n");
+                $printer->text(" \n");
+                $printer->text("GVC"." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(str_pad("IMPORTE RETIRADO: ",14));
+                $printer->text(number_format($header['valor'],2)." \n");
+                $printer->text("Concepto:"." \n");
+                $printer->text($header['notas']." \n");
+                $printer -> cut();
+                $printer -> close();
+            }catch(Exception $e){}
+
+        } finally {
+            $printer -> close();
+            return true;
+        }
+            return false;
+    }
+
+
+    public function getCurrenCut($terminal){
+        $sql = "SELECT
+            Format(T.FECATE, 'YYYY/MM/DD') as FECHA,
+            Format(T.HOCATE, 'HH:MM:SS') as HORA,
+            T.TERATE,
+            TR.DESTER,
+            T.SINATE,
+            T.EFEATE,
+            T.*,
+            (SELECT SUM(L.IMPLCO) FROM F_LCO AS L  WHERE L.TERLCO = T.TERATE AND L.FECLCO = T.FECATE  AND L.FPALCO = 'EFE') AS VENTASEFE,
+            (SELECT SUM(R.IMPRET) FROM F_RET AS R  WHERE R.CAJRET = T.TERATE AND R.FECRET = T.FECATE ) AS RETIRADAS,
+            (SELECT SUM(I.IMPING)  FROM F_ING AS I  WHERE I.CAJING = T.TERATE AND I.FECING = T.FECATE ) AS INGRESOS,
+            (SELECT SUM(F.CAMFAC)  * -1  FROM F_FAC AS F  WHERE F.TERFAC= T.TERATE AND F.FECFAC = T.FECATE AND F.ESTFAC =  0  OR   F.ESTFAC = 1) AS IMPDC
+            FROM T_ATE AS T
+            INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
+            WHERE T.TERATE = $terminal AND T.FECATE = DATE()";
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+
+        $ingresos = "SELECT * FROM F_ING WHERE CAJING = $terminal AND FECING = DATE()";
+        $exec = $this->conn->prepare($ingresos);
+        $exec -> execute();
+        $ings = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+
+        $retiradas = "SELECT * FROM F_RET WHERE  CAJRET = $terminal AND FECRET = DATE() ";
+        $exec = $this->conn->prepare($retiradas);
+        $exec -> execute();
+        $rets = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $vales = "SELECT * FROM F_ANT WHERE CAJANT = $terminal AND FECANT = DATE()";
+        $exec = $this->conn->prepare($vales);
+        $exec -> execute();
+        $vls = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $totales = "SELECT CPTLCO, SUM(IMPLCO) AS IMPORTE FROM F_LCO WHERE TERLCO = $terminal AND FECLCO = DATE() GROUP BY CPTLCO";
+        $exec = $this->conn->prepare($totales);
+        $exec -> execute();
+        $tots = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $movimientos = "SELECT SUM(TOTFAC) AS TOTAL, COUNT(CODFAC) AS MOVIMIENTOS FROM F_FAC WHERE TERFAC = $terminal AND FECFAC = DATE()";
+        $exec = $this->conn->prepare($movimientos);
+        $exec -> execute();
+        $mov = $exec->fetch(\PDO::FETCH_ASSOC);
+        $efetot = (floatval($cuts['VENTASEFE']) +  floatval($cuts['INGRESOS']) +   floatval($cuts['SINATE']) ) - floatval($cuts['RETIRADAS']);
+
+        $res = [
+            "descuadre"=>number_format((floatval($cuts['EFEATE']) -  $efetot ),2),
+            "corte"=>$cuts,
+            "ingresos"=>$ings,
+            "retiradas"=>$rets,
+            "vales"=>$vls,
+            "totales"=>$tots,
+            "movimientos"=>$mov
+        ];
+        return $res;
+    }
 }
