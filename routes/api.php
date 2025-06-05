@@ -50,9 +50,13 @@ Route::prefix('/State')->group(function(){
 
 
 Route::prefix('/Cashier')->group(function(){
+    Route::get('/retirada',[cashierController::class, 'prinret']);
     Route::post('/opencashier',[cashierController::class, 'opencash']);
     Route::post('/changewithdrawal',[cashierController::class, 'changewithdrawal']);
-    Route::get('/retirada',[cashierController::class, 'prinret']);
+    Route::post('/addWithdrawal',[cashierController::class, 'addWithdrawal']);
+    Route::post('/addIngress',[cashierController::class, 'addIngress']);
+    Route::post('/addAdvance',[cashierController::class, 'addAdvance']);
+    Route::post('/repliedSales',[cashierController::class, 'repliedSales']);
 });
 
 Route::prefix('/Products')->group(function(){//regisprice
@@ -142,8 +146,6 @@ Route::prefix('/refunds')->group(function(){
     Route::post('/genAbono',[RefundController::class, 'genAbono']);
     Route::post('/genAbonoTras',[RefundController::class, 'genAbonoTras']);
     Route::post('/genEntry',[RefundController::class, 'genEntry']);
-
-
 
 });
 
