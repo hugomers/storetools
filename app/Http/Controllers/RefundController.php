@@ -101,7 +101,7 @@ class RefundController extends Controller
         }
     }
 
-        public function genAbono(Request $request){//abono
+    public function genAbono(Request $request){//abono
         $datos = $request->all();
         $products = $datos['bodie'];
         $datcli =  "SELECT CODCLI,NOFCLI,DOMCLI,POBCLI,CPOCLI,PROCLI, DOCCLI, TELCLI FROM F_CLI WHERE CODCLI = ".$datos['storefrom']['_client'];
@@ -399,6 +399,105 @@ class RefundController extends Controller
         } else {
             return response()->json("No se genero la factura recibida", 401);
         }
+    }
+
+    public function editRefund(Request $request){
+        $products = $request->all();
+        $total = 0;
+        $folio = '';
+        foreach($products as $product){
+            $folio = "'".$product['refund']."'";
+            $id = "'".$product['product']."'";
+            $select = "SELECT  *  FROM F_LFD WHERE F_LFD.TIPLFD&'-'&FORMAT(F_LFD.CODLFD,'000000')  = ".$folio." AND F_LFD.ARTLFD = ".$id;
+            $exec = $this->conn->prepare($select);
+            $is = $exec -> execute();
+            $prupd = $exec->fetch(\PDO::FETCH_ASSOC);// se obtiene el articulo que se modificara
+            if($prupd){//se actualilza la tabla de stock para agregarle el stock que se cambiara
+                $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO + ? , DISSTO = DISSTO + ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
+                $exec = $this->conn->prepare($updatestock);
+                $exec -> execute([$prupd['CANLFD'],$prupd['CANLFD'],$prupd['ARTLFD'], 'GEN']);
+            }
+            $cantidad = $product['to'];
+            $updateSal = "UPDATE  F_LFD SET F_LFD.CANLFD = ".$cantidad.", F_LFD.TOTLFD =".$cantidad * $prupd['PRELFD']." WHERE F_LFD.TIPLFD&'-'&FORMAT(F_LFD.CODLFD,'000000')  = ".$folio." AND F_LFD.ARTLFD = ".$id;
+            $exec = $this->conn->prepare($updateSal);
+            $exec -> execute();// se actualiza el producto
+
+            if($is){// se actualiza la tabla de stock real
+                $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO - ? , DISSTO = DISSTO - ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
+                $exec = $this->conn->prepare($updatestock);
+                $exec -> execute([$cantidad,$cantidad,$id, 'GEN']);
+
+            }
+            $total += $cantidad * $prupd['PRELFD'];
+        }
+        $modify = "UPDATE F_FRD SET TOTFRD = ".$total." WHERE  TIPFRD&'-'&FORMAT(CODFRD,'000000')  = ".$folio;
+        $exec = $this->conn->prepare($modify);
+        $exec -> execute();
+
+        return response()->json('Productos Cambiados',201);//se retorna el folio de la factura
+    }
+
+    public function editEntry(Request $request){
+        $products = $request->all();
+        $total = 0;
+        $folio = '';
+        foreach($products as $product){
+            $folio = "'".$product['ent']."'";
+            $id = "'".$product['product']."'";
+            $select = "SELECT  *  FROM F_LFR WHERE F_LFR.TIPLFR&'-'&FORMAT(F_LFR.CODLFR,'000000')  = ".$folio." AND F_LFR.ARTLFR = ".$id;
+            $exec = $this->conn->prepare($select);
+            $is = $exec -> execute();
+            $prupd = $exec->fetch(\PDO::FETCH_ASSOC);// se obtiene el articulo que se modificara
+            if($prupd){//se actualilza la tabla de stock para agregarle el stock que se cambiara
+                $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO + ? , DISSTO = DISSTO + ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
+                $exec = $this->conn->prepare($updatestock);
+                $exec -> execute([$prupd['CANLFR'],$prupd['CANLFR'],$prupd['ARTLFR'], 'GEN']);
+            }
+            $cantidad = $product['to'];
+            $updateSal = "UPDATE  F_LFR SET F_LFR.CANLFR = ".$cantidad.", F_LFR.TOTLFR =".$cantidad * $prupd['PRELFR']." WHERE F_LFR.TIPLFR&'-'&FORMAT(F_LFR.CODLFR,'000000')  = ".$folio." AND F_LFR.ARTLFR = ".$id;
+            $exec = $this->conn->prepare($updateSal);
+            $exec -> execute();// se actualiza el producto
+
+            if($is){// se actualiza la tabla de stock real
+                $updatestock = "UPDATE F_STO SET ACTSTO = ACTSTO - ? , DISSTO = DISSTO - ?  WHERE  ARTSTO = ? AND ALMSTO = ?";//query para actualizar los stock de el almacen recordemos que solo es general
+                $exec = $this->conn->prepare($updatestock);
+                $exec -> execute([$cantidad,$cantidad,$id, 'GEN']);
+
+            }
+            $total += $cantidad * $prupd['PRELFR'];
+        }
+        $modify = "UPDATE F_FRE SET TOTFRE = ".$total." WHERE  TIPFRE&'-'&FORMAT(CODFRE,'000000')  = ".$folio;
+        $exec = $this->conn->prepare($modify);
+        $exec -> execute();
+        $return = [
+            "total"=>$total,
+            "mssg"=>"exito"
+        ];
+
+        return response()->json($return ,201);//se retorna el folio de la factura
+
+    }
+
+        public function editSeason(Request $request){
+        $total = $request->total;
+        $folioAbono = "'".$request->folioAbono."'";
+        $folioFactura = "'".$request->folioFactura."'";
+
+        $modifylfr = "UPDATE F_LFB SET PRELFB = ".$total.", TOTLFB = ".$total." WHERE ARTLFB = 'TRASPASO' AND TIPLFB&'-'&FORMAT(CODLFB,'000000')  = ".$folioAbono;
+        $exec = $this->conn->prepare($modifylfr);
+        $exec -> execute();
+
+        $modifyfac = "UPDATE F_FAC SET TOTFAC = ".$total." WHERE  TIPFAC&'-'&FORMAT(CODFAC,'000000')  = ".$folioFactura;
+        $exec = $this->conn->prepare($modifyfac);
+        $exec -> execute();
+
+        $modifylfa = "UPDATE F_LFA SET PRELFA = ".$total.", TOTLFA = ".$total." WHERE ARTLFA = 'TRASPASO' AND TIPLFA&'-'&FORMAT(CODLFA,'000000')  = ".$folioFactura;
+        $exec = $this->conn->prepare($modifylfa);
+        $exec -> execute();
+
+
+        return response()->json('SE MODIFICO CORRECTAMENTE' ,201);//se retorna el folio de la factura
+
     }
 
 

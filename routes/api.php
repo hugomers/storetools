@@ -146,6 +146,9 @@ Route::prefix('/refunds')->group(function(){
     Route::post('/genAbono',[RefundController::class, 'genAbono']);
     Route::post('/genAbonoTras',[RefundController::class, 'genAbonoTras']);
     Route::post('/genEntry',[RefundController::class, 'genEntry']);
+    Route::post('/editRefund',[RefundController::class, 'editRefund']);
+    Route::post('/editEntry',[RefundController::class, 'editEntry']);
+    Route::post('/editSeason',[RefundController::class, 'editSeason']);
 
 });
 
