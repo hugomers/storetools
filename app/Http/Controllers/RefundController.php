@@ -430,7 +430,7 @@ class RefundController extends Controller
             }
             // $total += $cantidad * $prupd['PRELFD'];
         }
-        $totis = "SELECT  SUM(TOTLFA) AS TOTAL  FROM F_LFD WHERE F_LFD.TIPLFD&'-'&FORMAT(F_LFD.CODLFD,'000000')  = ".$folio;
+        $totis = "SELECT  SUM(TOTLFD) AS TOTAL  FROM F_LFD WHERE F_LFD.TIPLFD&'-'&FORMAT(F_LFD.CODLFD,'000000')  = ".$folio;
         $exec = $this->conn->prepare($totis);
         $exec -> execute();
         $total = $exec->fetch(\PDO::FETCH_ASSOC);
