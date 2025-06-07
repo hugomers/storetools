@@ -428,8 +428,14 @@ class RefundController extends Controller
                 $exec -> execute([$cantidad,$cantidad,$id, 'GEN']);
 
             }
-            $total += $cantidad * $prupd['PRELFD'];
+            // $total += $cantidad * $prupd['PRELFD'];
         }
+        $totis = "SELECT  SUM(TOTLFA) AS TOTAL  FROM F_LFD WHERE F_LFD.TIPLFD&'-'&FORMAT(F_LFD.CODLFD,'000000')  = ".$folio;
+        $exec = $this->conn->prepare($totis);
+        $exec -> execute();
+        $total = $exec->fetch(\PDO::FETCH_ASSOC);
+
+
         $modify = "UPDATE F_FRD SET TOTFRD = ".$total." WHERE  TIPFRD&'-'&FORMAT(CODFRD,'000000')  = ".$folio;
         $exec = $this->conn->prepare($modify);
         $exec -> execute();
@@ -464,8 +470,15 @@ class RefundController extends Controller
                 $exec -> execute([$cantidad,$cantidad,$id, 'GEN']);
 
             }
-            $total += $cantidad * $prupd['PRELFR'];
         }
+
+        $totis = "SELECT  SUM(TOTLFR) AS TOTAL  FROM F_LFR WHERE F_LFR.TIPLFR&'-'&FORMAT(F_LFR.CODLFR,'000000')  = ".$folio;
+        $exec = $this->conn->prepare($totis);
+        $exec -> execute();
+        $total = $exec->fetch(\PDO::FETCH_ASSOC);
+
+
+
         $modify = "UPDATE F_FRE SET TOTFRE = ".$total." WHERE  TIPFRE&'-'&FORMAT(CODFRE,'000000')  = ".$folio;
         $exec = $this->conn->prepare($modify);
         $exec -> execute();
