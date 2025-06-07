@@ -59,15 +59,6 @@ class cashierController extends Controller
 
     }
 
-    public function cleanUtf8($data) {
-        if (is_array($data)) {
-            return array_map('cleanUtf8', $data);
-        } elseif (is_string($data)) {
-            return mb_convert_encoding($data, 'UTF-8', 'UTF-8');
-        }
-        return $data;
-    }
-
     public function opencash(Request $request){
         $caja = $request->_cash;
         $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = $caja ";
@@ -98,13 +89,12 @@ class cashierController extends Controller
                 $exec = $this->conn->prepare($retob);
                 $result = $exec->execute();
                 $nuevoCorte = $this->getCurrenCut($caja);
-                $cleanedResponse = cleanUtf8($nuevoCorte);
-                $prNwC = $this->printCut($cleanedResponse,$request->print);
-                $prNwC = $this->printCut($cleanedResponse,$request->print);
+                $prNwC = $this->printCut($nuevoCorte,$request->print);
+                $prNwC = $this->printCut($nuevoCorte,$request->print);
                 if($result){
                     $res = [
                         "monto_original"=>$retirada['IMPRET'],
-                        "corte"=>$cleanedResponse,
+                        "corte"=>$nuevoCorte,
                     ];
                     return response()->json(mb_convert_encoding($res,'UTF-8'),201);
                 }else{
@@ -117,12 +107,11 @@ class cashierController extends Controller
                 if($result){
                     $impresion = $this->printWitrawal($request->print,$request->retirada);
                     $nuevoCorte = $this->getCurrenCut($caja);
-                    $cleanedResponse = cleanUtf8($nuevoCorte);
-                    $prNwC = $this->printCut($cleanedResponse,$request->print);
-                    $prNwC = $this->printCut($cleanedResponse,$request->print);
+                    $prNwC = $this->printCut($nuevoCorte,$request->print);
+                    $prNwC = $this->printCut($nuevoCorte,$request->print);
                     $res = [
                         "monto_original"=>$retirada['IMPRET'],
-                        "corte"=>$cleanedResponse,
+                        "corte"=>$nuevoCorte,
                     ];
                     return response()->json($res,201);
                 }else{
