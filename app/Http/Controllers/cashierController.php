@@ -66,7 +66,7 @@ class cashierController extends Controller
         $result = $exec->execute();
         if($result){
             $response = $this->getCurrenCut($caja);
-            return response()->json($response,201);
+            return response()->json( mb_convert_encoding($response,'UTF-8'),201);
         }else{
             return response()->json("no se pudo abrir la caja",400);
         }
@@ -96,7 +96,7 @@ class cashierController extends Controller
                         "monto_original"=>$retirada['IMPRET'],
                         "corte"=>$response,
                     ];
-                    return response()->json($res,201);
+                    return response()->json(mb_convert_encoding($res,'UTF-8'),201);
                 }else{
                     return response()->json("Hubo un problema al modificar la retirada",500);
                 }
