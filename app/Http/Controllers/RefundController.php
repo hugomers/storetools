@@ -436,7 +436,7 @@ class RefundController extends Controller
         $total = $exec->fetch(\PDO::FETCH_ASSOC);
 
 
-        $modify = "UPDATE F_FRD SET TOTFRD = ".$total." WHERE  TIPFRD&'-'&FORMAT(CODFRD,'000000')  = ".$folio;
+        $modify = "UPDATE F_FRD SET TOTFRD = ".$total['TOTAL']." WHERE  TIPFRD&'-'&FORMAT(CODFRD,'000000')  = ".$folio;
         $exec = $this->conn->prepare($modify);
         $exec -> execute();
 
@@ -479,7 +479,7 @@ class RefundController extends Controller
 
 
 
-        $modify = "UPDATE F_FRE SET TOTFRE = ".$total." WHERE  TIPFRE&'-'&FORMAT(CODFRE,'000000')  = ".$folio;
+        $modify = "UPDATE F_FRE SET TOTFRE = ".$total['TOTAL']." WHERE  TIPFRE&'-'&FORMAT(CODFRE,'000000')  = ".$folio;
         $exec = $this->conn->prepare($modify);
         $exec -> execute();
         $return = [
