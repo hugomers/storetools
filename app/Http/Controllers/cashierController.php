@@ -553,7 +553,7 @@ class cashierController extends Controller
             "totales"=>$tots,
             "movimientos"=>$mov
         ];
-        return $res;
+        return $this->sanitizeUtf8($res);
     }
 
     public function printCut($header,$print){
@@ -669,6 +669,15 @@ class cashierController extends Controller
         }else{
             return "No se pudo imprimir";
         }
+    }
+
+    public function sanitizeUtf8($value) {
+    if (is_array($value)) {
+        return array_map([$this, 'sanitizeUtf8'], $value);
+    } elseif (is_string($value)) {
+        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+    }
+    return $value;
     }
 
 }
