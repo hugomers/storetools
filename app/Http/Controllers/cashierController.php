@@ -61,19 +61,29 @@ class cashierController extends Controller
 
     public function opencash(Request $request){
         $caja = $request->_cash;
-        $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = $caja ";
-        $exec = $this->conn->prepare($apertura);
-        $result = $exec->execute();
-        if($result){
-            $response = $this->getCurrenCut($caja);
-            return response()->json($response,201);
+        $abierta = "SELECT ESTTER FROM T_TER WHERE CODTER = $caja ";
+        $exec = $this->conn->prepare($abierta);
+        $exec->execute();
+        $abrida =$exec->fetch(\PDO::FETCH_ASSOC);
+        if($abrida['ESTTER'] != 1){
+            $apertura = "UPDATE T_TER SET FECTER = DATE(), SINTER = 5000, ESTTER = 1, EFETER = 0, HOATER = TIME() WHERE CODTER = $caja ";
+            $exec = $this->conn->prepare($apertura);
+            $result = $exec->execute();
+            if($result){
+                $response = $this->getCurrenCut($caja);
+                return response()->json($response,201);
+            }else{
+                return response()->json("no se pudo abrir la caja",500);
+            }
         }else{
-            return response()->json("no se pudo abrir la caja",400);
+            return response()->json("No se puede abrir la caja por que esta abierta",400);
         }
+
 
     }
 
     public function changewithdrawal(Request $request){
+        $date_format = Carbon::now()->format('d/m/Y');//formato fecha factus
         $caja = $request->_cash;
         $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = $caja";
         $exec = $this->conn->prepare($cajaob);
@@ -84,41 +94,49 @@ class cashierController extends Controller
         $exec->execute();
         $retirada =$exec->fetch(\PDO::FETCH_ASSOC);
         $response = $this->getCurrenCut($caja);
-            if(is_null($request->montonuevo)){
-                $retob = "UPDATE F_RET SET IMPRET = 0, CONRET = '', PRORET = 0 WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
-                $exec = $this->conn->prepare($retob);
-                $result = $exec->execute();
-                $nuevoCorte = $this->getCurrenCut($caja);
-                $prNwC = $this->printCut($nuevoCorte,$request->print);
-                $prNwC = $this->printCut($nuevoCorte,$request->print);
-                if($result){
-                    $res = [
-                        "monto_original"=>$retirada['IMPRET'],
-                        "corte"=>$nuevoCorte,
-                    ];
-                    return response()->json(mb_convert_encoding($res,'UTF-8'),201);
-                }else{
-                    return response()->json("Hubo un problema al modificar la retirada",500);
-                }
-            }else{
-                $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo." WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
-                $exec = $this->conn->prepare($retob);
-                $result = $exec->execute();
-                if($result){
-                    $impresion = $this->printWitrawal($request->print,$request->retirada);
+        if($retirada){
+            // return response()->json(Carbon::parse($retirada['FECRET'])->format('Y-m-d'),400);
+            if(Carbon::parse($retirada['FECRET'])->format('Y-m-d') == date('Y-m-d')){
+                if(is_null($request->montonuevo)){
+                    $retob = "UPDATE F_RET SET IMPRET = 0, CONRET = '', PRORET = 0 WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
+                    $exec = $this->conn->prepare($retob);
+                    $result = $exec->execute();
                     $nuevoCorte = $this->getCurrenCut($caja);
                     $prNwC = $this->printCut($nuevoCorte,$request->print);
                     $prNwC = $this->printCut($nuevoCorte,$request->print);
-                    $res = [
-                        "monto_original"=>$retirada['IMPRET'],
-                        "corte"=>$nuevoCorte,
-                    ];
-                    return response()->json($res,201);
+                    if($result){
+                        $res = [
+                            "monto_original"=>$retirada['IMPRET'],
+                            "corte"=>$nuevoCorte,
+                        ];
+                        return response()->json(mb_convert_encoding($res,'UTF-8'),201);
+                    }else{
+                        return response()->json("Hubo un problema al modificar la retirada",500);
+                    }
                 }else{
-                    return response()->json("no se pudo modificar la retirada");
+                    $retob = "UPDATE F_RET SET IMPRET = ".$request->montonuevo." WHERE CODRET = ".$request->retirada." AND FECRET = DATE() AND CAJRET = ".$cajat['CODTER'];
+                    $exec = $this->conn->prepare($retob);
+                    $result = $exec->execute();
+                    if($result){
+                        $impresion = $this->printWitrawal($request->print,$request->retirada);
+                        $nuevoCorte = $this->getCurrenCut($caja);
+                        $prNwC = $this->printCut($nuevoCorte,$request->print);
+                        $prNwC = $this->printCut($nuevoCorte,$request->print);
+                        $res = [
+                            "monto_original"=>$retirada['IMPRET'],
+                            "corte"=>$nuevoCorte,
+                        ];
+                        return response()->json($res,201);
+                    }else{
+                        return response()->json("No se pudo modificar la retirada",500);
+                    }
                 }
+            }else{
+                return response()->json('La retirada no es de el dia de hoy',400);
             }
-
+        }else{
+            return response()->json('La retirada no existe',400);
+        }
     }
 
     public function addWithdrawal(Request $request){
