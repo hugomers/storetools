@@ -75,9 +75,7 @@ class cashierController extends Controller
         $result = $exec->execute();
         if($result){
             $response = $this->getCurrenCut($caja);
-            $cleanedResponse = cleanUtf8($response);
-
-            return response()->json( mb_convert_encoding($cleanedResponse,'UTF-8'),201);
+            return response()->json($response,201);
         }else{
             return response()->json("no se pudo abrir la caja",400);
         }
@@ -553,7 +551,7 @@ class cashierController extends Controller
             "totales"=>$tots,
             "movimientos"=>$mov
         ];
-        return $this->sanitizeUtf8($res);
+        return $res;
     }
 
     public function printCut($header,$print){
@@ -669,15 +667,6 @@ class cashierController extends Controller
         }else{
             return "No se pudo imprimir";
         }
-    }
-
-    public function sanitizeUtf8($value) {
-    if (is_array($value)) {
-        return array_map([$this, 'sanitizeUtf8'], $value);
-    } elseif (is_string($value)) {
-        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-    }
-    return $value;
     }
 
 }
