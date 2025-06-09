@@ -107,7 +107,7 @@ class cashierController extends Controller
                     if($result){
                         $res = [
                             "monto_original"=>$retirada['IMPRET'],
-                            "corte"=>$nuevoCorte,
+                            "corte"=>$response,
                         ];
                         return response()->json(mb_convert_encoding($res,'UTF-8'),201);
                     }else{
@@ -124,7 +124,7 @@ class cashierController extends Controller
                         $prNwC = $this->printCut($nuevoCorte,$request->print);
                         $res = [
                             "monto_original"=>$retirada['IMPRET'],
-                            "corte"=>$nuevoCorte,
+                            "corte"=>$response,
                         ];
                         return response()->json($res,201);
                     }else{
