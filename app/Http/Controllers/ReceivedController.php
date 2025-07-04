@@ -110,23 +110,6 @@ class ReceivedController extends Controller
                         $exec -> execute($fac);
                         $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
                         DB::connection('vizapi')->table('requisition_partitions')->where([['_requisition',$id],['_suplier_id',$supply]])->update(['invoice'=>$folio]);//se actualiza la columna invoice con el numero de la factura
-                        // $curl = curl_init();//inicia el curl para el envio de el mensaje via whats app
-                        // curl_setopt_array($curl, array(
-                        //   CURLOPT_URL => "https://api.ultramsg.com/instance9800/messages/chat",
-                        //   CURLOPT_RETURNTRANSFER => true,
-                        //   CURLOPT_ENCODING => "",
-                        //   CURLOPT_MAXREDIRS => 10,
-                        //   CURLOPT_TIMEOUT => 30,
-                        //   CURLOPT_SSL_VERIFYHOST => 0,
-                        //   CURLOPT_SSL_VERIFYPEER => 0,
-                        //   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        //   CURLOPT_CUSTOMREQUEST => "POST",
-                        //   CURLOPT_POSTFIELDS => "token=6r5vqntlz18k61iu&to=+52$tel&body=el pedido numero P-$id ya esta validado con $count  Modelos y $sum piezas.  El numero de salida es $folio proximo a llegar🤙🛺🚛&priority=1&referenceId=",//se redacta el mensaje que se va a enviar con los modelos y las piezas y el numero de salida
-                        //   CURLOPT_HTTPHEADER => array(
-                        //     "content-type: application/x-www-form-urlencoded"),));
-                        // $response = curl_exec($curl);
-                        // $err = curl_error($curl);
-                        // curl_close($curl);
                         return response()->json([
                             "folio"=>$folio,
                             "art_contados"=>$count,
@@ -136,9 +119,8 @@ class ReceivedController extends Controller
             }else{return response()->json("EL CODIGO DE REQUISICION NO EXITE",404);}
         }catch (\PDOException $e){ die($e->getMessage());}
     }
+
     public function productrequired($id,$rol,$codfac,$supply,$alm){//metoro de insercion de productos en factusol
-
-
         $product_require = DB::connection('vizapi')->table('product_required AS PR')//se crea el query para obteener los productos de la requisision
             ->join('products AS P','P.id','=','PR._product')
             ->leftjoin('prices_product AS PP','PP._product','=','P.id')
@@ -180,8 +162,6 @@ class ReceivedController extends Controller
             $exec -> execute([$canti,$canti,$pro->codigo, $alm]);
             $pos++;//contador
         }
-
         return $ttotal;//se retorna el total para el uso en el encabezado de la factura
-
     }
 }

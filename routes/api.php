@@ -17,6 +17,8 @@ use App\Http\Controllers\TransferBWController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\OutputsController;
 use App\Http\Controllers\RefundController;
+use App\Http\Controllers\InvoicesController;
+
 
 
 
@@ -166,4 +168,14 @@ Route::prefix('/reports')->group(function(){
     Route::post('/printAdvance',[ReportController::class, 'printAdvance']);
     Route::post('/addAdvances',[ReportController::class, 'addAdvances']);
     Route::post('/addWithdrawal',[ReportController::class, 'addWithdrawal']);
+});
+
+
+Route::prefix('/invoice')->group(function(){
+    Route::post('/addInvoice',[InvoicesController::class, 'invoice']);
+    Route::post('/addTransfer',[InvoicesController::class, 'transfer']);
+    Route::post('/endTransfer',[InvoicesController::class, 'endtransfer']);
+    Route::post('/addEntry',[InvoicesController::class, 'entry']);
+
+
 });
