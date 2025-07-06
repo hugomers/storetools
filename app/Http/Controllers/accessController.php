@@ -981,7 +981,7 @@ class accessController extends Controller
         F_LFA.TOTLFA AS TOTAL
         FROM F_FAC
         INNER JOIN F_LFA ON F_LFA.TIPLFA&'-'&F_LFA.CODLFA =  F_FAC.TIPFAC&'-'&F_FAC.CODFAC
-        WHERE FECFAC BETWEEN $condicion AND F_FAC.CLIFAC = $request->_client AND REFFAC NOT LIKE '%TRASPASO%'";
+        WHERE FECFAC BETWEEN $condicion AND F_FAC.CLIFAC = $request->_client AND (REFFAC NOT LIKE '%ABONO%' AND REFFAC NOT LIKE '%TRASPASO%')";
         $exec = $this->conn->prepare($sql);
         $exec->execute();
         $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
