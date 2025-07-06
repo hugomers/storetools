@@ -26,7 +26,7 @@ class InvoicesController extends Controller
             $date_format = Carbon::now()->format('d/m/Y');
             $hour = "01/01/1900 ".explode(" ", $date)[1];
             $status = $request->_status;
-            if($status == 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 validando
+            if($status >= 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 validando
                 $count =  collect($request->products)->filter(function ($product) {
                     return $product['pivot']['toDelivered'] > 0 && $product['pivot']['checkout'] == 1;
                 })->count();//se cuentan cuantos articulos se validaron
@@ -165,7 +165,7 @@ class InvoicesController extends Controller
             // $date_format = date("d/m/Y");//se formatea la fecha de el dia con el formato solo de fecha
             $hour = "01/01/1900 ".explode(" ", $date)[1];//se formatea la fecha de el dia de hoy poniendo solo la hora en la que se genera
             $status = $request->_status;//se obtiene el status de el la requisicion
-            if($status == 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 validando
+            if($status >= 6){//SE VALIDA QUE LA REQUISICION ESTE EN ESTATUS 6 validando
                 $count =  collect($request->products)->filter(function ($product) {
                     return $product['pivot']['toDelivered'] > 0 && $product['pivot']['checkout'] == 1;
                 })->count();//se cuentan cuantos articulos se validaron
