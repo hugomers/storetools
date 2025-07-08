@@ -122,9 +122,9 @@ class InvoicesController extends Controller
             elseif($pro['pivot']['_supply_by'] == 2){
                 $canti = $pro['pivot']['toDelivered'] * 12;
             }elseif($pro['pivot']['_supply_by'] == 3){
-                $canti = $pro['pivot']['toDelivered'] * $pro['pieces'] ; $bull = $pro['pivot']['toDelivered'];
+                $canti = $pro['pivot']['toDelivered'] * $pro['pivot']['ipack'] ; $bull = $pro['pivot']['toDelivered'];
             }elseif($pro['pivot']['_supply_by'] == 4){
-                $canti = ($pro['pivot']['toDelivered'] * ($pro['pieces'] / 2)) ;
+                $canti = ($pro['pivot']['toDelivered'] * ($pro['pivot']['ipack'] / 2)) ;
             }//se valida la unidad de medida de el surtio
 
             // $bul = $bull > 0 ? $bull : null;
@@ -225,9 +225,9 @@ class InvoicesController extends Controller
             elseif($pro['pivot']['_supply_by'] == 2){
                 $canti = $pro['pivot']['toDelivered'] * 12;
             }elseif($pro['pivot']['_supply_by'] == 3){
-                $canti = $pro['pivot']['toDelivered'] * $pro['pieces'] ; $bull = $pro['pivot']['toDelivered'];
+                $canti = $pro['pivot']['toDelivered'] * $pro['pivot']['ipack'] ; $bull = $pro['pivot']['toDelivered'];
             }elseif($pro['pivot']['_supply_by'] == 4){
-                $canti = ($pro['pivot']['toDelivered'] * ($pro['pieces'] / 2)) ;
+                $canti = ($pro['pivot']['toDelivered'] * ($pro['pivot']['ipack'] / 2)) ;
             }//se valida la unidad de medida de el surtio
             $values = [//se genera el arreglo para la insercion a factusol
                 $codtra,//codigo de documento
@@ -324,9 +324,9 @@ class InvoicesController extends Controller
             elseif($pro['pivot']['_supply_by'] == 2){
                 $canti = $pro['pivot']['toReceived'] * 12;
             }elseif($pro['pivot']['_supply_by'] == 3){
-                $canti = $pro['pivot']['toReceived'] * $pro['pieces'] ; $bull = $pro['pivot']['toReceived'];
+                $canti = $pro['pivot']['toReceived'] * $pro['pivot']['ipack'] ; $bull = $pro['pivot']['toReceived'];
             }elseif($pro['pivot']['_supply_by'] == 4){
-                $canti = ($pro['pivot']['toReceived'] * ($pro['pieces'] / 2)) ;
+                $canti = ($pro['pivot']['toReceived'] * ($pro['pivot']['ipack'] / 2)) ;
             }
             $values = [
                 $pro['code'],//codigo de el articulo
