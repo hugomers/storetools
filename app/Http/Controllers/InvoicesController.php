@@ -110,7 +110,9 @@ class InvoicesController extends Controller
 
 
     public function productrequired($products,$rol,$codfac,$alm){//metoro de insercion de productos en factusol
-        $product_require = $products;
+        $product_require =  collect($products)->filter(function ($product) {
+                    return $product['pivot']['checkout'] == 1;
+        });//se cuentan cuantos articulos se validaron
         $pos= 1;//inicio contador de posision
         $ttotal=0;//inicio contador de total
 
@@ -215,10 +217,13 @@ class InvoicesController extends Controller
     }
 
     public function productrequiredTr($codtra,$product_require,$ade,$aor){//metodo de insercion de productos en factusol
+        $products = collect($product_require)->filter(function ($product) {
+                    return $product['pivot']['checkout'] == 1;
+        });
         $pos= 1;//inicio contador de posision
         $ttotal=0;//inicio contador de total
 
-        foreach($product_require as $pro){//inicio de cliclo para obtener productos
+        foreach($products as $pro){//inicio de cliclo para obtener productos
             $bull = 0;
             if($pro['pivot']['_supply_by'] == 1)
                 {$canti = $pro['pivot']['toDelivered'] ;}
@@ -313,7 +318,9 @@ class InvoicesController extends Controller
     }
 
     public function productrequiredRec($products,$codtra,$ade,$rut){//metodo de insercion de productos en factusol
-        $product_require = $products;
+        $product_require =  collect($products)->filter(function ($product) {
+                    return $product['pivot']['checkout'] == 1;
+        });
         $pos= 1;//inicio contador de posision
         $ttotal=0;//inicio contador de total
 
@@ -436,7 +443,9 @@ class InvoicesController extends Controller
     }
 
     public function productreceived($products,$rol,$codfac,$alm){//metoro de insercion de productos en factusol
-        $product_require = $products;
+        $product_require =  collect($products)->filter(function ($product) {
+                    return $product['pivot']['checkout'] == 1;
+        });
         $pos= 1;//inicio contador de posision
         $ttotal=0;//inicio contador de total
         foreach($product_require as $pro){//inicio de cliclo para obtener productos
