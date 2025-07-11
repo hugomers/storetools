@@ -18,15 +18,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\OutputsController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\InvoicesController;
-
-
-
-
-
-
-
-
-
+use App\Http\Controllers\InvoiceRecevivedController;
 
 /*
 |--------------------------------------------------------------------------
@@ -176,6 +168,11 @@ Route::prefix('/invoice')->group(function(){
     Route::post('/addTransfer',[InvoicesController::class, 'transfer']);
     Route::post('/endTransfer',[InvoicesController::class, 'endtransfer']);
     Route::post('/addEntry',[InvoicesController::class, 'entry']);
+});
 
+Route::prefix('/invoiceReceived')->group(function(){
+    Route::post('/getIndex',[InvoiceRecevivedController::class, 'getIndex']);
+    Route::post('/replyInvoices',[InvoiceRecevivedController::class, 'replyInvoices']);
 
 });
+
