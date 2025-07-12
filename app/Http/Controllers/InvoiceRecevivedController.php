@@ -65,7 +65,7 @@ class InvoiceRecevivedController extends Controller
         TOTFRE as total,
         Format(FECFRE, 'YYYY/MM/DD HH:MM:SS') as created_at
         FROM F_FRE
-        WHERE FECFRE  = "."#".$date."#";
+        WHERE FECFRE  >= "."#".$date."#";
         // return $select;
         $exec = $this->conn->prepare($select);
         $exec->execute();
