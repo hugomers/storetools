@@ -970,6 +970,7 @@ class accessController extends Controller
         F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000')  AS FACTURA,
         F_FAC.FECFAC&' '&Format(F_FAC.HORFAC, 'hh:nn:ss') AS FECHAYHORA,
         F_FAC.REFFAC AS REFERENCIA,
+        F_FAC.REAFAC AS PARTICION,
         F_FAC.ALMFAC AS ALMACEN,
         F_FAC.CLIFAC AS CLIENTE,
         F_FAC.CNOFAC AS NOMBRECLIENTE,

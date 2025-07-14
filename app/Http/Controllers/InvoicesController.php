@@ -95,10 +95,11 @@ class InvoicesController extends Controller
                             "02-01-00",//fehca operacion contable simpre esa cambia hasta que se traspasa a contasol
                             2025,//ano de ejercicio
                             $date_format,//fecha actual en formato
-                            1//no se xd pero se requiere para mostrar la factura
+                            1,//no se xd pero se requiere para mostrar la factura,
+                            $request->id
                         ];//termino de arreglo de insercion
 
-                    $sql = "INSERT INTO F_FAC (TIPFAC,CODFAC,REFFAC,FECFAC,ALMFAC,AGEFAC,CLIFAC,CNOFAC,CDOFAC,CPOFAC,CCPFAC,CPRFAC,TELFAC,NET1FAC,BAS1FAC,TOTFAC,FOPFAC,OB1FAC,VENFAC,HORFAC,USUFAC,USMFAC,TIVA2FAC,TIVA3FAC,FROFAC,EDRFAC,FUMFAC,BCOFAC) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";//se crea el query para insertar en la tabla
+                    $sql = "INSERT INTO F_FAC (TIPFAC,CODFAC,REFFAC,FECFAC,ALMFAC,AGEFAC,CLIFAC,CNOFAC,CDOFAC,CPOFAC,CCPFAC,CPRFAC,TELFAC,NET1FAC,BAS1FAC,TOTFAC,FOPFAC,OB1FAC,VENFAC,HORFAC,USUFAC,USMFAC,TIVA2FAC,TIVA3FAC,FROFAC,EDRFAC,FUMFAC,BCOFAC,REAFAC) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";//se crea el query para insertar en la tabla
                     $exec = $this->conn->prepare($sql);
                     $exec -> execute($fac);
                     $folio = $rol."-".str_pad($codfac, 6, "0", STR_PAD_LEFT);//se obtiene el folio de la factura
@@ -395,7 +396,7 @@ class InvoicesController extends Controller
                                 $rol,//tipo(serie) de factura
                                 $codfac,//codigo de factura
                                 "FAC ".$request->invoice,//codigo de factura de salida
-                                "P-".$request->_requisition,//codigo de requisision de la aplicacion
+                                "P-".$request->id,//codigo de requisision de la aplicacion
                                 $date_format,//fecha actual en formato
                                 $date_format,//fecha actual en formato
                                 5,
