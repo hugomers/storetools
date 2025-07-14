@@ -1005,7 +1005,7 @@ class accessController extends Controller
         F_LFR.TOTLFR AS TOTAL
         FROM F_FRE
         INNER JOIN F_LFR ON F_LFR.TIPLFR&'-'&F_LFR.CODLFR = F_FRE.TIPFRE&'-'&F_FRE.CODFRE
-        WHERE F_FRE.FACFRE IN ($invoices)";
+        WHERE F_FRE.REFFRE IN ($invoices)";
         $exec = $this->conn->prepare($sql);
         $exec->execute();
         $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
