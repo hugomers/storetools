@@ -337,13 +337,13 @@ class InvoicesController extends Controller
                 $canti = ($pro['pivot']['toReceived'] * ($pro['pivot']['ipack'] / 2)) ;
             }
             $values = [
-                $pro['code'],//codigo de el articulo
                 $canti,//cantidad contada
                 $bull,//cajas ponidas
+                $pro['code'],//codigo de el articulo
                 $codtra//codigo de documento
             ];
 
-            $update = "UPDATE F_LTR SET ARTLTR = ?,CANLTR = ? ,BULLTR = ? WHERE DOCLTR = ?";//query para insertar las lineas de el traspaso  creada en factusol
+            $update = "UPDATE F_LTR SET CANLTR = ? ,BULLTR = ? WHERE ARTLTR = ? AND DOCLTR = ?";//query para insertar las lineas de el traspaso  creada en factusol
             $exec = $this->conn->prepare($update);
             $exec -> execute($values);//envia el arreglo
 
