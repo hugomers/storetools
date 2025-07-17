@@ -688,4 +688,38 @@ class ReportController extends Controller
             return false;
     }
 
+    public function getSales(){
+
+        $report = [
+            "saleshoy"=>0,
+            "hoytck"=>0,
+            "desglose"=>[],
+        ];
+        $desglose = "SELECT FPALCO AS FORMAPAGO, SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE FECLCO = Date() GROUP BY FPALCO";
+        $des = $this->conn->prepare($desglose);
+        $des->execute();
+        $desgl = $des->fetchall(\PDO::FETCH_ASSOC);
+        if($desgl){
+        $report['desglose'] = $desgl;
+        }
+        $venthoy = "SELECT SUM(TOTFAC) AS TOTAL FROM F_FAC WHERE FECFAC = date()";
+        $hoy = $this->conn->prepare($venthoy);
+        $hoy->execute();
+        $hoysale = $hoy->fetch(\PDO::FETCH_ASSOC);
+        if($hoysale){
+            $report['saleshoy'] = $hoysale['TOTAL'];
+        }
+        $tckhoy = "SELECT COUNT(*) AS TOTAL FROM F_FAC WHERE FECFAC = date()";
+        $hoytck = $this->conn->prepare($tckhoy);
+        $hoytck->execute();
+        $hoytcksale = $hoytck->fetch(\PDO::FETCH_ASSOC);
+        if($hoytcksale){
+            $report['hoytck'] = $hoytcksale['TOTAL'];
+        }
+
+        return  mb_convert_encoding($report,'UTF-8');
+
+    }
+
+
 }
