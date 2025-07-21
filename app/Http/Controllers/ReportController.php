@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\Printer;
+use PDO;
+use PDOException;
+
 
 class ReportController extends Controller
 {
@@ -720,6 +723,98 @@ class ReportController extends Controller
         return  mb_convert_encoding($report,'UTF-8');
 
     }
+
+
+    public function getSalesPerMonth(Request $request){
+        // return $request->all();
+        $name = env('namedb');
+        $ruta = env('rout');
+        $slash = '\\';
+        $concat = $ruta . $slash . $name;
+
+        $report = [
+            "salesAct" => [
+                "desglose" => [],
+                "total" => 0,
+                "tickets" => 0,
+                "totalMonth" => 0,
+                "ticketsMonth" => 0,
+            ],
+            "salesAnt" => [
+                "desglose" => [],
+                "total" => 0,
+                "tickets" => 0,
+                "totalMonth" => 0,
+                "ticketsMonth" => 0,
+            ],
+        ];
+
+        $year      = intval($request->year);
+        $month     = intval($request->month);
+        $day       = $request->day;
+        $lastday   = $request->lastDay;
+        $lastYear  = intval($request->lastYear);
+        $ant       = $concat . $lastYear . ".accdb";
+
+        // Consultar ventas del AÑO PASADO
+        if (file_exists($ant)) {
+            try {
+                $this->cone = new PDO("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};charset=UTF-8; DBQ=$ant; Uid=; Pwd=;");
+            } catch (PDOException $e) {
+                return response()->json(["message" => "Error conectando a la base de datos del año pasado"]);
+            }
+
+            $report['salesAnt']['desglose']      = $this->getDesglose($this->cone, $lastday);
+            $report['salesAnt']['total']         = $this->getVentaDia($this->cone, $lastday);
+            $report['salesAnt']['tickets']       = $this->getTicketsDia($this->cone, $lastday);
+            $report['salesAnt']['totalMonth']    = $this->getVentaMes($this->cone, $month)['total'];
+            $report['salesAnt']['ticketsMonth']  = $this->getVentaMes($this->cone, $month)['tickets'];
+        }
+
+        // Consultar ventas ACTUALES
+        $report['salesAct']['desglose']      = $this->getDesglose($this->conn, $day);
+        $report['salesAct']['total']         = $this->getVentaDia($this->conn, $day);
+        $report['salesAct']['tickets']       = $this->getTicketsDia($this->conn, $day);
+        $report['salesAct']['totalMonth']    = $this->getVentaMes($this->conn, $month)['total'];
+        $report['salesAct']['ticketsMonth']  = $this->getVentaMes($this->conn, $month)['tickets'];
+
+        return  mb_convert_encoding($report,'UTF-8');
+    }
+
+    private function getDesglose($conn, $fecha){
+        $query = "SELECT FPALCO AS FORMAPAGO, SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE FECLCO = #" . $fecha . "# GROUP BY FPALCO";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private function getVentaDia($conn, $fecha){
+        $query = "SELECT SUM(TOTFAC) AS TOTAL FROM F_FAC WHERE FECFAC = #" . $fecha . "#";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? floatval($result['TOTAL']) : 0;
+    }
+
+    private function getTicketsDia($conn, $fecha){
+        $query = "SELECT COUNT(*) AS TOTAL FROM F_FAC WHERE FECFAC = #" . $fecha . "#";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? intval($result['TOTAL']) : 0;
+    }
+
+    private function getVentaMes($conn, $mes){
+        $query = "SELECT SUM(TOTFAC) as TOTAL, COUNT(*) as TICKETS FROM F_FAC WHERE month(FECFAC) = $mes";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return [
+        'total' => $result ? floatval($result['TOTAL']) : 0,
+        'tickets' => $result ? intval($result['TICKETS']) : 0
+        ];
+    }
+
 
 
 }

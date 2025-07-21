@@ -161,6 +161,8 @@ Route::prefix('/reports')->group(function(){
     Route::post('/printAdvance',[ReportController::class, 'printAdvance']);
     Route::post('/addAdvances',[ReportController::class, 'addAdvances']);
     Route::post('/addWithdrawal',[ReportController::class, 'addWithdrawal']);
+    Route::post('/getSalesPerMonth',[ReportController::class, 'getSalesPerMonth']);
+
 });
 
 
