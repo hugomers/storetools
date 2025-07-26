@@ -7,6 +7,7 @@ use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\Printer;
 use PDO;
 use PDOException;
+use Carbon\Carbon;
 
 
 class ReportController extends Controller
@@ -693,11 +694,41 @@ class ReportController extends Controller
 
     public function getSales(){
 
+        $name = env('namedb');
+        $ruta = env('rout');
+        $slash = '\\';
+        $concat = $ruta . $slash . $name;
+
         $report = [
+            "salesAnt"=>[
+                "total"=>0,
+                "tickets"=>0,
+            ],
             "saleshoy"=>0,
             "hoytck"=>0,
             "desglose"=>[],
+            "diaAntes"=>$this->mismoDiaSemanaAnoPasado()
         ];
+        $yearLast = Carbon::now()->format('Y') ;
+        $ant = $concat . ($yearLast - 1)  . ".accdb";
+
+        // Consultar ventas del AÑO PASADO
+        if (file_exists($ant)) {
+            try {
+                $this->cone = new PDO("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};charset=UTF-8; DBQ=$ant; Uid=; Pwd=;");
+            } catch (PDOException $e) {
+                return response()->json(["message" => "Error conectando a la base de datos del año pasado"]);
+            }
+
+            $venthoyLat = "SELECT SUM(TOTFAC) AS TOTAL, COUNT(*) AS TICKETS  FROM F_FAC WHERE FECFAC ="."#".$this->mismoDiaSemanaAnoPasado()."#";
+            $hoyLt = $this->cone->prepare($venthoyLat);
+            $hoyLt->execute();
+            $hoyLast = $hoyLt->fetch(\PDO::FETCH_ASSOC);
+            if($hoyLast){
+                $report['salesAnt']['total'] = $hoyLast['TOTAL'];
+                $report['salesAnt']['tickets'] = $hoyLast['TICKETS'];
+            }
+        }
         $desglose = "SELECT FPALCO AS FORMAPAGO, SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE FECLCO = Date() GROUP BY FPALCO";
         $des = $this->conn->prepare($desglose);
         $des->execute();
@@ -719,10 +750,23 @@ class ReportController extends Controller
         if($hoytcksale){
             $report['hoytck'] = $hoytcksale['TOTAL'];
         }
-
         return  mb_convert_encoding($report,'UTF-8');
 
     }
+
+    public function mismoDiaSemanaAnoPasado(){
+    $actual = Carbon::now();
+    $diaSemana = $actual->dayOfWeek; // 0 (Domingo) - 6 (Sábado)
+    $haceUnAnio = $actual->copy()->subYear();
+
+    for ($i = -3; $i <= 3; $i++) {
+        $candidato = $haceUnAnio->copy()->addDays($i);
+        if ($candidato->dayOfWeek === $diaSemana) {
+            return $candidato->format('Y-m-d');
+        }
+    }
+    return $haceUnAnio->format('Y-m-d');
+}
 
 
     public function getSalesPerMonth(Request $request){
@@ -814,7 +858,4 @@ class ReportController extends Controller
         'tickets' => $result ? intval($result['TICKETS']) : 0
         ];
     }
-
-
-
 }
