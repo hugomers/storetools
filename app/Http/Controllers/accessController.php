@@ -1171,4 +1171,49 @@ class accessController extends Controller
         }
     }
 
+public function withdrawalsTotal()
+{
+    $maximo = 100000;
+    $num = env('GROUP_RETIRADAS_HERMANA');
+    $store = env('SUCURSAL');
+    $sql = "SELECT SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE F_LCO.FECLCO = DATE() AND F_LCO.FPALCO = 'EFE'";
+    $exec = $this->conn->prepare($sql);
+    $exec->execute();
+    $row = $exec->fetch(\PDO::FETCH_ASSOC);
+
+    $total = $row['TOTAL'] ?? 0;
+
+    // Calcular múltiplo actual alcanzado
+    $multiploActual = floor($total / $maximo);
+
+    // Obtener último múltiplo notificado
+    $ultimoMultiploNotificado = $this->getUltimoMultiploNotificado();
+
+    if ($multiploActual > $ultimoMultiploNotificado) {
+        // Notificación
+        $mensaje  = "El efectivo de la sucursal ". $store ." actual (" . number_format($total, 0) . ") ha alcanzado el múltiplo de " . ($multiploActual * $maximo) . ". Favor de hacer su retirada.";
+        $this->msg($mensaje, $num);
+        echo "⚠️ Retiradas Faltantes";
+
+        // Guardar nuevo múltiplo
+        $this->setUltimoMultiploNotificado($multiploActual);
+    }
+}
+
+    public function getUltimoMultiploNotificado(): int
+    {
+        $file = __DIR__ . '/ultimo_multiplo.txt';
+        if (!file_exists($file)) {
+            file_put_contents($file, 0);
+            return 0;
+        }
+        return (int) file_get_contents($file);
+    }
+
+    public function setUltimoMultiploNotificado(int $multiplo): void
+    {
+        $file = __DIR__ . '/ultimo_multiplo.txt';
+        file_put_contents($file, $multiplo);
+    }
+
 }

@@ -64,6 +64,10 @@ class Kernel extends ConsoleKernel
                 $controller = new accessController();
                 $controller->Withdrawals();
             })->everyTenMinutes()->between('8:00','23:00')->name("Revisa EFE");//Retiradas de sucursal
+            $schedule->call(function () {
+                $controller = new accessController();
+                $controller->withdrawalsTotal();
+            })->everyThirtyMinutes()->between('8:00','23:00')->name("Revisa EFE Sucursal");//Retiradas de sucursal
         }
     }
 
