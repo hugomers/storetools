@@ -1183,19 +1183,18 @@ public function withdrawalsTotal()
 
     $total = $row['TOTAL'] ?? 0;
 
-    // Calcular múltiplo actual alcanzado
     $multiploActual = floor($total / $maximo);
 
-    // Obtener último múltiplo notificado
     $ultimoMultiploNotificado = $this->getUltimoMultiploNotificado();
 
+    if ($total < $maximo && $ultimoMultiploNotificado > 0) {
+        $this->setUltimoMultiploNotificado(0);
+        return;
+    }
     if ($multiploActual > $ultimoMultiploNotificado) {
-        // Notificación
         $mensaje  = "El efectivo de la sucursal ". $store ." actual (" . number_format($total, 0) . ") ha alcanzado el múltiplo de " . ($multiploActual * $maximo) . ". Favor de hacer su retirada.";
         $this->msg($mensaje, $num);
         echo "⚠️ Retiradas Faltantes";
-
-        // Guardar nuevo múltiplo
         $this->setUltimoMultiploNotificado($multiploActual);
     }
 }
