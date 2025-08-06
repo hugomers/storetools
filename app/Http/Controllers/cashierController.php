@@ -124,6 +124,7 @@ class cashierController extends Controller
                         $result = $exec->execute();
                         if($result){
                             $impresion = $this->printWitrawal($request->print,$request->retirada);
+                            $impresion = $this->printWitrawal($request->print,$request->retirada);
                             $nuevoCorte = $this->getCurrenCut($caja);
                             $prNwC = $this->printCut($nuevoCorte,$request->print);
                             $prNwC = $this->printCut($nuevoCorte,$request->print);
