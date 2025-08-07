@@ -54,6 +54,8 @@ Route::prefix('/Cashier')->group(function(){
 });
 
 Route::prefix('/Products')->group(function(){//regisprice
+    Route::get('/getReceived',[ProductsController::class, 'getReceived']);
+    Route::get('/reportDepure',[ProductsController::class, 'reportDepure']);
     Route::post('/registerProducts',[ProductsController::class, 'productRegis']);
     Route::post('/registerPrices',[ProductsController::class, 'regisprice']);
     Route::post('/translate',[ProductsController::class, 'translateWarehouses']);
@@ -61,11 +63,13 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/abo',[ProductsController::class, 'abono']);
     Route::post('/inv',[ProductsController::class, 'invice']);
     Route::post('/invr',[ProductsController::class, 'invoiceReceived']);
-    Route::get('/reportDepure',[ProductsController::class, 'reportDepure']);
     Route::post('/replacecode',[ProductsController::class, 'replacecode']);
     Route::post('/getdev',[ProductsController::class, 'getdev']);
     Route::post('/getinvoice',[ProductsController::class, 'getinvoice']);
-    Route::get('/getReceived',[ProductsController::class, 'getReceived']);
+    Route::post('/highProducts',[ProductsController::class, 'highProducts']);
+    Route::post('/highPrices',[ProductsController::class, 'highPrices']);
+    Route::post('/regispricefor',[ProductsController::class, 'regispricefor']);
+
 });
 //regispricepub
 Route::prefix('/Stores')->group(function(){

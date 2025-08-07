@@ -2003,4 +2003,189 @@ class ProductsController extends Controller
         $rec =$exec->fetchall(\PDO::FETCH_ASSOC);
         return response()->json($rec);
     }
+
+    public function highProducts(Request $request){
+        $insertados = [
+            "goals"=>[],
+            "fails"=>[]
+        ];
+        $almacenes ="SELECT CODALM FROM F_ALM";
+        $exec = $this->conn->prepare($almacenes);
+        $exec -> execute();
+        $fil=$exec->fetchall(\PDO::FETCH_ASSOC);
+        $tari ="SELECT CODTAR FROM F_TAR";
+        $exec = $this->conn->prepare($tari);
+        $exec -> execute();
+        $filtar=$exec->fetchall(\PDO::FETCH_ASSOC);
+        $products = $request->productos;
+        foreach($products as $product){
+            $codigo = trim($product['code']);
+            $ean = isset($product['cb']) ? trim($product['cb']) : null;
+            $fam = trim($product['familia']['alias']);
+            $deslarga = trim($product["description"]);
+            $desgen = trim(substr($product["description"],0,50));
+            $deset = trim(substr($product["description"],0,30));
+            $destic = trim(substr($product["description"],0,20));
+            $pro = $product['provider']['id'];
+            $ref = trim($product['reference']);
+            $fab = trim($product['makers']['id']);
+            $pxc = $product['pxc'];
+            $categoria = trim($product['categoria']['alias']);
+            $umc = trim($product['umc']['id']);
+            $prores = trim($product['pr']);
+            $cco = $product['short_code'];
+            $cost = isset($product['cost']) ? $product['cost'] : 0;
+            $luces = isset($product['nluces']) ? $product['nluces']: null;
+            $menav = isset($product['mnp']) ? $product['mnp']['large'] : null;
+            $date_format = date("d/m/Y");
+
+            $articulofs = [
+                $codigo,
+                $ean,
+                $fam,
+                $desgen,
+                $deset,
+                $destic,
+                $deslarga,
+                $pxc,
+                $cco,
+                $pro,
+                $ref,
+                $fab,
+                $cost,
+                $date_format,
+                $date_format,
+                $pxc,
+                1,
+                1,
+                1,
+                $categoria,
+                $luces,
+                $umc,
+                $prores,
+                $menav,
+                0,
+                "Peso",
+            ];
+            $inspro = "INSERT INTO F_ART (CODART,EANART,FAMART,DESART,DEEART,DETART,DLAART,EQUART,CCOART,PHAART,REFART,FTEART,PCOART,FALART,FUMART,UPPART,CANART,CAEART,UMEART,CP1ART,CP2ART,CP3ART,CP4ART,CP5ART,MPTART,UEQART) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            $exec = $this->conn->prepare($inspro);
+            $insspro = $exec->execute($articulofs);
+            if($insspro){
+                foreach($fil as $alm){
+                    $insertsto = "INSERT INTO F_STO (ARTSTO,ALMSTO,MINSTO,MAXSTO,ACTSTO,DISSTO) VALUES (?,?,?,?,?,?) ";
+                    $exec = $this->conn->prepare($insertsto);
+                    $exec -> execute([$codigo,$alm['CODALM'],0,0,0,0]);
+                }
+                foreach($filtar as $price){
+                    $insertlta = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES (?,?,?,?) ";
+                    $exec = $this->conn->prepare($insertlta);
+                    $exec -> execute([$price['CODTAR'],$codigo,0,0]);
+                }
+                $insertados['goals'][]="El producto ".$codigo." se Inserto correctamente";
+            }else{
+                $insertados['fails'][]="El producto ".$codigo." no se Inserto correctamente";
+            }
+        }
+        $res = [
+            "insertados"=>$insertados
+        ];
+        return response()->json($res,200);
+    }
+
+    public function highPrices(Request $request){
+        $store = env('STORE');
+        $date_format = date("d/m/Y");
+        $date_time = date("Y-m-d H:m:s");
+        $actualizados = [
+            "goals"=>[],
+            "fails"=>[],
+            "fams"=>[
+                "goals"=>0,
+                "fails"=>0,
+            ]
+        ];
+
+        $prices = $request->prices;
+        foreach($prices as $price){
+            $codigo = $price['code'];
+            if(isset($price['familia']) && $store == 1){
+                $familia = round($price['familia'],2);
+                $fam = [37,46];
+                foreach($fam as $fami){
+                    $existfam = "SELECT * FROM F_PRC WHERE CLIPRC = $fami AND ARTPRC = "."'".$codigo."'";
+                    $exec = $this->conn->prepare($existfam);
+                    $exec->execute();
+                    $existe = $exec->fetch(\PDO::FETCH_ASSOC);
+                    if($existe){
+                        $upd = "UPDATE F_PRC SET PREPRC = ? WHERE CLIPRC = ? AND ARTPRC = ?";
+                        $exec = $this->conn->prepare($upd);
+                        $ch = $exec->execute([$familia,$fami,$codigo]);
+                        if($ch){
+                            $actualizados['fams']['goals']++;
+                        }else{
+                            $actualizados['fams']['fails']++;
+                        }
+
+                    }else{
+                        $ins = "INSERT INTO F_PRC (CLIPRC,ARTPRC, PREPRC) VALUES (?,?,?)";
+                        $exec = $this->conn->prepare($ins);
+                        $ch = $exec->execute([$fami,$codigo,$familia]);
+                        if($ch){
+                            $actualizados['fams']['goals']++;
+                        }else{
+                            $actualizados['fams']['fails']++;
+                        }
+                    }
+                }
+            }
+            $vercod = "SELECT PCOART FROM F_ART WHERE  CODART = "."'".$codigo."'";
+            $exec = $this->conn->prepare($vercod);
+            $exec->execute();
+            $codver = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($codver){
+                    $costoupd = $this->conn->prepare("UPDATE F_ART SET PCOART = ?, FUMART = ? WHERE CODART = ?")->execute([$price['costo'],$date_format,$codigo]);
+                foreach ($price['prices'] as $type => $valor) {
+                    $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$valor,$codigo,$type]);
+                }
+                $actualizados['goals'][] = "El codigo ".$codigo." Actualizado";
+            }else{$actualizados['fails'][] = "El codigo ".$codigo." No existe";}
+        }
+        $res = [
+            "actualizados"=>$actualizados,
+        ];
+        return response()->json($res);
+    }
+
+    public function regispricefor(Request $request){
+        $date_format = date("d/m/Y");
+        $date_time = date("Y-m-d H:m:s");
+        $actualizados = [
+            "goals"=>[],
+            "fails"=>[]
+        ];
+        $prices = $request->prices;
+        foreach($prices as $price){
+            $codigo = $price['code'];
+            $vercod = "SELECT F_ART.PCOART AS COSTO, F_FAM.SECFAM AS SECCION FROM F_ART INNER JOIN F_FAM ON F_FAM.CODFAM = F_ART.FAMART  WHERE F_ART.CODART = "."'".$codigo."'";
+            $exec = $this->conn->prepare($vercod);
+            $exec->execute();
+            $codver = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($codver){
+                $margin = $codver['SECCION'] == "MOC" ? 1.5 : 1.5;
+                // $costo = isset($price['costo']) ? round($price['costo']*$margin,2): intval($codver['COSTO']) ;
+                $cosms = DB::connection('vizapub')->table('products')->where('code',$codigo)->update(['cost'=>round($price['costo'] * $margin,2),'updated_at'=>$date_time]);
+                $costoupd = $this->conn->prepare("UPDATE F_ART SET PCOART = ?, FUMART = ? WHERE CODART = ?")->execute([round($price['costo'] * $margin,2),$date_format,$codigo]);
+                foreach ($price['prices'] as $type => $valor) {
+                    $precio = round($valor * $margin,0);
+                    $this->conn->prepare("UPDATE F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA = ?")->execute([$precio,$codigo,$type]);
+                    DB::connection('vizapub')->table('product_prices as PP')->join('products as P','P.id','PP._product')->where('P.code',$codigo)->where('PP._type',$type)->update(['PP.price'=>$precio]);
+                }
+                $actualizados['goals'][] = "El codigo ".$codigo." Actualizado";
+            }else{$actualizados['fails'][] = "El codigo ".$codigo." No existe";}
+        }
+        $res = [
+            "actualizados"=>$actualizados,
+        ];
+        return response()->json($res);
+    }
 }
