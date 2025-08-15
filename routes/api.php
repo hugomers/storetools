@@ -159,6 +159,7 @@ Route::prefix('/reports')->group(function(){
     Route::get('/getWithdrawals',[ReportController::class, 'getWithdrawals']);
     Route::get('/getAdvances',[ReportController::class, 'getAdvances']);
     Route::post('/printCut',[ReportController::class, 'printCut']);
+    Route::post('/getRefunds',[ReportController::class, 'getRefunds']);
     Route::post('/modifyWithdrawal',[ReportController::class, 'modifyWithdrawal']);
     Route::post('/modifyAdvances',[ReportController::class, 'modifyAdvances']);
     Route::post('/printWitrawal',[ReportController::class, 'printWitrawal']);

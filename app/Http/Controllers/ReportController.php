@@ -755,18 +755,18 @@ class ReportController extends Controller
     }
 
     public function mismoDiaSemanaAnoPasado(){
-    $actual = Carbon::now();
-    $diaSemana = $actual->dayOfWeek; // 0 (Domingo) - 6 (Sábado)
-    $haceUnAnio = $actual->copy()->subYear();
+        $actual = Carbon::now();
+        $diaSemana = $actual->dayOfWeek; // 0 (Domingo) - 6 (Sábado)
+        $haceUnAnio = $actual->copy()->subYear();
 
-    for ($i = -3; $i <= 3; $i++) {
-        $candidato = $haceUnAnio->copy()->addDays($i);
-        if ($candidato->dayOfWeek === $diaSemana) {
-            return $candidato->format('Y-m-d');
+        for ($i = -3; $i <= 3; $i++) {
+            $candidato = $haceUnAnio->copy()->addDays($i);
+            if ($candidato->dayOfWeek === $diaSemana) {
+                return $candidato->format('Y-m-d');
+            }
         }
+        return $haceUnAnio->format('Y-m-d');
     }
-    return $haceUnAnio->format('Y-m-d');
-}
 
 
     public function getSalesPerMonth(Request $request){
@@ -854,8 +854,50 @@ class ReportController extends Controller
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return [
-        'total' => $result ? floatval($result['TOTAL']) : 0,
-        'tickets' => $result ? intval($result['TICKETS']) : 0
+            'total' => $result ? floatval($result['TOTAL']) : 0,
+            'tickets' => $result ? intval($result['TICKETS']) : 0
         ];
+    }
+
+    public function getRefunds(Request $request){
+        $range =  $request->fechas;
+        if(isset($range['from'])){
+            $startDate = $range['from'];
+            $endDate = $range['to'];
+        }else{
+            $startDate = $range;
+            $endDate = $range;
+        }
+        $sql = "SELECT F_FAC.TIPFAC&'-'&F_FAC.CODFAC AS devolucion,
+        F_FAC.FECFAC AS fecha,
+        F_FAC.CLIFAC AS num_cli,
+        F_FAC.CNOFAC AS cliente,
+        F_FAC.TOTFAC AS total,
+        F_FAC.TDRFAC&'-'&F_FAC.CDRFAC AS origen,
+        F_FAC.PRIFAC AS comentario,
+        F_FAC.HORFAC AS hora,
+        T_TER.CODTER AS terminal,
+        T_TER.DESTER AS caja
+        FROM F_FAC
+        INNER JOIN T_TER ON T_TER.CODTER = F_FAC.TERFAC
+        WHERE F_FAC.TOTFAC <= 0 AND F_FAC.FECFAC BETWEEN ".'#'.$startDate.'#'." AND ".'#'.$endDate.'#' ;
+
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $refunds = $exec->fetchall(\PDO::FETCH_ASSOC);
+        if(count($refunds) > 0){
+            foreach($refunds as &$refund){
+                $products = "SELECT ARTLFA, DESLFA, CANLFA, PRELFA,TOTLFA FROM F_LFA WHERE TIPLFA&'-'&CODLFA =". "'".$refund['devolucion']."'";
+                $exec = $this->conn->prepare($products);
+                $exec -> execute();
+                $refund['products'] = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+                $fapas = "SELECT FPALCO, CPTLCO, IMPLCO FROM F_LCO WHERE TFALCO&'-'&CFALCO =". "'".$refund['devolucion']."'";
+                $exec = $this->conn->prepare($fapas);
+                $exec -> execute();
+                $refund['fpas'] = $exec->fetchall(\PDO::FETCH_ASSOC);
+            }
+        }
+        return response()->json(mb_convert_encoding($refunds,'UTF-8'),200);
     }
 }
