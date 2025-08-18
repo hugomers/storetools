@@ -2031,7 +2031,7 @@ class ProductsController extends Controller
             $fab = trim($product['makers']['id']);
             $pxc = $product['pxc'];
             $categoria = trim($product['categoria']['alias']);
-            $umc = trim($product['umc']['id']);
+            $umc = trim(strtoupper($product['umc']['name']));
             $prores = trim($product['pr']);
             $cco = $product['short_code'];
             $cost = isset($product['cost']) ? $product['cost'] : 0;
