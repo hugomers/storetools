@@ -11,6 +11,7 @@ use NumberFormatter;
 class PrinterController extends Controller
 {
     public function printck($order,$cash,$folio,$config){
+
         try{
             $connector = new NetworkPrintConnector($cash['cashier']['print']['ip_address'], 9100, 3);
             $printer = new Printer($connector);
@@ -18,7 +19,8 @@ class PrinterController extends Controller
         try {
             try{
                 $payments = $order['payments'];
-                $imagen = "\\\\192.168.60.253\\c\\Users\\Administrador\\Documents\\TCKPHP.png";//poner en env el servidor de donde sale
+                $imagen = env('IMAGENLOCAL');
+                // $imagen = "\\\\192.168.60.253\\c\\Users\\Administrador\\Documents\\TCKPHP.png";//poner en env el servidor de donde sale
                 $filtered = array_filter($payments, function($val) {
                     return isset($val['id']) && !is_null($val['id'])  && $val['val'] > 0;
                 });
