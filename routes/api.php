@@ -19,6 +19,8 @@ use App\Http\Controllers\OutputsController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\InvoiceRecevivedController;
+use App\Http\Controllers\salesController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -183,4 +185,15 @@ Route::prefix('/invoiceReceived')->group(function(){
     Route::post('/replyInvoices',[InvoiceRecevivedController::class, 'replyInvoices']);
 
 });
+
+Route::prefix('/sales')->group(function(){
+    Route::post('/printWitrawal',[salesController::class, 'printWitrawal']);
+    Route::post('/addWithdrawal',[salesController::class, 'addWithdrawal']);
+    Route::post('/addSale',[salesController::class, 'addSale']);
+    Route::post('/reprintSale',[salesController::class, 'reprintSale']);
+    Route::post('/getWithdrawals',[salesController::class, 'getWithdrawals']);
+    Route::post('/openCash',[salesController::class, 'openCash']);
+    Route::post('/closeCash',[salesController::class, 'closeCash']);
+});
+
 
