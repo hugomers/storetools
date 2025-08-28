@@ -491,7 +491,7 @@ class RefundController extends Controller
 
     }
 
-        public function editSeason(Request $request){
+    public function editSeason(Request $request){
         $total = $request->total;
         $folioAbono = "'".$request->folioAbono."'";
         $folioFactura = "'".$request->folioFactura."'";
@@ -512,8 +512,4 @@ class RefundController extends Controller
         return response()->json('SE MODIFICO CORRECTAMENTE' ,201);//se retorna el folio de la factura
 
     }
-
-
-
-
 }

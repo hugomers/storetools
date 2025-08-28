@@ -517,7 +517,7 @@ class salesController extends Controller
         ];
         $cellerPrinter = new PrinterController();
         $printed = $cellerPrinter->printck($order,$cash,$factura['folio'],$config);
-        return $printed;
+        return $order;
     }
 
     public function mapPaymentsFromDb(array $pagosDb, float $change = 0): array {
@@ -531,31 +531,49 @@ class salesController extends Controller
             ],
             "change" => number_format($change, 2, '.', '')
         ];
-        $mapAlias = [
-            "EFE" => "PFPA",
-            "TSA" => "SFPA",
-            "[V]" => "VALE"
+
+        // definimos los grupos de alias
+        $mapAliasGroups = [
+            "PFPA" => ["C30", "EFE", "TDB","TSA"],
+            "SFPA" => ["C30", "EFE", "TDB", "TSA"],
+            "VALE" => ["[V]"]
         ];
 
         foreach ($pagosDb as $pago) {
-            $alias = $pago['FPALCO'];
+            $alias   = $pago['FPALCO'];
             $importe = (float) $pago['IMPLCO'];
-            if (isset($mapAlias[$alias])) {
-                $key = $mapAlias[$alias];
-                if ($alias === 'EFE') {
+
+            // buscar a qué grupo pertenece el alias
+            $key = null;
+            foreach ($mapAliasGroups as $grupo => $aliases) {
+                if (in_array($alias, $aliases)) {
+                    $key = $grupo;
+                    break;
+                }
+            }
+
+            if ($key) {
+                // si es efectivo, sumamos el cambio
+                if ($key === 'PFPA') {
                     $importe += $change;
                 }
 
-                $payments[$key] = [
-                    "id" => [
-                        "id"    => $pago['LINLCO'],  // puedes mapear al id real si lo tienes
-                        "alias" => $alias,
-                        "name"  => $pago['CPTLCO']
-                    ],
-                    "val" => $importe
-                ];
+                // si ya existe valor, sumamos al acumulado
+                if ($payments[$key]['id']) {
+                    $payments[$key]['val'] += $importe;
+                } else {
+                    $payments[$key] = [
+                        "id" => [
+                            "id"    => $pago['LINLCO'],
+                            "alias" => $alias,
+                            "name"  => $pago['CPTLCO']
+                        ],
+                        "val" => $importe
+                    ];
+                }
             }
         }
+
         return $payments;
     }
 
