@@ -79,7 +79,7 @@ class salesController extends Controller
         $max = $exec->fetch(\PDO::FETCH_ASSOC);
         $codigo = $max['maxi'] + 1;
 
-        $column = ["TIPFAC","CODFAC","FECFAC", "ALMFAC","AGEFAC","CLIFAC","CNOFAC","CDOFAC","CPOFAC","CCPFAC","CPRFAC","TELFAC","NET1FAC","BAS1FAC","PIVA1FAC","IIVA1FAC","TOTFAC","FOPFAC","REAFAC","VENFAC","HORFAC","USUFAC","USMFAC","TIVA2FAC","TIVA3FAC","EDRFAC","FUMFAC","BCOFAC","TPVIDFAC","ESTFAC","TERFAC","DEPFAC","EFEFAC","CAMFAC","EFSFAC","EFVFAC"];
+        $column = ["TIPFAC","CODFAC","FECFAC", "ALMFAC","AGEFAC","CLIFAC","CNOFAC","CDOFAC","CPOFAC","CCPFAC","CPRFAC","TELFAC","NET1FAC","BAS1FAC","PIVA1FAC","IIVA1FAC","TOTFAC","FOPFAC","OB1FAC","REAFAC","VENFAC","HORFAC","USUFAC","USMFAC","TIVA2FAC","TIVA3FAC","EDRFAC","FUMFAC","BCOFAC","TPVIDFAC","ESTFAC","TERFAC","DEPFAC","EFEFAC","CAMFAC","EFSFAC","EFVFAC"];
         $factura = [
             $codter['TIPDOC'],//
             $codigo,//
@@ -99,6 +99,7 @@ class salesController extends Controller
             $config['option'] ? $order['impuesto']  : 0,
             $order['total'],
             $order['payments']['PFPA']['id']['alias'] ,
+            isset($order['observation']) ? $order['observation'] : null,
             isset($order['order']) ? $order['order'] : null,
             now()->format('d/m/Y'),
             now()->format('H:i'),
@@ -423,7 +424,8 @@ class salesController extends Controller
                 F_FAC.CAMFAC,
                 F_FAC.EFSFAC,
                 F_FAC.EFVFAC,
-                T_DEP.NOMDEP
+                T_DEP.NOMDEP,
+                F_FAC.OB1FAC
              FROM F_FAC
             INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.TERFAC
             WHERE F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000') = "."'".$id."'";
@@ -447,7 +449,8 @@ class salesController extends Controller
                 F_FAC.CAMFAC,
                 F_FAC.EFSFAC,
                 F_FAC.EFVFAC,
-                T_DEP.NOMDEP
+                T_DEP.NOMDEP,
+                F_FAC.OB1FAC
                 FROM F_FAC
                 INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.TERFAC
                 WHERE FECFAC = DATE() AND TERFAC = ".$cash['cashier']['cash']['_terminal']. " ORDER BY CODFAC DESC " ;
@@ -508,6 +511,7 @@ class salesController extends Controller
             "total"=>number_format((float)$factura['TOTFAC'], 2, '.', ''),
             "payments"=>$mapedPayments,
             "products"=>$mapedProducts,
+            "observation"=>$factura['OB1FAC']
         ];
         $config = [
             "amount"=>0,

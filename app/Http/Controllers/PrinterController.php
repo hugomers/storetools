@@ -121,7 +121,9 @@ class PrinterController extends Controller
                 $printer->text("Vendedor :".$order['dependiente']['complete_name']." \n");
                 $printer->text("Cajero :".$cash['cashier']['user']['staff']['complete_name']." \n");
                 $printer->text(" \n");
-                $printer->text(isset($sale["obsertvations"]) ? $sale["obsertvations"] :"" ." \n");
+                $printer->text(isset($order["observation"]) ? $order["observation"] :"" ." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
                 // $printer->text("-------------------Grupo-Vizcarra---------------"." \n");
                 foreach($footers as $footer){
                     $printer->text(mb_convert_encoding($footer->val,'UTF-8')." \n");
