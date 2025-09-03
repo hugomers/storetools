@@ -76,11 +76,11 @@ class InvoiceRecevivedController extends Controller
             $codigo = $compra['code'];
             $prod = "SELECT
             ARTLFR as _product,
-            CANLFR as amount,
+            SUM(CANLFR) as amount,
             PRELFR as price,
-            TOTLFR as total
+            SUM(TOTLFR) as total
             FROM F_LFR
-            WHERE TIPLFR = ".$tipo." AND CODLFR = ".$codigo;
+            WHERE TIPLFR = ".$tipo." AND CODLFR = ".$codigo."GROUP BY ARTLFR,PRELFR";
             $exec = $this->conn->prepare($prod);
             $exec->execute();
             $productos = $exec->fetchall(\PDO::FETCH_ASSOC);
