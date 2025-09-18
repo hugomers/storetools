@@ -80,14 +80,14 @@ class InvoiceRecevivedController extends Controller
             PRELFR as price,
             SUM(TOTLFR) as total
             FROM F_LFR
-            WHERE TIPLFR = ".$tipo." AND CODLFR = ".$codigo."GROUP BY ARTLFR,PRELFR";
+            WHERE TIPLFR = ".$tipo." AND CODLFR = ".$codigo." GROUP BY ARTLFR,PRELFR";
             $exec = $this->conn->prepare($prod);
             $exec->execute();
             $productos = $exec->fetchall(\PDO::FETCH_ASSOC);
             $compra['products'] = $productos;
         }
 
-        return response()->json(mb_convert_encoding($compras, 'UTF-8'));
+        return response()->json($compras);
 
     }
 }

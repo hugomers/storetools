@@ -762,4 +762,41 @@ class salesController extends Controller
         }
     }
 
+    public function getCredits(Request $request){
+        $date = $request->date;
+        $sales = "SELECT
+        F_FAC.CLIFAC AS _client,
+        F_FAC.CNOFAC AS cliente,
+        F_FAC.TIPFAC & '-' & Format(F_FAC.CODFAC, '000000') AS ticket,
+        Format(F_FAC.FECFAC, 'yyyy-mm-dd') & ' ' & Format(F_FAC.HORFAC, 'hh:nn:ss') AS created_at,
+        Round(F_LCO.IMPLCO, 2) AS total
+        FROM F_LCO
+        INNER JOIN F_FAC ON F_FAC.TIPFAC & '-' & F_FAC.CODFAC = F_LCO.TFALCO & '-' & F_LCO.CFALCO
+        WHERE F_LCO.FPALCO = 'C30' AND F_LCO.FECLCO = "."#".$date."#";
+        $exec = $this->conn->prepare($sales);
+        $exec -> execute();
+        $credits = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return $credits;
+    }
+
+    public function addCredit(Request $request){
+        $store = $request->store;
+        $client = $request->_client;
+        $ticket = $request->ticket;
+        $total = $request->total;
+        $date = $request->created_at;
+
+        $termi = "SELECT * FROM T_TER INNER JOIN T_DOC ON T_DOC.CODDOC = T_TER.DOCTER WHERE CODTER = ". $cash['cashier']['cash']['_terminal'];
+        $exec = $this->conn->prepare($termi);
+        $exec->execute();
+        $codter = $exec->fetch(\PDO::FETCH_ASSOC);
+        $nomter = $codter['DESTER'];
+        $idterminal = str_pad($codter['CODTER'], 4, "0", STR_PAD_LEFT)."00".Carbon::parse($cash['cashier']['open_date'])->format('ymd');
+
+        $codmax = "SELECT MAX(CODFAC) as maxi FROM F_FAC WHERE TIPFAC = "."'".$codter['TIPDOC']."'";
+        $exec = $this->conn->prepare($codmax);
+        $exec->execute();
+        $max = $exec->fetch(\PDO::FETCH_ASSOC);
+        $codigo = $max['maxi'] + 1;
+    }
 }
