@@ -121,6 +121,8 @@ Route::prefix('/Resources')->group(function(){
     Route::get('/Entries',[accessController::class, 'Entries']);
     Route::post('/getInvoiceBudget',[accessController::class,'getInvoiceBudget']);
     Route::post('/getCommand',[accessController::class,'getCommand']);
+    Route::post('/getPartition',[accessController::class,'getPartition']);
+
     Route::post('/createBudget',[accessController::class,'createBudget']);
 
 });

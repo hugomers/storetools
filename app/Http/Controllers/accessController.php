@@ -1096,6 +1096,48 @@ class accessController extends Controller
             return response()->json(['message'=>'No se encuentra el pedido'],404);
         }
     }
+    public function getPartition(Request $request){
+        $store = $request->store;
+        $comanda = $request->number;
+        $price = $request->client;
+        $coman =  DB::connection('vizapi')
+        ->table('requisition_partitions as RP')
+        ->join('requisition as R','R.id','RP._requisition')->where([['RP._status','>',1],['R._workpoint_from',$store],['RP.id',$comanda]])
+        ->select('RP.id AS FOLIO','R.notes AS REFFAC')->selectRaw("DATE_FORMAT(R.created_at, '%Y-%m-%d') as FECHA")
+        ->first();
+
+        if($coman){
+            $existclient = "SELECT CODCLI, NOFCLI, DOMCLI,POBCLI,CPOCLI,PROCLI,TARCLI , NVCCLI FROM F_CLI WHERE  CODCLI = $price";
+            $exec = $this->conn->prepare($existclient);
+            $exec->execute();
+            $excli = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($excli){
+                if($excli['NVCCLI']== 0){
+                $products  = DB::connection('vizapi')->table('product_required AS OP')->join('products AS P','P.id','OP._product')->join('product_prices AS PP','PP._product','P.id')
+                ->where([['PP._type',$excli['TARCLI']],['OP._partition',$comanda]])
+                ->select('P.code AS ARTLFA',
+                        'P.description AS DESLFA',
+                        'OP.units AS CANLFA',
+                        'PP.price AS PRELTA',
+                        'P.cost AS COSLFA')
+                ->selectRaw('PP.price * OP.units AS TOTAL')
+                ->get();
+                $res = [
+                    "factura"=>$coman,
+                    "cliente"=>$excli,
+                    "productos"=>$products
+                ];
+                return response()->json($res,200);
+                }else{
+                    return response()->json(['message'=>'No se permite vender al cliente '.$price], 404);
+                }
+            }else{
+                return response()->json(['message'=>'No se encuentra el cliente '.$price], 404);
+            }
+        }else{
+            return response()->json(['message'=>'No se encuentra el pedido'],404);
+        }
+    }
 
     public function createBudget(Request $request){
         $client = $request->client;
