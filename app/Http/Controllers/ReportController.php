@@ -589,7 +589,7 @@ class ReportController extends Controller
             0,
             0,
             $request->OBSANT,
-            0,
+            1,
             $request->DESTER['CODTER'],
             $idterminal
         ]);
