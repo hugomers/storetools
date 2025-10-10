@@ -729,7 +729,32 @@ class ReportController extends Controller
                 $report['salesAnt']['tickets'] = $hoyLast['TICKETS'];
             }
         }
-        $desglose = "SELECT FPALCO AS FORMAPAGO, SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE FECLCO = Date() GROUP BY FPALCO";
+        // $desglose = "SELECT FPALCO AS FORMAPAGO, SUM(IMPLCO) AS TOTAL FROM F_LCO WHERE FECLCO = Date() GROUP BY FPALCO";
+        $desglose = "
+        SELECT
+            IIf(
+                [F_LCO].[FPALCO] = '[V]',
+                IIf([F_ANT].[CRIANT] = 1, 'ANT', 'VAL'),
+                [F_LCO].[FPALCO]
+            ) AS FORMAPAGO,
+            Sum([F_LCO].[IMPLCO]) AS TOTAL
+        FROM
+            [F_LCO]
+            LEFT JOIN [F_ANT] ON [F_ANT].[CODANT] = Val (
+                Mid (
+                    [F_LCO].[CPTLCO],
+                    InStr ([F_LCO].[CPTLCO], ':') + 1
+                )
+            )
+        WHERE
+            [F_LCO].[FECLCO] = Date()
+        GROUP BY
+            IIf(
+                [F_LCO].[FPALCO] = '[V]',
+                IIf([F_ANT].[CRIANT] = 1, 'ANT', 'VAL'),
+                [F_LCO].[FPALCO]
+        )";
+
         $des = $this->conn->prepare($desglose);
         $des->execute();
         $desgl = $des->fetchall(\PDO::FETCH_ASSOC);
