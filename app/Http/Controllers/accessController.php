@@ -1051,7 +1051,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return mb_convert_encoding($facturas, 'UTF-8');
+        return $facturas;
 
         // $sql = "SELECT
         // F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000')  AS FACTURA,
@@ -1089,7 +1089,7 @@ public function getInvoices(Request $request){
         $strinvoice = implode(',',$invoices);
         // $invoices = $request->invoices;
             $sql = "SELECT
-                F_FRE.TIPFRE&'-'&F_FRE.CODFRE  AS FACTURA,
+                F_FRE.TIPFRE&'-'&FORMAT(F_FRE.CODFRE,'000000')  AS FACTURA,
                 F_FRE.FECFRE AS FECHA,
                 F_FRE.FACFRE AS SALIDA,
                 F_FRE.REFFRE AS REFERENCIA,
@@ -1119,10 +1119,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return response()->json(mb_convert_encoding($facturas, 'UTF-8'));
-
-
-
+        return $facturas;
 
 
         // $sql = "SELECT
@@ -1145,12 +1142,6 @@ public function getInvoices(Request $request){
         // $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
 
     }
-
-
-
-
-
-
 
 
 
