@@ -1037,6 +1037,7 @@ public function getInvoices(Request $request){
 
         foreach($facturas as &$factura){
             // if($fac){
+                $factura['REFERENCIA'] =  mb_convert_encoding((string)$factura['REFERENCIA'], "UTF-8", "Windows-1252");
                 $sqline = "SELECT
                 F_LFA.ARTLFA AS ARTICULOS,
                 F_LFA.DESLFA AS DESCRIPCION,
@@ -1051,7 +1052,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-         return response()->json(json_decode(json_encode($facturas, JSON_UNESCAPED_UNICODE), true));
+         return $facturas;
 
     }
     public function getEntries(Request $request){
@@ -1081,6 +1082,7 @@ public function getInvoices(Request $request){
 
         foreach($facturas as &$factura){
             // if($fac){
+                $factura['REFERENCIA'] =  mb_convert_encoding((string)$factura['REFERENCIA'], "UTF-8", "Windows-1252");
                 $sqline = "SELECT
                 F_LFR.ARTLFR AS ARTICULOS,
                 F_LFR.DESLFR AS DESCRIPCION,
@@ -1095,7 +1097,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return response()->json(json_decode(json_encode($facturas, JSON_UNESCAPED_UNICODE), true));
+        return $facturas;
 
     }
 
