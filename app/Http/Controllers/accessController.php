@@ -1051,31 +1051,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return $facturas;
-
-        // $sql = "SELECT
-        // F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000')  AS FACTURA,
-        // F_FAC.FECFAC&' '&Format(F_FAC.HORFAC, 'hh:nn:ss') AS FECHAYHORA,
-        // F_FAC.REFFAC AS REFERENCIA,
-        // F_FAC.REAFAC AS PARTICION,
-        // F_FAC.ALMFAC AS ALMACEN,
-        // F_FAC.CLIFAC AS CLIENTE,
-        // F_FAC.CNOFAC AS NOMBRECLIENTE,
-        // F_FAC.OB1FAC AS OBSERVACION,
-        // F_LFA.ARTLFA AS ARTICULOS,
-        // F_LFA.DESLFA AS DESCRIPCION,
-        // F_LFA.CANLFA AS CANTIDAD,
-        // F_LFA.PRELFA AS PRECIO,
-        // F_LFA.TOTLFA AS TOTAL
-        // FROM F_FAC
-        // INNER JOIN F_LFA ON F_LFA.TIPLFA&'-'&F_LFA.CODLFA =  F_FAC.TIPFAC&'-'&F_FAC.CODFAC
-        // WHERE F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000') IN ($strinvoice)";
-        // // return $sql;
-        // // WHERE FECFAC BETWEEN $condicion AND F_FAC.CLIFAC = $request->_client AND (REFFAC NOT LIKE '%ABONO%' AND REFFAC NOT LIKE '%TRASPASO%')";
-        // $exec = $this->conn->prepare($sql);
-        // $exec->execute();
-        // $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
-        // return mb_convert_encoding($facs, 'UTF-8');
+        return response()->json(mb_convert_encoding($facturas,'UTF-8'));
 
     }
     public function getEntries(Request $request){
@@ -1119,27 +1095,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return $facturas;
-
-
-        // $sql = "SELECT
-        // F_FRE.TIPFRE&'-'&F_FRE.CODFRE  AS FACTURA,
-        // F_FRE.FECFRE AS FECHA,
-        // F_FRE.FACFRE AS SALIDA,
-        // F_FRE.REFFRE AS REFERENCIA,
-        // F_FRE.ALMFRE AS ALMACEN,
-        // F_FRE.OB1FRE AS OBSERVACION,
-        // F_LFR.ARTLFR AS ARTICULOS,
-        // F_LFR.DESLFR AS DESCRIPCION,
-        // F_LFR.CANLFR AS CANTIDAD,
-        // F_LFR.PRELFR AS PRECIO,
-        // F_LFR.TOTLFR AS TOTAL
-        // FROM F_FRE
-        // INNER JOIN F_LFR ON F_LFR.TIPLFR&'-'&F_LFR.CODLFR = F_FRE.TIPFRE&'-'&F_FRE.CODFRE
-        // WHERE F_FRE.REFFRE IN ($strinvoice)";
-        // $exec = $this->conn->prepare($sql);
-        // $exec->execute();
-        // $facs = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return response()->json(mb_convert_encoding($facturas,'UTF-8'));
 
     }
 
