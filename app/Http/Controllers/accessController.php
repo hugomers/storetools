@@ -1051,7 +1051,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return response()->json($facturas);
+         return response()->json(json_decode(json_encode($facturas, JSON_UNESCAPED_UNICODE), true));
 
     }
     public function getEntries(Request $request){
@@ -1095,7 +1095,7 @@ public function getInvoices(Request $request){
                 $factura['products'] = $lines;
             // }
         }
-        return response()->json($facturas);
+        return response()->json(json_decode(json_encode($facturas, JSON_UNESCAPED_UNICODE), true));
 
     }
 
