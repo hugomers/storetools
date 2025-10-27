@@ -190,7 +190,6 @@ Route::prefix('/invoiceReceived')->group(function(){
 
 Route::prefix('/sales')->group(function(){
     Route::post('/getCredits',[salesController::class, 'getCredits']);
-
     Route::post('/printWitrawal',[salesController::class, 'printWitrawal']);
     Route::post('/addWithdrawal',[salesController::class, 'addWithdrawal']);
     Route::post('/addSale',[salesController::class, 'addSale']);
@@ -198,6 +197,8 @@ Route::prefix('/sales')->group(function(){
     Route::post('/getWithdrawals',[salesController::class, 'getWithdrawals']);
     Route::post('/openCash',[salesController::class, 'openCash']);
     Route::post('/closeCash',[salesController::class, 'closeCash']);
+    Route::post('/getTicket',[salesController::class, 'getTicket']);
+
 });
 
 

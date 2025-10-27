@@ -799,4 +799,22 @@ class salesController extends Controller
         $max = $exec->fetch(\PDO::FETCH_ASSOC);
         $codigo = $max['maxi'] + 1;
     }
+
+    public function getTicket(Request $request){
+        $folio = $request->folio;
+        // return $folio;
+        $query = "SELECT
+        TIPLFA & '-' & Format(CODLFA, '000000') AS ticket,
+        ARTLFA as code,
+        CANLFA as req
+        FROM F_LFA
+        WHERE TIPLFA&'-'&Format(CODLFA, '000000') = ?";
+        $exec = $this->conn->prepare($query);
+        $exec->execute([$folio]);
+        $rows = $exec->fetchAll(\PDO::FETCH_ASSOC);
+        if(count($rows)==0){
+            return response()->json(["msg" => "El folio no existe o no tiene productos"]);
+        }
+        return response()->json(["products" => $rows]);
+    }
 }
