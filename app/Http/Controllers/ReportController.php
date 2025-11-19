@@ -408,7 +408,7 @@ class ReportController extends Controller
 
         $sqlupdate = "UPDATE F_RET SET PRORET = ? , IMPRET = ?, CONRET = ? WHERE CODRET = ?";
         $exec = $this->conn->prepare($sqlupdate);
-        $res = $exec->execute([$provider['PRORET'],$importe,$concepto,$codret]);
+        $res = $exec->execute([$provider['CODPRO'],$importe,$concepto,$codret]);
         if($res){
             $sql = "SELECT
             Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
