@@ -408,6 +408,55 @@ class ReportController extends Controller
 
         $sqlupdate = "UPDATE F_RET SET PRORET = ? , IMPRET = ?, CONRET = ? WHERE CODRET = ?";
         $exec = $this->conn->prepare($sqlupdate);
+        $res = $exec->execute([$provider['PRORET'],$importe,$concepto,$codret]);
+        if($res){
+            $sql = "SELECT
+            Format(R.FECRET, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORRET, 'HH:mm:ss') as HORA,
+            R.CODRET,
+            R.CAJRET,
+            TR.DESTER,
+            R.CONRET,
+            R.IMPRET,
+            R.PRORET,
+            FP.NOFPRO
+            FROM ((F_RET AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
+            INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
+            WHERE R.CODRET  = " .$codret;
+
+            $exec = $this->conn->prepare($sql);
+            $exec -> execute();
+            $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+            $header = [
+                "print"=>$impresora,
+                "proveedor"=>$cuts['PRORET'],
+                "retirada"=>$codret,
+                "terminal"=>$cuts['DESTER'],
+                "fecha"=>$cuts['FECHA'],
+                "hora"=>$cuts['HORA'],
+                // "dependiente"=>$request->by,
+                "valor"=>$cuts['IMPRET'],
+                "notas"=>$cuts['CONRET']
+            ];
+
+            $print = $this->printWith($header);
+            return response()->json($cuts,200);
+
+        }else{
+            return response()->json('No se modifico la retirada',500);
+        }
+
+    }
+    public function  modifyWithdrawalOficina(Request $request){
+        $codret = $request->CODRET;
+        $provider = $request->PROVEEDOR;
+        $importe = $request->IMPRET;
+        $concepto = $request->CONRET;
+        $impresora = $request->Print;
+
+        $sqlupdate = "UPDATE F_RET SET PRORET = ? , IMPRET = ?, CONRET = ? WHERE CODRET = ?";
+        $exec = $this->conn->prepare($sqlupdate);
         $res = $exec->execute([$provider['CODPRO'],$importe,$concepto,$codret]);
         if($res){
             $sql = "SELECT

@@ -16,9 +16,6 @@ $app = new Illuminate\Foundation\Application(
 );
 
 
-date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
-
-
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
