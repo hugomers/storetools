@@ -972,6 +972,7 @@ class ReportController extends Controller
                 $refund['fpas'] = $exec->fetchall(\PDO::FETCH_ASSOC);
             }
         }
-        return response()->json(mb_convert_encoding($refunds,'UTF-8'),200);
+        // return response()->json(mb_convert_encoding($refunds,'UTF-8'),200);
+        return response()->json($refunds,200);
     }
 }
