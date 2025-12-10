@@ -20,6 +20,8 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\InvoiceRecevivedController;
 use App\Http\Controllers\salesController;
+use App\Http\Controllers\BillingController;
+
 
 
 /*
@@ -189,6 +191,11 @@ Route::prefix('/invoiceReceived')->group(function(){
     Route::post('/replyInvoices',[InvoiceRecevivedController::class, 'replyInvoices']);
 
 });
+Route::prefix('/billing')->group(function(){
+    Route::post('/validateTck',[BillingController::class, 'validateTck']);
+});
+
+
 
 Route::prefix('/sales')->group(function(){
     Route::post('/getCredits',[salesController::class, 'getCredits']);
