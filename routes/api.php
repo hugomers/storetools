@@ -21,6 +21,8 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\InvoiceRecevivedController;
 use App\Http\Controllers\salesController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\SaeController;
+
 
 
 
@@ -193,6 +195,11 @@ Route::prefix('/invoiceReceived')->group(function(){
 });
 Route::prefix('/billing')->group(function(){
     Route::post('/validateTck',[BillingController::class, 'validateTck']);
+    Route::post('/getTckBilling',[BillingController::class, 'getTckBilling']);
+    Route::post('/getServerFac',[BillingController::class, 'getServerFac']);
+    Route::post('/getFolio',[BillingController::class, 'getFolio']);
+    Route::post('/crearFacturaInterna',[BillingController::class, 'crearFacturaInterna']);
+
 });
 
 
@@ -207,7 +214,11 @@ Route::prefix('/sales')->group(function(){
     Route::post('/openCash',[salesController::class, 'openCash']);
     Route::post('/closeCash',[salesController::class, 'closeCash']);
     Route::post('/getTicket',[salesController::class, 'getTicket']);
-
 });
+
+Route::prefix('/sae')->group(function(){
+    Route::get('/testFirebird',[SaeController::class, 'testFirebird']);
+});
+
 
 
