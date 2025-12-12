@@ -196,9 +196,9 @@ Route::prefix('/invoiceReceived')->group(function(){
 Route::prefix('/billing')->group(function(){
     Route::post('/validateTck',[BillingController::class, 'validateTck']);
     Route::post('/getTckBilling',[BillingController::class, 'getTckBilling']);
-    Route::post('/getServerFac',[BillingController::class, 'getServerFac']);
-    Route::post('/getFolio',[BillingController::class, 'getFolio']);
-    Route::post('/crearFacturaInterna',[BillingController::class, 'crearFacturaInterna']);
+    Route::post('/getServerFac',[SaeController::class, 'getServerFac']);
+    Route::post('/getFolio',[SaeController::class, 'getFolio']);
+    Route::post('/crearFacturaInterna',[SaeController::class, 'crearFacturaInterna']);
 
 });
 
