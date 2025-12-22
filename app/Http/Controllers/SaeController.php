@@ -24,6 +24,23 @@ class SaeController extends Controller
     //     return $clientes;
     // }
 
+    public function readRFC(Request $request){
+        $cliente = DB::connection($request->firebird)->table('CLIE01')->where('RFC',$request->rfc)->first();
+        if($cliente){
+            return response()->json([
+                "success"=>true,
+                "client"=>$cliente,
+                "message"=>'Cliente Registrado'
+            ]);
+        }else{
+            return response()->json([
+                "success"=>false,
+                "client"=>$cliente,
+                "message"=>'Cliente No Registrado'
+            ]);
+        }
+    }
+
     public function getServerFac(Request $request){
         $billing = $request->all();
         $cliente = DB::connection($billing['store']['firebird'])->table('CLIE01')->where('RFC',$billing['rfc'])->first();
@@ -61,208 +78,425 @@ class SaeController extends Controller
 
 
     public function crearFacturaInterna(Request $request){
-        $conn = $request->input('store.firebird', 'firebird');
-
-        $nclient = intval($request->input('nclient', 0));
-        $totalConIVA = floatval($request->input('total', 0));
-        $ticket = $request->input('ticket', '');
-        $serie = $request->input('store.prefix', 'N');
-        $products = $request->input('ticketSuc.products', []);
-        $payments = $request->input('payments', []);
-        $almacen =1;
-        $rfc = $request->input('rfc', 'XAXX010101000');
-        $razon_social = $request->input('razon_social', 'PUBLICO GENERAL');
-
-        $subtotal = round($totalConIVA / 1.16, 2);
-        $iva = round($subtotal * 0.16, 2);
+        $billing = $request->all();
+        $conn = DB::connection($billing['store']['firebird']);
+        $conn->beginTransaction();
+        $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
 
         try {
-            $result = DB::connection($conn)->transaction(function () use (
-                $conn, $serie, $nclient, $subtotal, $iva, $totalConIVA,
-                $ticket, $products, $payments, $almacen, $rfc, $razon_social
-            ) {
-                $row = DB::connection($conn)->selectOne(
-                    "SELECT ULT_DOC FROM FOLIOSF01 WHERE TIP_DOC = ? AND SERIE = ?",
-                    ['F', $serie]
-                );
+            $folio = $conn->table($this->t('FOLIOSF', $emp))
+                ->where('TIP_DOC', 'F')
+                ->where('SERIE', $billing['store']['prefix'])
+                ->lockForUpdate()
+                ->first();
+            $folioActual = $folio->ULT_DOC + 1;
 
-                $ultimo = $row ? intval($row->ULT_DOC) : 0;
-                $folioNum = $ultimo + 1;
-                $folioStr = $serie. str_pad($folioNum, 10, '0', STR_PAD_LEFT);
+            $conn->table($this->t('FOLIOSF', $emp))
+                ->where('TIP_DOC', 'F')
+                ->where('SERIE', $billing['store']['prefix'])
+                ->update([
+                    'ULT_DOC' => $folioActual,
+                    'FECH_ULT_DOC' => now()->format('Y-m-d')
+            ]);
 
-                if (!$row) {
-                    DB::connection($conn)->insert(
-                        "INSERT INTO FOLIOSF01 (TIP_DOC, SERIE, ULT_DOC) VALUES (?, ?, ?)",
-                        ['F', $serie, $folioNum]
-                    );
-                } else {
-                    DB::connection($conn)->update(
-                        "UPDATE FOLIOSF01 SET ULT_DOC = ? WHERE TIP_DOC = ? AND SERIE = ?",
-                        [$folioNum, 'F', $serie]
-                    );
-                }
-                DB::connection($conn)->insert(
-                    "INSERT INTO FACTF01
-                    (
-                        TIP_DOC,
-                        CVE_DOC,
-                        CVE_CLPV,
-                        STATUS,
-                        NUM_ALMA,
-                        SERIE,
-                        FOLIO,
-                        FECHA_DOC,
-                        FECHA_ENT,
-                        FECHA_VEN,
+            $cveDoc = $billing['store']['prefix'] . str_pad($folioActual, 10, '0', STR_PAD_LEFT);
+            $claveCliente = str_pad($billing['nclient'], 10, ' ', STR_PAD_LEFT);
+
+            $client = $conn->table($this->t('CLIE', $emp))->where('CLAVE',$claveCliente)->first();
+            $conn->table($this->t('CLIE', $emp))->where('CLAVE',$claveCliente)->update([
+                'ULT_PAGOM'=> $billing['total'] ,
+                'ULT_VENTAD'=> $cveDoc,
+                'ULT_COMPM'=> $billing['total'],
+                'VENTAS'=> $client->VENTAS + $billing['total'] ,
+                'VERSION_SINC'=>now()->format('Y-m-d H:i:s')
+            ]);
+
+            $ids = [32, 44, 62, 70];
+
+            $controles = $conn->table($this->t('TBLCONTROL', $emp))
+            ->whereIn('ID_TABLA', $ids)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('ID_TABLA');
+
+            // Obtener siguientes valores
+            $siguientes = [];
+
+            foreach ($ids as $id) {
+            $siguientes[$id] = ($controles[$id]->ULT_CVE ?? 0) + 1;
+            }
+
+            // Actualizar TBLCONTROL01
+            foreach ($siguientes as $id => $valor) {
+                $conn->table($this->t('TBLCONTROL', $emp))
+                ->where('ID_TABLA', $id)
+                ->update(['ULT_CVE' => $valor]);
+            }
+
+            $cveFact   = $siguientes[32];
+            $cvePar    = $siguientes[44];
+            $cveBita   = $siguientes[62];
+            $cveAuto   = $siguientes[70];
+
+            $conn->table($this->t('PAR_FACTF_CLIB', $emp))->insert([
+                'CLAVE_DOC'=> $cveDoc,
+                'NUM_PART'=> 1,
+            ]);
+
+            $conn->table($this->t('FACTF_CLIB', $emp))->insert([
+                'CLAVE_DOC'=> $cveDoc,
+            ]);
 
 
-                        CAN_TOT,
-                        IMP_TOT1,
-                        IMP_TOT2,
-                        IMP_TOT3,
+            $conn->table($this->t('BITA', $emp))->insert([
+                'CVE_BITA' => $cveBita,
+                'CVE_CLIE' => $claveCliente,
+                'CVE_CAMPANIA' => '_SAE_',
+                'CVE_ACTIVIDAD'=> str_pad(2, 5, ' ', STR_PAD_LEFT),
+                'FECHAHORA' => now()->format('Y-m-d H:i:s'),
+                'CVE_USUARIO' => 0,
+                'OBSERVACIONES'=>"No. [ ".$cveDoc." ] $ ".$billing['total'],
+                'STATUS' => 'F',
+                'NOM_USUARIO' => 'Administrador'
+            ]);
 
-                        IMP_TOT4,
-                        DES_TOT,
-                        DES_FIN,
-                        COM_TOT,
-                        CVE_OBS,
-                        ACT_CXC,--S
-                        ACT_COI,--N
-                        ENLAZADO, --O
-                        TIP_DOC_E, --O
-                        NUM_MONED, --1,
-                        TIPCAMB, --1,
-                        NUM_PAGOS, --1,
-                        FECHAELAB, -- CURRENT_TIMESTAMP,
-                        PRIMERPAGO,--MONTO DE EL PAGO ESTE SI SE JALA
-                        CTLPOL, --0,
-                        ESCFD, -- T,
-                        AUTORIZA, --0,
-                        CONSTADO, --S
-                        IMPORTE,
-                        RFC
-                    ) VALUES (
-                        ?, ? , ?, ?, ?, ?, ?, CURRENT_DATE, CURRENT_DATE, CURRENT_DATE, ?,0,0,0 ?,0,0,0,0, ?, ?
-                    )",
-                    [
-                        'F',
-                        $folioStr,
-                        $nclient,
-                        'E',
-                        $almacen,
-                        $serie,
-                        $folioNum,
-                        $subtotal,
-                        $iva,
-                        $totalConIVA,
-                        $rfc,
-                        // $razon_social,
-                        // $ticket
-                    ]
-                );
-                $numPar = 1;
-                foreach ($products as $p) {
+            $totalSIVA =  round($billing['total']/1.16,6);
+            $imps = round($billing['total']*0.16,6);
 
-                    $cveArt = $p['ARTLFA'];
-                    $cantidad = floatval($p['CANLFA']);
-                    $precioConIVA = floatval($p['PRELFA']);
-                    $precioSinIVA = round($precioConIVA / 1.16, 2);
-                    $totalPartida = round($cantidad * $precioSinIVA, 2);
+            $conn->table($this->t('FACTF', $emp))->insert([
+                'CVE_DOC'   => $cveDoc,
+                'TIP_DOC'   => 'F',
+                'CVE_CLPV'  => $claveCliente,
+                'STATUS'    => 'O',
+                'DAT_MOSTR' => 0,
+                'CVE_VEND'  => '',
+                'CVE_PEDI'  => '',
+                'CAN_TOT'  =>  $totalSIVA,
+                'IMP_TOT1' => 0,
+                'IMP_TOT2' => 0,
+                'IMP_TOT3' => 0,
+                'IMP_TOT4' => $imps,
+                'IMP_TOT5' => 0,
+                'IMP_TOT6' => 0,
+                'IMP_TOT7' => 0,
+                'IMP_TOT8' => 0,
+                'DES_TOT' => 0,
+                'DES_FIN' => 0,
+                'COM_TOT' => 0,
+                'CVE_OBS' => 0,
+                'NUM_ALMA' => 1,
+                'ACT_CXC' => 'S',
+                'ACT_COI' => 'N',
+                'ENLAZADO' => 'O',
+                'TIP_DOC_E' => 'O',
+                'NUM_PAGOS' => 1,
+                'PRIMERPAGO' => $billing['total'],
+                'CTLPOL' => 0,
+                'ESCFD' => 'P',
+                'AUTORIZA' => 0,
+                'SERIE' => $billing['store']['prefix'],
+                'FOLIO' => $folioActual,
+                'AUTOANIO' => '',
+                'DAT_ENVIO' => 0,
+                'CONTADO'=> 'S',
+                'CVE_BITA'  => $cveBita,
+                'BLOQ' => 'N',
+                'DES_FIN_PORC' => 0,
+                'DES_TOT_PORC' => 0,
+                'IMPORTE'   => $billing['total'],
+                'COM_TOT_PORC' => 0,
+                'NUMCTAPAGO' => '',
+                'TIP_DOC_ANT' => '',
+                'DOC_ANT' => '',
+                'FECHA_DOC' => now()->format('Y-m-d'),
+                'FECHA_ENT' => now()->format('Y-m-d'),
+                'FECHA_VEN' => now()->format('Y-m-d'),
+                'RFC'       => $billing['rfc'],
+                'USO_CFDI'  => $billing['cfdi']['alias'],
+                'METODODEPAGO' => 'PUE',
+                'FORMADEPAGOSAT' => $billing['payments'][0]['sat'],
+                'NUM_MONED' => 1,
+                'TIPCAMB' => 1,
+                'FECHAELAB'=> now()->format('Y-m-d H:i:s')
+            ]);
+            $i = 1;
+            $tableProd = $conn->table($this->t('PAR_FACTF', $emp))->max('NUM_MOV');
+            $num_mov = $tableProd + 1;
+            foreach ($billing['ticketSuc']['products'] as $prod) {
+                $siniva = round($prod['PRELFA'] / 1.16,6);
+                $impusto = round(($siniva * $prod['CANLFA']) * 0.16,6);
+                $totalSinIva  = round($siniva * $prod['CANLFA'], 2);
 
-                    DB::connection($conn)->insert(
-                        "INSERT INTO PAR_FACTF01
-                        (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, TOT_PARTIDA)
-                        VALUES ( ?, ?, ?, ?, ?, ?, ?)",
-                        [
-                            $folioStr, $numPar, $cveArt,
-                            $cantidad, $precioSinIVA, $precioSinIVA, $totalPartida
-                        ]
-                    );
+                $conn->table($this->t('PAR_FACTF', $emp))->insert([
+                    'CVE_DOC' => $cveDoc,
+                    'NUM_PAR' => $i++,
+                    'CVE_ART' => $prod['ARTLFA'],
+                    'CANT' => $prod['CANLFA'],
+                    'PXS' => $prod['CANLFA'],
+                    'PREC' => $siniva ,
+                    'COST'=>0,
+                    'IMPU1'=>0,
+                    'IMPU2'=>0,
+                    'IMPU3'=>0,
+                    'IMPU4'=>163,
+                    'IMP1APLA'=>6,
+                    'IMP2APLA'=>6,
+                    'IMP3APLA'=>6,
+                    'IMP4APLA'=>0,
+                    'TOTIMP1'=>0,
+                    'TOTIMP2'=>0,
+                    'TOTIMP3'=>0,
+                    'TOTIMP4'=>$impusto,
+                    'DESC1'=>0,
+                    'DESC2'=>0,
+                    'DESC3'=>0,
+                    'COMI'=>0,
+                    'APAR'=>0,
+                    'ACT_INV'=>'N',
+                    'TIP_CAM'=>1,
+                    'CVE_OBS'=>0,
+                    'REG_SERIE'=>0,
+                    'E_LTPD'=>0,
+                    'TIPO_ELEM'=>'N',
+                    'NUM_MOV'=> $num_mov++,//SE TIENE QUE SACAR CUAL SIGUE
+                    'IMPRIMIR' => 'S',
+                    'MAN_IEPS' => 'N',
+                    'APL_MAN_IMP'=>1,
+                    'CUOTA_IEPS'=>0,
+                    'APL_MAN_IEPS'=>'C',
+                    'MTO_PORC'=>0,
+                    'MTO_CUOTA'=>0,
+                    'CVE_ESQ'=>1,
+                    'IMPU5' => 0,
+                    'IMPU6' => 0,
+                    'IMPU7'=> 0,
+                    'TOTIMP8'=> 0,
+                    'IMP8APLA'=> 6,
+                    'IMPU8'=> 0,
+                    'IMP5APLA'=> 6,
+                    'IMP6APLA'=> 6,
+                    'IMP7APLA'=> 6,
+                    'TOTIMP7'=> 0,
+                    'TOTIMP5'=> 0,
+                    'TOTIMP6'=> 0,
+                    'POLIT_APLI' => '',
+                    'TOT_PARTIDA' =>$totalSinIva ,
+                    'NUM_ALM' => 1,
+                    'TIPO_PROD' => 'P',
+                    'UNI_VENTA' => 'pz',
+                    'CVE_PRODSERV' => $prod['sat']['clave'] ?? null,
+                    'CVE_UNIDAD'   => $prod['sat']['unidad'] ?? null,
+                ]);
 
-                    $costRow = DB::connection($conn)->selectOne(
-                        "SELECT ULT_COSTO FROM INVE01 WHERE CVE_ART = ?",
-                        [$cveArt]
-                    );
-                    $costoActual = $costRow ? floatval($costRow->ULT_COSTO) : $precioSinIVA;
+                $articule = $conn->table($this->t('INVE', $emp))
+                ->where('CVE_ART',$prod['ARTLFA'])->first();
 
-                    $numMovRow = DB::connection($conn)->selectOne("SELECT MAX(NUM_MOV) AS MX FROM MINVE01");
-                    $nextNumMov = ($numMovRow && $numMovRow->MX) ? intval($numMovRow->MX) + 1 : 1;
+                $conn->table($this->t('INVE', $emp))
+                ->where('CVE_ART',$prod['ARTLFA'])
+                ->update([
+                    'VTAS_ANL_C' => $articule->VTAS_ANL_C +  $prod['CANLFA'] ,
+                    'VTAS_ANL_M' => $articule->VTAS_ANL_M + $totalSinIva,
+                    'VERSION_SINC' => now()->format('Y-m-d H:i:s'),
+                ]);
 
-                    DB::connection($conn)->insert(
-                        "INSERT INTO MINVE01
-                        (CVE_ART, ALMACEN, NUM_MOV, CVE_CPTO, FECHA_DOCU, CANT, COSTO, REFER, SIGNO, CLAVE_CLPV)
-                        VALUES (?, ?, ?, ?, CURRENT_DATE, ?, ?, ?, ?, ?)",
-                        [
-                            $cveArt, $almacen, $nextNumMov, 51,
-                            $cantidad, $costoActual, $folioStr, -1, $nclient
-                        ]
-                    );
+                $conn->table($this->t('PAR_FACTF_CLIB', $emp))->insert([
+                    'CLAVE_DOC'=> $cveDoc,
+                    'NUM_PART'=> $i++,
+                ]);
+            }
 
-                    // DB::connection($conn)->update(
-                    //     "UPDATE INVEVT01 SET EXIST = COALESCE(EXIST,0) - ? WHERE CVE_ART = ? AND ALMACEN = ?",
-                    //     [$cantidad, $cveArt, $almacen]
-                    // );
+            $conn->table($this->t('CUEN_M', $emp))->insert([
+                'CVE_CLIE' => $claveCliente,
+                'NUM_CPTO' => 1,
+                'NUM_CARGO' => 1,
+                'REFER' => $cveDoc,
+                'NO_FACTURA' => $cveDoc,
+                'DOCTO' => $cveDoc,
+                'IMPORTE' => $billing['total'],
+                'FECHA_APLI' => now()->format('Y-m-d'),
+                'FECHA_VENC' => now()->format('Y-m-d'),
+                'TIPO_MOV' => 'C',
+                'SIGNO' => 1,
+                'STATUS' => 'A'
+            ]);
 
-                    $numPar++;
-                }
+            $afac = $conn->table($this->t('AFACT', $emp))->where('CVE_AFACT',37)->first();
 
-                $firstPayment = $payments[0] ?? null;
 
-                $importePago = $firstPayment
-                    ? floatval($firstPayment['import'])
-                    : $totalConIVA;
 
-                $method = $firstPayment
-                    ? strval($firstPayment['sat'])     // ← tu valor directo
-                    : '01';
+            $conn->table($this->t('AFACT', $emp))->where('CVE_AFACT',37)->update([
+                    'FVTA_COM' => $afac->FVTA_COM + $totalSIVA , //AQUI DEBE DE IR EL TOTAL SIN IMPUESTO
+                    'FIMP' => $afac->FIMP + $imps, //AQUI DEBE DE IR EL IMPUESTO
+                    'PER_ACUM' => now()->format('Y-m-d H:i:s')
+            ]);
 
-                // DB::connection($conn)->insert(
-                //     "INSERT INTO FACTP01
-                //     (TIP_DOC, FOLIO, NUM_CARGO, IMPORTE, FORMADEPAGOSAT, FECHAPAG)
-                //     VALUES (?, ?, ?, ?, ?, CURRENT_DATE)",
-                //     ['F', $folioNum, 1, $importePago, $method]
-                // );
+            $conn->table($this->t('CFDI', $emp))->insert([
+                'TIPO_DOC'=>'F',
+                'CVE_DOC' => $cveDoc,
+                'VERSION' => 1.1,
+                'UUID'=>'',
+                'NO_SERIE'=>'',
+                'FECHA_CERT'=>'',
+                'FECHA_CANCELA'=>'',
+                'DESGLOCEIMP1'=>'N',
+                'DESGLOCEIMP2'=>'N',
+                'DESGLOCEIMP3'=>'N',
+                'DESGLOCEIMP4'=>'S',
+                'PENDIENTE'=>'T',
+                'EN_TABLERO'=>'S',
+                'CVE_USUARIO'=>0,
+            ]);
 
-                // DB::connection($conn)->insert(
-                //     "INSERT INTO CXC01 (CVE_CLPV, REFER, IMPORTE, SALDO, FECHA_APLI, FECHA_VENC, CVE_DOC)
-                //      VALUES (?, ?, ?, ?, CURRENT_DATE, CURRENT_DATE, ?)",
-                //     [$nclient, $folioStr, $importePago, 0, $folioStr]
-                // );
+            $empresa = [
+                "RFC"=>"LLI1210184G8",
+                "NOMBRE"=>"LLuvia Light",
+                "REGIMEN"=>"601"
+            ];
 
-                // DB::connection($conn)->insert(
-                //     "INSERT INTO CXCM01 (CVE_CLPV, REFER, IMPORTE, IMPORTE_PAG, FECHA_APLI)
-                //      VALUES (?, ?, ?, ?, CURRENT_DATE)",
-                //     [$nclient, $folioStr, $importePago, $importePago]
-                // );
 
-                return [
-                    'folio_num' => $folioNum,
-                    'folio_str' => $folioStr,
-                    'serie' => $serie,
-                    'subtotal' => $subtotal,
-                    'iva' => $iva,
-                    'total' => $totalConIVA,
-                    'forma_pago_sat' => $method
-                ];
-            });
+            $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
+            $this->insertarXmlCFDI($conn, $cveDoc, $xml);
 
-            return response()->json([
-                'ok' => true,
-                'message' => 'Factura creada internamente en SAE.',
-                'data' => $result
-            ], 201);
+            $conn->commit();
 
-        } catch (Exception $e) {
-
-            return response()->json([
-                'ok' => false,
-                'message' => 'Error al crear factura en SAE.',
-                'error' => $e->getMessage()
-            ], 500);
+        } catch (\Throwable $e) {
+            $conn->rollBack();
+            throw $e;
+               return response()->json([
+                    'ok' => false,
+                    'message' => 'Error al crear factura en SAE',
+                    'error' => $e->getMessage()
+                ], 500);
         }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Factura creada correctamente en SAE',
+            'data' => [
+                'serie'     => $billing['store']['prefix'],
+                'folio'     => $folioActual,
+                'cve_doc'   => $cveDoc,
+                'cve_bita'  => $cveBita,
+                'cliente'  => trim($claveCliente),
+                'total'     => $billing['total'],
+                'fecha'     => now()->format('Y-m-d H:i:s')
+            ]
+        ], 201);
+    }
+    private function insertarXmlCFDI($conn, string $cveDoc, string $xml){
+        $pdo = $conn->getPdo();
+        $sql = "
+            UPDATE CFDI01
+            SET XML_DOC = ?
+            WHERE CVE_DOC = ?
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(1, $xml, \PDO::PARAM_LOB);
+        $stmt->bindParam(2, $cveDoc);
+        $stmt->execute();
     }
 
+    private function generarXmlPrefactura(array $billing, string $cveDoc, int $folio, $cliente, $empresa){
+        $fecha = now()->format('Y-m-d\TH:i:s');
 
+        $subTotal = 0;
+        $iva = 0;
 
+        foreach ($billing['ticketSuc']['products'] as $prod) {
+            $importe = round($prod['PRELFA']/1.16,2) * $prod['CANLFA'];
+            $subTotal += $importe;
+            $iva += round($importe * 0.16, 2);
+        }
+
+        $total = $subTotal + $iva;
+
+        $xml = <<<XML
+        <?xml version="1.0" encoding="UTF-8"?>
+        <cfdi:Comprobante
+            xsi:schemaLocation="http://www.sat.gob.mx/cfd/4
+            http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd"
+            Version="4.0"
+            Serie="{$billing['store']['prefix']}"
+            Folio="{$folio}"
+            Fecha="{$fecha}"
+            FormaPago="{$billing['payments'][0]['sat']}"
+            SubTotal="{$subTotal}"
+            Moneda="MXN"
+            Exportacion="01"
+            Total="{$total}"
+            TipoDeComprobante="I"
+            MetodoPago="PUE"
+            LugarExpedicion="06020"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            Sello="V/USpx1TcPKu4vfT6Nge048hnUZSX0W+qmGXKcniZ7SSOEjKNkQFOdJ1OWiqwNs8dRwlc9vC07VSUsl4c0V28TY4x/sPJtydqEkvm/9ZM4yoB6weyhBkbAncYTTQxKKDMrRzPFrTpGrHuStwMcCgxrqryId8PxCj8Y57sWqTxHgpXHyPhCPylMGrReiDNeOPlMJ/Dm6+Q4PwiaTDfx76fv98K0EcLzHozxesvoy9hjEqBG11gm/44GJqGs/9Rpn7jI9wuYF5Z9WvuufJB3QjgA60mF+BWYJwqZ7uHayYdjHEfunOo36C+yGLQ4AqNiUoz7OPjxlNM0rLzz+caB/Rwg==">
+            <!-- datos de la empresa -->
+            <cfdi:Emisor
+                Rfc="{$empresa['RFC']}"
+                Nombre="{$empresa['NOMBRE']}"
+                RegimenFiscal="{$empresa['REGIMEN']}"
+
+            />
+            <!-- datos cliente -->
+            <cfdi:Receptor
+                Rfc="{$cliente->RFC}"
+                Nombre="{$cliente->NOMBRE}"
+                DomicilioFiscalReceptor="{$cliente->CODIGO}"
+                RegimenFiscalReceptor="{$cliente->REG_FISC}"
+                UsoCFDI="{$billing['cfdi']['alias']}"/>
+            <cfdi:Conceptos>
+        XML;
+
+            foreach ($billing['ticketSuc']['products'] as $prod) {
+                $precio = round($prod['PRELFA']/1.16,2);
+                $importe = round($prod['TOTLFA']/1.16);
+                $ivaProd = round($precio * 0.16, 2);
+
+                $xml .= <<<XML
+                <cfdi:Concepto
+                    ClaveProdServ="{$prod['sat']['clave']}"
+                    Cantidad="{$prod['CANLFA']}"
+                    ClaveUnidad="{$prod['sat']['unidad']}"
+                    Descripcion="{$prod['DESLFA']}"
+                    ValorUnitario="{$precio}"
+                    Importe="{$importe}"
+                    ObjetoImp="02">
+                    <cfdi:Impuestos>
+                        <cfdi:Traslados>
+                            <cfdi:Traslado
+                                Base="{$importe}"
+                                Impuesto="002"
+                                TipoFactor="Tasa"
+                                TasaOCuota="0.160000"
+                                Importe="{$ivaProd}"/>
+                        </cfdi:Traslados>
+                    </cfdi:Impuestos>
+                </cfdi:Concepto>
+        XML;
+            }
+
+            $xml .= <<<XML
+            </cfdi:Conceptos>
+
+            <cfdi:Impuestos TotalImpuestosTrasladados="{$iva}">
+                <cfdi:Traslados>
+                    <cfdi:Traslado
+                        Base="{$subTotal}"
+                        Impuesto="002"
+                        TipoFactor="Tasa"
+                        TasaOCuota="0.160000"
+                        Importe="{$iva}"/>
+                </cfdi:Traslados>
+            </cfdi:Impuestos>
+
+        </cfdi:Comprobante>
+        XML;
+
+            return $xml;
+    }
+    private function t(string $base, string $emp): string{
+        return $base . $emp;
+    }
 
 }

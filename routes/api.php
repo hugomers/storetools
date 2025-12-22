@@ -198,6 +198,7 @@ Route::prefix('/billing')->group(function(){
     Route::post('/getTckBilling',[BillingController::class, 'getTckBilling']);
     Route::post('/getServerFac',[SaeController::class, 'getServerFac']);
     Route::post('/getFolio',[SaeController::class, 'getFolio']);
+    Route::post('/readRFC',[SaeController::class, 'readRFC']);
     Route::post('/crearFacturaInterna',[SaeController::class, 'crearFacturaInterna']);
 
 });
