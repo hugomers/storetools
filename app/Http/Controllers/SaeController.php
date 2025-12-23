@@ -389,7 +389,7 @@ class SaeController extends Controller
         $pdo = $conn->getPdo();
         $sql = "
             UPDATE CFDI01
-            SET XML_DOC = ?
+            SET XML_DOC = CAST(? AS BLOB SUB_TYPE 0)
             WHERE CVE_DOC = ?
         ";
         $stmt = $pdo->prepare($sql);
