@@ -167,7 +167,7 @@ class SaeController extends Controller
                 'CVE_DOC'   => $cveDoc,
                 'TIP_DOC'   => 'F',
                 'CVE_CLPV'  => $claveCliente,
-                'STATUS'    => 'O',
+                'STATUS'    => 'E',
                 'DAT_MOSTR' => 0,
                 'CVE_VEND'  => '',
                 'CVE_PEDI'  => '',
@@ -218,7 +218,7 @@ class SaeController extends Controller
                 'NUM_MONED' => 1,
                 'TIPCAMB' => 1,
                 'FECHAELAB'=> now()->format('Y-m-d H:i:s'),
-                'TIP_FAC' => 'F',
+                'TIP_FAC' => 'U',
                 'REG_FISC' => $client->REG_FISC
             ]);
             $i = 1;
@@ -332,32 +332,32 @@ class SaeController extends Controller
                     'PER_ACUM' => now()->format('Y-m-d H:i:s')
             ]);
 
-            // $conn->table($this->t('CFDI', $emp))->insert([
-            //     'TIPO_DOC'=>'F',
-            //     'CVE_DOC' => $cveDoc,
-            //     'VERSION' => 1.1,
-            //     'UUID'=>'',
-            //     'NO_SERIE'=>'',
-            //     'FECHA_CERT'=>'',
-            //     'FECHA_CANCELA'=>'',
-            //     'DESGLOCEIMP1'=>'N',
-            //     'DESGLOCEIMP2'=>'N',
-            //     'DESGLOCEIMP3'=>'N',
-            //     'DESGLOCEIMP4'=>'S',
-            //     'PENDIENTE'=>'T',
-            //     'EN_TABLERO'=>'S',
-            //     'CVE_USUARIO'=>0,
-            // ]);
+            $conn->table($this->t('CFDI', $emp))->insert([
+                'TIPO_DOC'=>'F',
+                'CVE_DOC' => $cveDoc,
+                'VERSION' => 1.1,
+                'UUID'=>'',
+                'NO_SERIE'=>'',
+                'FECHA_CERT'=>'',
+                'FECHA_CANCELA'=>'',
+                'DESGLOCEIMP1'=>'N',
+                'DESGLOCEIMP2'=>'N',
+                'DESGLOCEIMP3'=>'N',
+                'DESGLOCEIMP4'=>'S',
+                'PENDIENTE'=>'T',
+                'EN_TABLERO'=>'S',
+                'CVE_USUARIO'=>0,
+            ]);
 
-            // $empresa = [
-            //     "RFC"=>"LLI1210184G8",
-            //     "NOMBRE"=>"LLuvia Light",
-            //     "REGIMEN"=>"601"
-            // ];
+            $empresa = [
+                "RFC"=>"LLI1210184G8",
+                "NOMBRE"=>"LLuvia Light",
+                "REGIMEN"=>"601"
+            ];
 
 
-            // $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
-            // $this->insertarXmlCFDI($conn, $cveDoc, $xml);
+            $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
+            $this->insertarXmlCFDI($conn, $cveDoc, $xml);
 
             $conn->commit();
 
@@ -399,6 +399,8 @@ class SaeController extends Controller
     }
 
     private function generarXmlPrefactura(array $billing, string $cveDoc, int $folio, $cliente, $empresa){
+        $clave = env('NO_CERTIFICADO');
+        $certificado = env('CERTIFICADO');
         $fecha = now()->format('Y-m-d\TH:i:s');
 
         $subTotal = 0;
@@ -422,6 +424,9 @@ class SaeController extends Controller
             Folio="{$folio}"
             Fecha="{$fecha}"
             FormaPago="{$billing['payments'][0]['sat']}"
+            NoCertificado=''
+            Certificado=''
+            Sello=''
             SubTotal="{$subTotal}"
             Moneda="MXN"
             Exportacion="01"
@@ -432,7 +437,7 @@ class SaeController extends Controller
             xmlns:xs="http://www.w3.org/2001/XMLSchema"
             xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            Sello="V/USpx1TcPKu4vfT6Nge048hnUZSX0W+qmGXKcniZ7SSOEjKNkQFOdJ1OWiqwNs8dRwlc9vC07VSUsl4c0V28TY4x/sPJtydqEkvm/9ZM4yoB6weyhBkbAncYTTQxKKDMrRzPFrTpGrHuStwMcCgxrqryId8PxCj8Y57sWqTxHgpXHyPhCPylMGrReiDNeOPlMJ/Dm6+Q4PwiaTDfx76fv98K0EcLzHozxesvoy9hjEqBG11gm/44GJqGs/9Rpn7jI9wuYF5Z9WvuufJB3QjgA60mF+BWYJwqZ7uHayYdjHEfunOo36C+yGLQ4AqNiUoz7OPjxlNM0rLzz+caB/Rwg==">
+            >
             <!-- datos de la empresa -->
             <cfdi:Emisor
                 Rfc="{$empresa['RFC']}"
