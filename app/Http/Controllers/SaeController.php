@@ -161,7 +161,7 @@ class SaeController extends Controller
             ]);
 
             $totalSIVA =  round($billing['total']/1.16,6);
-            $imps = round($billing['total']*0.16,6);
+            $imps = round($totalSIVA*0.16,6);
 
             $conn->table($this->t('FACTF', $emp))->insert([
                 'CVE_DOC'   => $cveDoc,
