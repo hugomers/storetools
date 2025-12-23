@@ -217,7 +217,9 @@ class SaeController extends Controller
                 'FORMADEPAGOSAT' => $billing['payments'][0]['sat'],
                 'NUM_MONED' => 1,
                 'TIPCAMB' => 1,
-                'FECHAELAB'=> now()->format('Y-m-d H:i:s')
+                'FECHAELAB'=> now()->format('Y-m-d H:i:s'),
+                'TIP_FAC' => 'F',
+                'REG_FISC' => $client->REG_FISC
             ]);
             $i = 1;
             $tableProd = $conn->table($this->t('PAR_FACTF', $emp))->max('NUM_MOV');
@@ -435,9 +437,7 @@ class SaeController extends Controller
             <cfdi:Emisor
                 Rfc="{$empresa['RFC']}"
                 Nombre="{$empresa['NOMBRE']}"
-                RegimenFiscal="{$empresa['REGIMEN']}"
-
-            />
+                RegimenFiscal="{$empresa['REGIMEN']}"/>
             <!-- datos cliente -->
             <cfdi:Receptor
                 Rfc="{$cliente->RFC}"
@@ -478,7 +478,6 @@ class SaeController extends Controller
 
             $xml .= <<<XML
             </cfdi:Conceptos>
-
             <cfdi:Impuestos TotalImpuestosTrasladados="{$iva}">
                 <cfdi:Traslados>
                     <cfdi:Traslado
@@ -489,7 +488,6 @@ class SaeController extends Controller
                         Importe="{$iva}"/>
                 </cfdi:Traslados>
             </cfdi:Impuestos>
-
         </cfdi:Comprobante>
         XML;
 
