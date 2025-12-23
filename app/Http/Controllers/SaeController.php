@@ -332,32 +332,32 @@ class SaeController extends Controller
                     'PER_ACUM' => now()->format('Y-m-d H:i:s')
             ]);
 
-            $conn->table($this->t('CFDI', $emp))->insert([
-                'TIPO_DOC'=>'F',
-                'CVE_DOC' => $cveDoc,
-                'VERSION' => 1.1,
-                'UUID'=>'',
-                'NO_SERIE'=>'',
-                'FECHA_CERT'=>'',
-                'FECHA_CANCELA'=>'',
-                'DESGLOCEIMP1'=>'N',
-                'DESGLOCEIMP2'=>'N',
-                'DESGLOCEIMP3'=>'N',
-                'DESGLOCEIMP4'=>'S',
-                'PENDIENTE'=>'T',
-                'EN_TABLERO'=>'S',
-                'CVE_USUARIO'=>0,
-            ]);
+            // $conn->table($this->t('CFDI', $emp))->insert([
+            //     'TIPO_DOC'=>'F',
+            //     'CVE_DOC' => $cveDoc,
+            //     'VERSION' => 1.1,
+            //     'UUID'=>'',
+            //     'NO_SERIE'=>'',
+            //     'FECHA_CERT'=>'',
+            //     'FECHA_CANCELA'=>'',
+            //     'DESGLOCEIMP1'=>'N',
+            //     'DESGLOCEIMP2'=>'N',
+            //     'DESGLOCEIMP3'=>'N',
+            //     'DESGLOCEIMP4'=>'S',
+            //     'PENDIENTE'=>'T',
+            //     'EN_TABLERO'=>'S',
+            //     'CVE_USUARIO'=>0,
+            // ]);
 
-            $empresa = [
-                "RFC"=>"LLI1210184G8",
-                "NOMBRE"=>"LLuvia Light",
-                "REGIMEN"=>"601"
-            ];
+            // $empresa = [
+            //     "RFC"=>"LLI1210184G8",
+            //     "NOMBRE"=>"LLuvia Light",
+            //     "REGIMEN"=>"601"
+            // ];
 
 
-            $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
-            $this->insertarXmlCFDI($conn, $cveDoc, $xml);
+            // $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
+            // $this->insertarXmlCFDI($conn, $cveDoc, $xml);
 
             $conn->commit();
 
