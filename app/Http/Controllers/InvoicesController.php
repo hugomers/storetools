@@ -93,7 +93,7 @@ class InvoicesController extends Controller
                             1,//iva2
                             2,//iva3
                             "02-01-00",//fehca operacion contable simpre esa cambia hasta que se traspasa a contasol
-                            2025,//ano de ejercicio
+                            2026,//ano de ejercicio
                             $date_format,//fecha actual en formato
                             1,//no se xd pero se requiere para mostrar la factura,
                             $request->id
