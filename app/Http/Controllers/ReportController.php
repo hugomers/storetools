@@ -32,7 +32,7 @@ class ReportController extends Controller
             (SELECT SUM(I.IMPING) FROM F_ING AS I  WHERE I.CAJING = T.TERATE AND I.FECING = T.FECATE ) AS INGRESOS
             FROM T_ATE AS T
             INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
-            WHERE YEAR(T.FECATE) = 2025";
+            WHERE YEAR(T.FECATE) = 2026";
         $exec = $this->conn->prepare($sql);
         $exec -> execute();
         $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
@@ -228,7 +228,7 @@ class ReportController extends Controller
             FROM ((F_RET AS R
             INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJRET)
             INNER JOIN F_PRO AS FP ON FP.CODPRO = R.PRORET)
-            WHERE YEAR(R.FECRET) = 2025";
+            WHERE YEAR(R.FECRET) = 2026";
         $exec = $this->conn->prepare($sql);
         $exec -> execute();
         $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
@@ -511,7 +511,7 @@ class ReportController extends Controller
             FROM ((F_ANT AS R
             INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJANT)
             INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIANT)
-            WHERE YEAR(R.FECANT) = 2025 AND R.CRIANT = 0 AND R.ESTANT = 0";
+            WHERE YEAR(R.FECANT) = 2026 AND R.CRIANT = 0 AND R.ESTANT = 0";
         $exec = $this->conn->prepare($sql);
         $exec -> execute();
         $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);

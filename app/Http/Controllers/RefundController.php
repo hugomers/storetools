@@ -62,7 +62,7 @@ class RefundController extends Controller
             'GEN',//ALMFRD,
             27,//USUFRD
             27,//USMFRD
-            2025,//EFDFRD
+            2026,//EFDFRD
         ];
 
         $insertRefund = "INSERT INTO F_FRD (TIPFRD,CODFRD,FACFRD,REFFRD,FECFRD,PROFRD,PNOFRD,PDOFRD,PPOFRD,PCPFRD,PPRFRD,NET1FRD,BAS1FRD,TOTFRD,OB1FRD,HORFRD,ALMFRD,USUFRD,USMFRD,EFDFRD) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -139,7 +139,7 @@ class RefundController extends Controller
             0,
             1,
             2,
-            2025,
+            2026,
             '01/01/1900',
             $datos['reference']
         ];
@@ -219,7 +219,7 @@ class RefundController extends Controller
             0,
             1,
             2,
-            2025,
+            2026,
             '01/01/1900',
             'Referencia '.$datos['reference'].'Traspaso de '.$datos['storefrom']['name'].' a '.$datos['storeto']['name']
         ];
@@ -295,7 +295,7 @@ class RefundController extends Controller
             0,
             1,
             2,
-            2025,
+            2026,
             '01/01/1900',
             'Refencia '.$datos['reference'].'Traspaso de '.$datos['storefrom']['name'].' a '.$datos['storeto']['name'].' Devolucion '.$datos['fs_id'],
             1
