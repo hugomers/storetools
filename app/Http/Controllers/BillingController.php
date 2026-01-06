@@ -34,12 +34,23 @@ class BillingController extends Controller
                 $exec = $this->conn->prepare($fapas);
                 $exec -> execute([$ticket['Ticket']]);
                 $ticket['fpas'] = $exec->fetchall(\PDO::FETCH_ASSOC);
-
+                $ticket = $this->utf8ize($ticket);
                 return response()->json($ticket,201);
 
         }else{
             return response()->json(["message"=>'No se encuentra el Folio'],404);
         }
+    }
+
+    private function utf8ize($mixed) {
+        if (is_array($mixed)) {
+            foreach ($mixed as $key => $value) {
+                $mixed[$key] = $this->utf8ize($value);
+            }
+        } elseif (is_string($mixed)) {
+            return mb_convert_encoding($mixed, 'UTF-8', 'ISO-8859-1');
+        }
+        return $mixed;
     }
 
     public function getTckBilling(Request $request){

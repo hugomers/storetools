@@ -50,8 +50,19 @@ class InvoiceRecevivedController extends Controller
             $productos = $exec->fetchall(\PDO::FETCH_ASSOC);
             $compra['products'] = $productos;
         }
-
+        $compras = $this->utf8ize($compras);
         return response()->json(mb_convert_encoding($compras, 'UTF-8'));
+    }
+
+    private function utf8ize($mixed) {
+        if (is_array($mixed)) {
+            foreach ($mixed as $key => $value) {
+                $mixed[$key] = $this->utf8ize($value);
+            }
+        } elseif (is_string($mixed)) {
+            return mb_convert_encoding($mixed, 'UTF-8', 'ISO-8859-1');
+        }
+        return $mixed;
     }
 
     public function replyInvoices(Request $request){
@@ -86,6 +97,7 @@ class InvoiceRecevivedController extends Controller
             $productos = $exec->fetchall(\PDO::FETCH_ASSOC);
             $compra['products'] = $productos;
         }
+        $compras = $this->utf8ize($compras);
 
         return response()->json($compras);
 
