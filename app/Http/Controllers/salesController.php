@@ -137,8 +137,8 @@ class salesController extends Controller
             $contap = 1;
             foreach($order['products'] as $product){
                 $upd = [
-                    $product['pivot']['amountDelivered'],
-                    $product['pivot']['amountDelivered'],
+                    $product['pivot']['units'],
+                    $product['pivot']['units'],
                     $product['code'],
                 ];
 
@@ -148,7 +148,7 @@ class salesController extends Controller
                     $contap,
                     $product['code'],
                     $product['description'],
-                    intval($product['pivot']['amountDelivered']),
+                    intval($product['pivot']['units']),
                     doubleval($product['pivot']['price']),
                     doubleval($product['pivot']['total']),
                     $product['cost']

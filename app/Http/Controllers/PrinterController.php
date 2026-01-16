@@ -80,8 +80,8 @@ class PrinterController extends Controller
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
                     $printer->text(mb_convert_encoding($product['code'], 'UTF-8') . "   " . mb_convert_encoding($product['description'], 'UTF-8') . " \n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
-                    $amount = str_pad(number_format($product['pivot']['amountDelivered'], 2,'.',''), 15);  // UD. (10)
-                    $arti [] = $product['pivot']['amountDelivered'];
+                    $amount = str_pad(number_format($product['pivot']['units'], 2,'.',''), 15);  // UD. (10)
+                    $arti [] = $product['pivot']['units'];
                     $price  = str_pad(number_format($product['pivot']['price'], 2,'.',''), 18);   // PRECIO (15)
                     $total  = str_pad(number_format( $product['pivot']['total'] , 2,'.',''), 12);   // TOTAL (10)
                     $printer->text($amount . $price . $total . "\n" );
