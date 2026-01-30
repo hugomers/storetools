@@ -20,6 +20,7 @@ class PrinterController extends Controller
             try{
                 $payments = $order['payments'];
                 $imagen = env('IMAGENLOCAL');
+                $artiReg = 0;
                 // $imagen = "\\\\192.168.60.253\\c\\Users\\Administrador\\Documents\\TCKPHP.png";//poner en env el servidor de donde sale
                 $filtered = array_filter($payments, function($val) {
                     return isset($val['id']) && !is_null($val['id'])  && $val['val'] > 0;
@@ -78,10 +79,16 @@ class PrinterController extends Controller
                 $printer->setFont(Printer::FONT_B);
                 foreach ($order['products'] as $product) {
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
+                    if(isset($product['pivot']['promo_units'])){
+                        $printer->setEmphasis(true);
+                    }
                     $printer->text(mb_convert_encoding($product['code'], 'UTF-8') . "   " . mb_convert_encoding($product['description'], 'UTF-8') . " \n");
+                      $printer->setEmphasis(false);
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $amount = str_pad(number_format($product['pivot']['units'], 2,'.',''), 15);  // UD. (10)
                     $arti [] = $product['pivot']['units'];
+                    $artiReg += isset($product['pivot']['promo_units']) ? $product['pivot']['promo_units']   : 0;
+
                     $price  = str_pad(number_format($product['pivot']['price'], 2,'.',''), 18);   // PRECIO (15)
                     $total  = str_pad(number_format( $product['pivot']['total'] , 2,'.',''), 12);   // TOTAL (10)
                     $printer->text($amount . $price . $total . "\n" );
@@ -118,6 +125,10 @@ class PrinterController extends Controller
                 $printer->text(" \n");
                 $printer->text("N Articulos: ".array_sum($arti)." \n");
                 $printer->text(" \n");
+                if($artiReg > 0){
+                    $printer->text("Cantidad Regalo: ".$artiReg." \n");
+                    $printer->text(" \n");
+                }
                 $printer->text("Vendedor :".$order['dependiente']['complete_name']." \n");
                 $printer->text("Cajero :".$cash['cashier']['user']['staff']['complete_name']." \n");
                 $printer->text(" \n");
