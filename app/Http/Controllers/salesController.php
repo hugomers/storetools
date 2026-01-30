@@ -473,7 +473,7 @@ class salesController extends Controller
                 "code"=>$val['ARTLFA'],
                 "description"=>$val['DESLFA'],
                 "pivot"=>[
-                    "amountDelivered"=>intval($val['CANLFA']),
+                    "units"=>intval($val['CANLFA']),
                     "price"=>number_format((float)$val['PRELFA'], 2, '.', ''),
                     "total"=>number_format((float)$val['TOTLFA'], 2, '.', '')
                 ]
