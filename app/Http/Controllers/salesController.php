@@ -427,7 +427,7 @@ class salesController extends Controller
                 T_DEP.NOMDEP,
                 F_FAC.OB1FAC
              FROM F_FAC
-            INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.TERFAC
+            INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.DEPFAC
             WHERE F_FAC.TIPFAC&'-'&FORMAT(F_FAC.CODFAC,'000000') = "."'".$id."'";
             if (!$sale) {
                 return response()->json(['error' => 'Sale not found'], 404);
@@ -452,7 +452,7 @@ class salesController extends Controller
                 T_DEP.NOMDEP,
                 F_FAC.OB1FAC
                 FROM F_FAC
-                INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.TERFAC
+                INNER JOIN T_DEP ON T_DEP.CODDEP = F_FAC.DEPFAC
                 WHERE FECFAC = DATE() AND TERFAC = ".$cash['cashier']['cash']['_terminal']. " ORDER BY CODFAC DESC " ;
         }
         // return $sale;
@@ -743,6 +743,7 @@ class salesController extends Controller
                 "movimientos"=>$mov,
             ];
             $cellerPrinter = new PrinterController();
+            $printed = $cellerPrinter->printCut($header);
             $printed = $cellerPrinter->printCut($header);
             return response()->json($header,200);
         }else{
