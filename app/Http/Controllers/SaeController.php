@@ -25,7 +25,9 @@ class SaeController extends Controller
     // }
 
     public function readRFC(Request $request){
-        $cliente = DB::connection($request->firebird)->table('CLIE01')->where('RFC',$request->rfc)->first();
+        $emp = $request->firebird == 'lluvia' ? '01' : '02';
+
+        $cliente = DB::connection($request->firebird)->table($this->t('CLIE', $emp))->where('RFC',$request->rfc)->first();
         if($cliente){
             return response()->json([
                 "success"=>true,
@@ -43,7 +45,8 @@ class SaeController extends Controller
 
     public function getServerFac(Request $request){
         $billing = $request->all();
-        $cliente = DB::connection($billing['store']['firebird'])->table('CLIE01')->where('RFC',$billing['rfc'])->first();
+        $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
+        $cliente = DB::connection($billing['store']['firebird'])->table($this->t('CLIE', $emp))->where('RFC',$billing['rfc'])->first();
         if($cliente){
             $billing['nclient']= intval($cliente->CLAVE);
         }else{
@@ -51,7 +54,7 @@ class SaeController extends Controller
         }
         $products = $billing['ticketSuc']['products'];
         foreach($products as &$product){
-            $existProduct = DB::connection($request->store['firebird'])->table('INVE01')->where('CVE_ART',$product['ARTLFA'])->first();
+            $existProduct = DB::connection($request->store['firebird'])->table($this->t('INVE', $emp))->where('CVE_ART',$product['ARTLFA'])->first();
             if($existProduct){
                 $product['sat']=[
                     "clave"=>$existProduct->CVE_PRODSERV,
@@ -72,7 +75,8 @@ class SaeController extends Controller
 
     public function getFolio(Request $request){
         $billing = $request->all();
-        $folio = DB::connection($request->firebird)->table('FACTF01')->where('SERIE',$request->prefix)->max('FOLIO');
+        $emp = $request->firebird == 'lluvia' ? '01' : '02';
+        $folio = DB::connection($request->firebird)->table($this->t('FACTF', $emp))->where('SERIE',$request->prefix)->max('FOLIO');
         return response()->json($folio,200);
     }
 
