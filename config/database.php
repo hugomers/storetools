@@ -168,6 +168,24 @@ return [
             'charset'  => 'UTF8',
             'role'     => null,
         ],
+        'company' => [
+            'driver'   => 'firebird',
+            'host'     => env('FB_HOST', 'localhost'),
+            'database' => env('FB_DATABASE', ''),
+            'username' => env('FB_USERNAME', 'SYSDBA'),
+            'password' => env('FB_PASSWORD', 'masterkey'),
+            'charset'  => 'UTF8',
+            'role'     => null,
+        ],
+        'vizpa' => [
+            'driver'   => 'firebird',
+            'host'     => env('FBA_HOST', 'localhost'),
+            'database' => env('FBA_DATABASE', ''),
+            'username' => env('FBA_USERNAME', 'SYSDBA'),
+            'password' => env('FBA_PASSWORD', 'masterkey'),
+            'charset'  => 'UTF8',
+            'role'     => null,
+        ],
 
     ],
 
