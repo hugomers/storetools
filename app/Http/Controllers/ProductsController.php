@@ -2005,9 +2005,15 @@ class ProductsController extends Controller
     }
 
     public function highProducts(Request $request){
-        $insertados = [
-            "goals"=>[],
-            "fails"=>[]
+        $res = [
+            "insertados"=>[
+                "goals"=>[],
+                "fails"=>[]
+            ],
+            "actualizados"=>[
+                "goals"=>[],
+                "fails"=>[]
+            ]
         ];
         $almacenes ="SELECT CODALM FROM F_ALM";
         $exec = $this->conn->prepare($almacenes);
@@ -2016,79 +2022,205 @@ class ProductsController extends Controller
         $tari ="SELECT CODTAR FROM F_TAR";
         $exec = $this->conn->prepare($tari);
         $exec -> execute();
-        $filtar=$exec->fetchall(\PDO::FETCH_ASSOC);
-        $products = $request->productos;
+        $filtar = $exec->fetchall(\PDO::FETCH_ASSOC);
+        $products = $request->products;
+        // return $products;
+        $store = $request->store;
+        $type_price = $store['_price_type'];
+        $type_store = $store['_type'] == 1 ? true : false;
         foreach($products as $product){
             $codigo = trim($product['code']);
-            $ean = isset($product['cb']) ? trim($product['cb']) : null;
-            $fam = trim($product['familia']['alias']);
+            $ean = isset($product['barcode']) ? trim($product['barcode']) : null;
+            $fam = trim($product['category']['familia']['alias']);
             $deslarga = trim($product["description"]);
             $desgen = trim(substr($product["description"],0,50));
             $deset = trim(substr($product["description"],0,30));
             $destic = trim(substr($product["description"],0,20));
-            $pro = $product['provider']['id'];
+            $pro = $product['providers']['id'];
             $ref = trim($product['reference']);
             $fab = trim($product['makers']['id']);
-            $pxc = $product['pxc'];
-            $categoria = trim($product['categoria']['alias']);
-            $umc = trim(strtoupper($product['umc']['name']));
-            $prores = trim($product['pr']);
+            $pxc = $product['pieces'];
+            $categoria = trim($product['category']['alias']);
+            $umc = trim(strtoupper($product['units']['name']));
+            $prores = trim($product['refillable']) == 1 ? 'SI' : 'NO';
             $cco = $product['short_code'];
             $cost = isset($product['cost']) ? $product['cost'] : 0;
-            $luces = isset($product['nluces']) ? $product['nluces']: null;
-            $menav = isset($product['mnp']) ? $product['mnp']['large'] : null;
+            $luces = null;
+            $menav = null;
             $date_format = date("d/m/Y");
+            $obtvariants = isset($product['variants']) ? $product['variants'] : [];
+            $obtBarcodes = isset($product['barcodes']) ? $product['barcodes'] : [];
 
-            $articulofs = [
-                $codigo,
-                $ean,
-                $fam,
-                $desgen,
-                $deset,
-                $destic,
-                $deslarga,
-                $pxc,
-                $cco,
-                $pro,
-                $ref,
-                $fab,
-                $cost,
-                $date_format,
-                $date_format,
-                $pxc,
-                1,
-                1,
-                1,
-                $categoria,
-                $luces,
-                $umc,
-                $prores,
-                $menav,
-                0,
-                "Peso",
-            ];
-            $inspro = "INSERT INTO F_ART (CODART,EANART,FAMART,DESART,DEEART,DETART,DLAART,EQUART,CCOART,PHAART,REFART,FTEART,PCOART,FALART,FUMART,UPPART,CANART,CAEART,UMEART,CP1ART,CP2ART,CP3ART,CP4ART,CP5ART,MPTART,UEQART) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            $exec = $this->conn->prepare($inspro);
-            $insspro = $exec->execute($articulofs);
-            if($insspro){
-                foreach($fil as $alm){
-                    $insertsto = "INSERT INTO F_STO (ARTSTO,ALMSTO,MINSTO,MAXSTO,ACTSTO,DISSTO) VALUES (?,?,?,?,?,?) ";
-                    $exec = $this->conn->prepare($insertsto);
-                    $exec -> execute([$codigo,$alm['CODALM'],0,0,0,0]);
+            $barcodesArray = array_column($obtBarcodes, 'barcode');
+
+            $variantsArray = [];
+
+            foreach ($obtvariants as $variant) {
+                $variantsArray[] = $variant['barcode'];
+                $variantsArray[] = $variant['code'];
+            }
+
+            $finalArray = array_merge($barcodesArray, $variantsArray);
+            $finalArray = array_values(array_unique($finalArray));
+            // return $finalArray;
+
+
+
+            $obtprices = isset($product['prices']) ? $product['prices'] : null;
+            $typePrice = array_values(array_filter($obtprices, fn($val) => $val['pivot']['_type'] == $type_price));
+
+            if(isset($product['attributes'])){
+                foreach($product['attributes'] as $att){
+                    if($att['id'] == 3){
+                        $luces = $att['pivot']['value'] ?? null;
+                    }
+                    if($att['id'] == 4){
+                        $luces = $att['pivot']['value'] ?? null;
+                    }
+
+                    if($att['id'] == 2){
+                        $menav = $att['pivot']['value'] ?? null;
+                    }
+                    if($att['id'] == 1){
+                        $menav = $att['pivot']['value'] ?? null;
+                    }
                 }
-                foreach($filtar as $price){
-                    $insertlta = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES (?,?,?,?) ";
-                    $exec = $this->conn->prepare($insertlta);
-                    $exec -> execute([$price['CODTAR'],$codigo,0,0]);
+            }
+            $exist = "SELECT * FROM F_ART WHERE CODART = ?";
+            $exec = $this->conn->prepare($exist);
+            $exec -> execute([$codigo]);
+            $existe = $exec->fetch(\PDO::FETCH_ASSOC);
+            if($existe){
+                $updatefs = [
+                    $ean,
+                    $fam,
+                    $desgen,
+                    $deset,
+                    $destic,
+                    $deslarga,
+                    $pxc,
+                    $cco,
+                    $pro,
+                    $ref,
+                    $fab,
+                    $cost,
+                    $date_format,
+                    $pxc,
+                    1,
+                    1,
+                    1,
+                    $categoria,
+                    $luces,
+                    $umc,
+                    $prores,
+                    $menav,
+                    0,
+                    "Peso",
+                    $codigo,
+                ];
+                $update = "UPDATE F_ART SET  EANART = ?,FAMART = ?,DESART = ?,DEEART = ?,DETART = ?,DLAART = ?,EQUART = ?,CCOART = ?,PHAART = ?,REFART = ?,FTEART = ?,PCOART = ?,FUMART = ?,UPPART = ?,CANART = ?,CAEART = ?,UMEART = ?,CP1ART = ?,CP2ART = ?,CP3ART = ?,CP4ART = ?,CP5ART = ?,MPTART = ?,UEQART = ? WHERE CODART = ?";
+                $exec = $this->conn->prepare($update);
+                $updpro = $exec->execute($updatefs);
+                if($updpro){
+                    if(count($finalArray) > 0){
+                        $delEan = "DELETE * FROM  F_EAN WHERE ARTEAN = ?";
+                        $exec = $this->conn->prepare($delEan);
+                        $deleteEan = $exec->execute([$codigo]);
+                        if($deleteEan){
+                            foreach($finalArray as $codes){
+                                $insEan = "INSERT INTO F_EAN (ARTEAN, EANEAN) VALUES (?,?)";
+                                $exec = $this->conn->prepare($insEan);
+                                $insertEan = $exec->execute([$codigo,$codes]);
+                            }
+                        }
+                    }
+                    foreach($typePrice as $prices){
+                        // return $prices['pivot']['_rate'];
+                        if (!$type_store && $prices['id'] == 7) {
+                            continue;
+                        }
+                        $insertlta = "UPDATE  F_LTA SET PRELTA = ? WHERE ARTLTA = ? AND TARLTA  = ? ";
+                        $exec = $this->conn->prepare($insertlta);
+                        $exec -> execute([
+                            $prices['pivot']['price'],
+                            $codigo,
+                            $prices['pivot']['_rate'],
+                        ]);
+                    }
+                    $res['actualizados']['goals'][]= [$codigo=>'Actualizado'];
+                }else{
+                    $res['actualizados']['fails'][]= [$codigo=>'Error Actualizado'];
                 }
-                $insertados['goals'][]="El producto ".$codigo." se Inserto correctamente";
+
             }else{
-                $insertados['fails'][]="El producto ".$codigo." no se Inserto correctamente";
+                $articulofs = [
+                    $codigo,
+                    $ean,
+                    $fam,
+                    $desgen,
+                    $deset,
+                    $destic,
+                    $deslarga,
+                    $pxc,
+                    $cco,
+                    $pro,
+                    $ref,
+                    $fab,
+                    $cost,
+                    $date_format,
+                    $date_format,
+                    $pxc,
+                    1,
+                    1,
+                    1,
+                    $categoria,
+                    $luces,
+                    $umc,
+                    $prores,
+                    $menav,
+                    0,
+                    "Peso",
+                ];
+                $inspro = "INSERT INTO F_ART (CODART,EANART,FAMART,DESART,DEEART,DETART,DLAART,EQUART,CCOART,PHAART,REFART,FTEART,PCOART,FALART,FUMART,UPPART,CANART,CAEART,UMEART,CP1ART,CP2ART,CP3ART,CP4ART,CP5ART,MPTART,UEQART) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                $exec = $this->conn->prepare($inspro);
+                $insspro = $exec->execute($articulofs);
+                if($insspro){
+                    if(count($finalArray) > 0){
+                        $delEan = "DELETE F_EAN WHERE ARTEAN = ?";
+                        $exec = $this->conn->prepare($delEan);
+                        $deleteEan = $exec->execute([$codigo]);
+                        if($deleteEan){
+                            foreach($finalArray as $codes){
+                                $insEan = "INSERT INTO F_EAN (ARTEAN, EANEAN) VALUES (?,?)";
+                                $exec = $this->conn->prepare($insEan);
+                                $insertEan = $exec->execute([$codigo,$codes]);
+                            }
+                        }
+                    }
+                    foreach($fil as $alm){
+                        $insertsto = "INSERT INTO F_STO (ARTSTO,ALMSTO,MINSTO,MAXSTO,ACTSTO,DISSTO) VALUES (?,?,?,?,?,?) ";
+                        $exec = $this->conn->prepare($insertsto);
+                        $exec -> execute([$codigo,$alm['CODALM'],0,0,0,0]);
+                    }
+                    foreach($typePrice as $prices){
+                        if (!$type_store && $prices['id'] == 7) {
+                            continue;
+                        }
+                        $insertlta = "INSERT INTO F_LTA (TARLTA,ARTLTA,MARLTA,PRELTA) VALUES (?,?,?,?) ";
+                        $exec = $this->conn->prepare($insertlta);
+                        $exec -> execute([
+                            $prices['pivot']['_rate'],
+                            $codigo,
+                            0,
+                            $prices['pivot']['price'],
+                        ]);
+                    }
+                    $res['insertados']['goals'][]=[$codigo=>'Insertado'];
+                }else{
+                    $res['insertados']['fails'][]=[$codigo=>'No Insertado'];
+                }
             }
         }
-        $res = [
-            "insertados"=>$insertados
-        ];
         return response()->json($res,200);
     }
 
