@@ -25,8 +25,8 @@ class SaeController extends Controller
     // }
 
     public function readRFC(Request $request){
-        $emp = $request->firebird == 'lluvia' ? '01' : '02';
-
+        // $emp = $request->firebird == 'lluvia' ? '01' : '02';
+        $emp = $this->prefix($request->firebird);
         $cliente = DB::connection($request->firebird)->table($this->t('CLIE', $emp))->where('RFC',$request->rfc)->first();
         if($cliente){
             return response()->json([
@@ -45,7 +45,8 @@ class SaeController extends Controller
 
     public function getServerFac(Request $request){
         $billing = $request->all();
-        $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
+        // $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
+        $emp = $this->prefix($billing['store']['firebird']);
         $cliente = DB::connection($billing['store']['firebird'])->table($this->t('CLIE', $emp))->where('RFC',$billing['rfc'])->first();
         if($cliente){
             $billing['nclient']= intval($cliente->CLAVE);
@@ -75,7 +76,8 @@ class SaeController extends Controller
 
     public function getFolio(Request $request){
         $billing = $request->all();
-        $emp = $request->firebird == 'lluvia' ? '01' : '02';
+        // $emp = $request->firebird == 'lluvia' ? '01' : '02';
+        $emp = $this->prefix($request->firebird);
         $folio = DB::connection($request->firebird)->table($this->t('FACTF', $emp))->where('SERIE',$request->prefix)->max('FOLIO');
         return response()->json($folio,200);
     }
@@ -85,8 +87,8 @@ class SaeController extends Controller
         $billing = $request->all();
         $conn = DB::connection($billing['store']['firebird']);
         $conn->beginTransaction();
-        $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
-
+        // $emp = $billing['store']['firebird'] == 'lluvia' ? '01' : '02';
+        $emp = $this->prefix($billing['store']['firebird']);
         try {
             $folio = $conn->table($this->t('FOLIOSF', $emp))
                 ->where('TIP_DOC', 'F')
@@ -403,8 +405,8 @@ class SaeController extends Controller
     }
 
     private function generarXmlPrefactura(array $billing, string $cveDoc, int $folio, $cliente, $empresa){
-        $clave = env('NO_CERTIFICADO');
-        $certificado = env('CERTIFICADO');
+        // $clave = env('NO_CERTIFICADO');
+        // $certificado = env('CERTIFICADO');
         $fecha = now()->format('Y-m-d\TH:i:s');
 
         $subTotal = 0;
@@ -502,8 +504,29 @@ class SaeController extends Controller
 
             return $xml;
     }
+    //herlper
     private function t(string $base, string $emp): string{
         return $base . $emp;
+    }
+    //helpre
+    private function prefix($prefix){
+        switch ($prefix) {
+            case 'lluvia':
+                return '01';
+                break;
+            case 'alfredo':
+                return '02';
+                break;
+            case 'company':
+                return '03';
+                break;
+            case 'vizpa':
+                return '04';
+                break;
+            default:
+               return '01';
+                break;
+        }
     }
 
 }
