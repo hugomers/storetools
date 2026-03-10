@@ -44,18 +44,39 @@ class ReportController extends Controller
         return response()->json(["cuts"=>$cuts, "terminal"=>$terminales]);
     }
     public function getCutsReport(Request $request){
+        $month = $request->_month;
         $from = Carbon::create(now()->year, $month, 1)->startOfMonth();
         $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
         $sql = "SELECT
-            (SELECT SUM(L.IMPLCO) FROM F_LCO AS L  WHERE  L.FECLCO = T.FECATE AND L.FPALCO = 'EFE') AS VENTASEFE,
-            (SELECT SUM(R.IMPRET) FROM F_RET AS R  WHERE  R.FECRET = T.FECATE ) AS RETIRADAS,
-            (SELECT SUM(I.IMPING) FROM F_ING AS I  WHERE  I.FECING = T.FECATE ) AS INGRESOS
-            FROM T_ATE AS T
-            INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
-            WHERE T.FECATE BETWEEN  ? AND ? ";
+            T.FECATE,
+            L.VENTASEFE,
+            R.RETIRADAS,
+            I.INGRESOS
+            FROM T_ATE T
+            LEFT JOIN (
+                SELECT FECLCO, SUM(IMPLCO) VENTASEFE
+                FROM F_LCO
+                WHERE FPALCO = 'EFE'
+                GROUP BY FECLCO
+            ) L ON L.FECLCO = T.FECATE
+            LEFT JOIN (
+                SELECT FECRET, SUM(IMPRET) RETIRADAS
+                FROM F_RET
+                GROUP BY FECRET
+            ) R ON R.FECRET = T.FECATE
+            LEFT JOIN (
+                SELECT FECING, SUM(IMPING) INGRESOS
+                FROM F_ING
+                GROUP BY FECING
+            ) I ON I.FECING = T.FECATE
+            WHERE T.FECATE BETWEEN ? AND ?
+            GROUP BY T.FECATE";
+
         $exec = $this->conn->prepare($sql);
-        $exec -> execute();
-        $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
+        $exec->execute([$from->format('Y-m-d'),$to->format('Y-m-d')]);
+
+        $cuts = $exec->fetchAll(\PDO::FETCH_ASSOC);
+
         return response()->json($cuts);
     }
 
