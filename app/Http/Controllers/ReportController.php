@@ -47,7 +47,8 @@ class ReportController extends Controller
         $month = $request->_month;
 
         $from = Carbon::create(now()->year, $month, 1)->startOfMonth();
-        $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
+        // $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
+        $to = $from->copy()->endOfMonth()->min(Carbon::yesterday());
 
         $from = $from->format('d/m/Y');
         $to   = $to->format('d/m/Y');
