@@ -50,8 +50,8 @@ class ReportController extends Controller
         // $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
         $to = $from->copy()->endOfMonth()->min(Carbon::yesterday());
 
-        $from = $from->format('d/m/Y');
-        $to   = $to->format('d/m/Y');
+        $from = $from->format('Y-m-d');
+        $to   = $to->format('Y-m-d');
 
         $sql = "
         SELECT
