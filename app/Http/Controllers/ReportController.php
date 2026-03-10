@@ -45,37 +45,35 @@ class ReportController extends Controller
     }
     public function getCutsReport(Request $request){
         $month = $request->_month;
+
         $from = Carbon::create(now()->year, $month, 1)->startOfMonth();
         $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
-        $sql = "SELECT
-            T.FECATE,
-            L.VENTASEFE,
-            R.RETIRADAS,
-            I.INGRESOS
-            FROM T_ATE T
-            LEFT JOIN (
-                SELECT FECLCO, SUM(IMPLCO) VENTASEFE
-                FROM F_LCO
-                WHERE FPALCO = 'EFE'
-                GROUP BY FECLCO
-            ) L ON L.FECLCO = T.FECATE
-            LEFT JOIN (
-                SELECT FECRET, SUM(IMPRET) RETIRADAS
-                FROM F_RET
-                GROUP BY FECRET
-            ) R ON R.FECRET = T.FECATE
-            LEFT JOIN (
-                SELECT FECING, SUM(IMPING) INGRESOS
-                FROM F_ING
-                GROUP BY FECING
-            ) I ON I.FECING = T.FECATE
-            WHERE T.FECATE BETWEEN ? AND ?
-            GROUP BY T.FECATE";
 
-        $exec = $this->conn->prepare($sql);
-        $exec->execute([$from->format('Y-m-d'),$to->format('Y-m-d')]);
+        $from = $from->format('d/m/Y');
+        $to   = $to->format('d/m/Y');
 
-        $cuts = $exec->fetchAll(\PDO::FETCH_ASSOC);
+        $sql = "
+        SELECT
+        IIF(R.RETIRADAS IS NULL,0,R.RETIRADAS) -
+        (IIF(L.VENTAS_EFE IS NULL,0,L.VENTAS_EFE) +
+        IIF(I.INGRESO IS NULL,0,I.INGRESO)) AS DESCUADRE
+        FROM
+        (SELECT SUM(IMPLCO) AS VENTAS_EFE
+        FROM F_LCO
+        WHERE FPALCO = 'EFE'
+        AND FECLCO BETWEEN #$from# AND #$to#) AS L,
+
+        (SELECT SUM(IMPRET) AS RETIRADAS
+        FROM F_RET
+        WHERE FECRET BETWEEN #$from# AND #$to#) AS R,
+
+        (SELECT SUM(IMPING) AS INGRESO
+        FROM F_ING
+        WHERE FECING BETWEEN #$from# AND #$to#) AS I
+        ";
+
+        $exec = $this->conn->query($sql);
+        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
 
         return response()->json($cuts);
     }
