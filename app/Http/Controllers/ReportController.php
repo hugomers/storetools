@@ -43,6 +43,22 @@ class ReportController extends Controller
         $terminales = $exec->fetchall(\PDO::FETCH_ASSOC);
         return response()->json(["cuts"=>$cuts, "terminal"=>$terminales]);
     }
+    public function getCutsReport(Request $request){
+        $from = Carbon::create(now()->year, $month, 1)->startOfMonth();
+        $to   = Carbon::create(now()->year, $month, 1)->endOfMonth();
+        $sql = "SELECT
+            (SELECT SUM(L.IMPLCO) FROM F_LCO AS L  WHERE  L.FECLCO = T.FECATE AND L.FPALCO = 'EFE') AS VENTASEFE,
+            (SELECT SUM(R.IMPRET) FROM F_RET AS R  WHERE  R.FECRET = T.FECATE ) AS RETIRADAS,
+            (SELECT SUM(I.IMPING) FROM F_ING AS I  WHERE  I.FECING = T.FECATE ) AS INGRESOS
+            FROM T_ATE AS T
+            INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
+            WHERE T.FECATE BETWEEN  ? AND ? ";
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return response()->json($cuts);
+    }
+
 
     public function printCut(Request $request){
         $terminal = $request->terminal;
