@@ -53,25 +53,66 @@ class ReportController extends Controller
         $from = $from->format('Y-m-d');
         $to   = $to->format('Y-m-d');
 
+        // $sql = "
+        // SELECT
+        // IIF(R.RETIRADAS IS NULL,0,R.RETIRADAS) -
+        // (IIF(L.VENTAS_EFE IS NULL,0,L.VENTAS_EFE) +
+        // IIF(I.INGRESO IS NULL,0,I.INGRESO)) AS DESCUADRE
+        // FROM
+        // (SELECT SUM(IMPLCO) AS VENTAS_EFE
+        // FROM F_LCO
+        // WHERE FPALCO = 'EFE'
+        // AND FECLCO BETWEEN #$from# AND #$to#) AS L,
+
+        // (SELECT SUM(IMPRET) AS RETIRADAS
+        // FROM F_RET
+        // WHERE FECRET BETWEEN #$from# AND #$to#) AS R,
+
+        // (SELECT SUM(IMPING) AS INGRESO
+        // FROM F_ING
+        // WHERE FECING BETWEEN #$from# AND #$to#) AS I
+        // ";
         $sql = "
         SELECT
-        IIF(R.RETIRADAS IS NULL,0,R.RETIRADAS) -
-        (IIF(L.VENTAS_EFE IS NULL,0,L.VENTAS_EFE) +
-        IIF(I.INGRESO IS NULL,0,I.INGRESO)) AS DESCUADRE
+            Format(T.FECATE, 'YYYY/MM/DD') AS FECHA,
+            T.TERATE,
+            TR.DESTER,
+            (
+                SELECT
+                    SUM(L.IMPLCO)
+                FROM
+                    F_LCO AS L
+                WHERE
+                    L.TERLCO = T.TERATE
+                    AND L.FECLCO = T.FECATE
+                    AND L.FPALCO = 'EFE'
+            ) AS VENTASEFE,
+            (
+                SELECT
+                    SUM(R.IMPRET)
+                FROM
+                    F_RET AS R
+                WHERE
+                    R.CAJRET = T.TERATE
+                    AND R.FECRET = T.FECATE
+            ) AS RETIRADAS,
+            (
+                SELECT
+                    SUM(I.IMPING)
+                FROM
+                    F_ING AS I
+                WHERE
+                    I.CAJING = T.TERATE
+                    AND I.FECING = T.FECATE
+            ) AS INGRESOS
         FROM
-        (SELECT SUM(IMPLCO) AS VENTAS_EFE
-        FROM F_LCO
-        WHERE FPALCO = 'EFE'
-        AND FECLCO BETWEEN #$from# AND #$to#) AS L,
-
-        (SELECT SUM(IMPRET) AS RETIRADAS
-        FROM F_RET
-        WHERE FECRET BETWEEN #$from# AND #$to#) AS R,
-
-        (SELECT SUM(IMPING) AS INGRESO
-        FROM F_ING
-        WHERE FECING BETWEEN #$from# AND #$to#) AS I
-        ";
+            T_ATE AS T
+            INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
+        WHERE
+            T.FECATE BETWEEN #$from# AND #$to#
+        ORDER BY
+            Format(T.FECATE, 'YYYY/MM/DD'),
+            T.TERATE";
 
         $exec = $this->conn->query($sql);
         $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
