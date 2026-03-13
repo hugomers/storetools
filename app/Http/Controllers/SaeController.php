@@ -95,7 +95,8 @@ class SaeController extends Controller
                 ->where('SERIE', $billing['store']['prefix'])
                 ->lockForUpdate()
                 ->first();
-            $folioActual = $folio->ULT_DOC + 1;
+                $folioActual = $folio->ULT_DOC ? $folio->ULT_DOC + 1 : 1;
+           // $folioActual = $folio->ULT_DOC + 1;
 
             $conn->table($this->t('FOLIOSF', $emp))
                 ->where('TIP_DOC', 'F')
@@ -363,7 +364,7 @@ class SaeController extends Controller
 
 
             $xml = $this->generarXmlPrefactura($billing, $cveDoc, $folioActual,$client,$empresa);
-            $this->insertarXmlCFDI($conn, $cveDoc, $xml);
+            $this->insertarXmlCFDI($conn, $cveDoc, $xml, $emp);
 
             $conn->commit();
 
@@ -391,10 +392,11 @@ class SaeController extends Controller
             ]
         ], 201);
     }
-    private function insertarXmlCFDI($conn, string $cveDoc, string $xml){
+    private function insertarXmlCFDI($conn, string $cveDoc, string $xml, string $emp){
         $pdo = $conn->getPdo();
+        $cfdi = "CFDI" . $emp;
         $sql = "
-            UPDATE CFDI01
+            UPDATE $cfdi
             SET XML_DOC = CAST(? AS BLOB SUB_TYPE 0)
             WHERE CVE_DOC = ?
         ";
