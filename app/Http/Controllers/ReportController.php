@@ -72,8 +72,7 @@ class ReportController extends Controller
         // FROM F_ING
         // WHERE FECING BETWEEN #$from# AND #$to#) AS I
         // ";
-        $sql = "
-        SELECT
+        $sql = "SELECT
             Format(T.FECATE, 'YYYY/MM/DD') AS FECHA,
             T.TERATE,
             TR.DESTER,
@@ -109,13 +108,13 @@ class ReportController extends Controller
             T_ATE AS T
             INNER JOIN T_TER AS TR ON T.TERATE = TR.CODTER
         WHERE
-            T.FECATE BETWEEN #$from# AND #$to#
-        ORDER BY
+            T.FECATE BETWEEN "."#".$from."#". " AND "."#".$to."#"." ORDER BY
             Format(T.FECATE, 'YYYY/MM/DD'),
             T.TERATE";
-
-        $exec = $this->conn->query($sql);
-        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+        // return $sql;git
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
 
         return response()->json($cuts);
     }
