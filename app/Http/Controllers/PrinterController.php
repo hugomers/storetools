@@ -146,6 +146,17 @@ class PrinterController extends Controller
                 $printer->barcode($folio);
                 $printer->feed(1);
                 $printer->text("GRUPO VIZCARRA\n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->setJustification(Printer::JUSTIFY_CENTER);
+                $printer->text("PARA NOSOTROS TU OPINIÓN ES LO MÁS IMPORTANTE\n");
+                $printer->text("Escanea el qr para una breve encuesta\n");
+                $printer->text("\n");
+                $qr = "https://vhelpers.grupovizcarra.mx/#/client/quiz/form?s=".$cash['store']['id']."&c=".$cash['cashier']['user']['id']."&v=".$order['dependiente']['id']."&tck=".$folio;
+                $printer->qrCode($qr, Printer::QR_ECLEVEL_L, 6);
+                $printer->text("\n");
+                $printer->text("¡Gracias por tu compra!\n");
+                $printer->text("\n");
                 $printer->feed(1);
                 $printer -> cut();
                 $printer -> close();
