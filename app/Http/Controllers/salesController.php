@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use App\Models\Staff;
 
 
 class salesController extends Controller
@@ -494,7 +495,7 @@ class salesController extends Controller
             $advance = $exec->fetch(\PDO::FETCH_ASSOC);
            $mapedPayments['VALE']['id']['code'] = $advance['CODANT'] ; // o 'code' si lo tienes
         }
-
+        $idDep = Staff::where('id_tpv',$factura['DEPFAC'])->value('id');
         $order = [
             "change"=>number_format((float)$factura['CAMFAC'], 2, '.', ''),
             "client"=>[
@@ -502,6 +503,7 @@ class salesController extends Controller
                 "name"=>$factura['CNOFAC']
             ],
             "dependiente"=>[
+                "id"=>$idDep ?? 1,
                 "complete_name"=>$factura['NOMDEP']
             ],
             "created_at"=>$factura['created_at'],
