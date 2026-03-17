@@ -425,7 +425,7 @@ class salesController extends Controller
                 F_FAC.CAMFAC,
                 F_FAC.EFSFAC,
                 F_FAC.EFVFAC,
-                F_FAC.DEPFAC
+                F_FAC.DEPFAC,
                 T_DEP.NOMDEP,
                 F_FAC.OB1FAC
              FROM F_FAC
@@ -451,7 +451,7 @@ class salesController extends Controller
                 F_FAC.CAMFAC,
                 F_FAC.EFSFAC,
                 F_FAC.EFVFAC,
-                F_FAC.DEPFAC
+                F_FAC.DEPFAC,
                 T_DEP.NOMDEP,
                 F_FAC.OB1FAC
                 FROM F_FAC
