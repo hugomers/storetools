@@ -627,6 +627,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($ingresos);
         $exec -> execute();
         $ings = $exec->fetchall(\PDO::FETCH_ASSOC);
+        $ings = array_map(function ($item) {
+            if (is_string($item)) {
+                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+            }
+            return $item;
+        }, $ings);
 
         $totalIngs = array_reduce($ings, function ($carry, $item) {
             return $carry + ((float) $item["IMPING"]);
@@ -636,6 +642,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($retiradas);
         $exec -> execute();
         $rets = $exec->fetchall(\PDO::FETCH_ASSOC);
+        $rets = array_map(function ($item) {
+            if (is_string($item)) {
+                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+            }
+            return $item;
+        }, $rets);
 
         $totalRets = array_reduce($rets, function ($carry, $item) {
             return $carry + ((float) $item["IMPRET"]);
@@ -646,6 +658,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($vales);
         $exec -> execute();
         $vls = $exec->fetchall(\PDO::FETCH_ASSOC);
+        $vls = array_map(function ($item) {
+            if (is_string($item)) {
+                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+            }
+            return $item;
+        }, $vls);
         //totals de cobro
         $totales = "SELECT FPALCO ,CPTLCO, SUM(IMPLCO) AS IMPORTE FROM F_LCO WHERE TPVIDLCO = ".$formatdato."  GROUP BY FPALCO, CPTLCO";
         $exec = $this->conn->prepare($totales);
@@ -740,9 +758,9 @@ class salesController extends Controller
                     "BI0ATE"=> $billetes['BI0ATE'],
                 ],
                 "totalEfe"=>$efetot,
-                "ingresos"=>$ings,
-                "retiradas"=>$rets,
-                "vales"=>$vls,
+                "ingresos"=>$ings,//UTF-8
+                "retiradas"=>$rets,//UTF-8
+                "vales"=>$vls,//UTF-8
                 "totales"=>$tots,
                 "movimientos"=>$mov,
             ];
