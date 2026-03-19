@@ -215,6 +215,7 @@ Route::prefix('/sales')->group(function(){
     Route::post('/getWithdrawals',[salesController::class, 'getWithdrawals']);
     Route::post('/openCash',[salesController::class, 'openCash']);
     Route::post('/closeCash',[salesController::class, 'closeCash']);
+    Route::post('/countCash',[salesController::class, 'countCash']);
     Route::post('/getTicket',[salesController::class, 'getTicket']);
 });
 

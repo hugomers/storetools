@@ -840,4 +840,144 @@ class salesController extends Controller
         }
         return response()->json(["products" => $rows]);
     }
+
+    public function countCash(Request $request){
+        $bullet = $request->close;
+        $billetes = array_reduce($bullet['Billetes'], function($carry, $val) {
+            switch ($val['key']) {
+                case 500:   $key = 'BI0ATE'; break;
+                case 200:   $key = 'BI1ATE'; break;
+                case 100:   $key = 'BI2ATE'; break;
+                case 50:    $key = 'BI3ATE'; break;
+                case 20:    $key = 'BI4ATE'; break;
+                default:  $key = null;
+            }
+            if ($key !== null) {
+                $carry[$key] = $val['val'];
+            }
+            return $carry;
+        }, []);
+
+        $monedas = array_reduce($bullet['Monedas'], function($carry, $val) {
+            switch ($val['key']) {
+                case 10:  $key = 'BI5ATE'; break;
+                case 5:   $key = 'BI6ATE'; break;
+                case 2:   $key = 'MO0ATE'; break;
+                case 1:   $key = 'MO1ATE'; break;
+                case 0.5: $key = 'MO2ATE'; break;
+                default:  $key = null;
+            }
+            if ($key !== null) {
+                $carry[$key] = $val['val'];
+            }
+            return $carry;
+        }, []);
+
+        $caja = $request->cash;
+        $declarec = $request->total;
+        $created = $request->created_by;
+        $idterminal = str_pad($caja['_terminal'], 4, "0", STR_PAD_LEFT)."00".Carbon::parse($caja['cashier']['open_date'])->format('ymd');
+        $formatdato = "'".$idterminal."'";
+        //ingresos de efectivo
+        $ingresos = "SELECT * FROM F_ING WHERE TPVIDING = ".$formatdato;
+        $exec = $this->conn->prepare($ingresos);
+        $exec -> execute();
+        $ings = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $totalIngs = array_reduce($ings, function ($carry, $item) {
+            return $carry + ((float) $item["IMPING"]);
+        }, 0);
+        //retiradas de efectivo
+        $retiradas = "SELECT * FROM F_RET WHERE TPVIDRET = ".$formatdato;
+        $exec = $this->conn->prepare($retiradas);
+        $exec -> execute();
+        $rets = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $totalRets = array_reduce($rets, function ($carry, $item) {
+            return $carry + ((float) $item["IMPRET"]);
+        }, 0);
+
+        //vales realizados
+        $vales = "SELECT * FROM F_ANT WHERE TPVIDANT = ".$formatdato;
+        $exec = $this->conn->prepare($vales);
+        $exec -> execute();
+        $vls = $exec->fetchall(\PDO::FETCH_ASSOC);
+        //totals de cobro
+        $totales = "SELECT FPALCO ,CPTLCO, SUM(IMPLCO) AS IMPORTE FROM F_LCO WHERE TPVIDLCO = ".$formatdato."  GROUP BY FPALCO, CPTLCO";
+        $exec = $this->conn->prepare($totales);
+        $exec -> execute();
+        $tots = $exec->fetchall(\PDO::FETCH_ASSOC);
+
+        $index = array_search("EFE", array_column($tots, "FPALCO"));
+        $efeImporte = $index !== false ? (float) $tots[$index]["IMPORTE"] : 0;
+
+        //movimientos
+        $movimientos = "SELECT SUM(TOTFAC) AS TOTAL, COUNT(CODFAC) AS MOVIMIENTOS FROM F_FAC WHERE TPVIDFAC = ".$formatdato;
+        $exec = $this->conn->prepare($movimientos);
+        $exec -> execute();
+        $mov = $exec->fetch(\PDO::FETCH_ASSOC);
+        //empresa
+        $empresa = "SELECT DENEMP  FROM F_EMP";
+        $exec = $this->conn->prepare($empresa);
+        $exec -> execute();
+        $emp = $exec->fetch(\PDO::FETCH_ASSOC);
+
+        $terminal = "SELECT *  FROM T_TER WHERE CODTER = ".$caja['_terminal'];
+        $exec = $this->conn->prepare($terminal);
+        $exec -> execute();
+        $mosTer = $exec->fetch(\PDO::FETCH_ASSOC);
+
+        $impdc = "SELECT SUM(F.CAMFAC)  * -1 AS IMPDC  FROM F_FAC AS F  WHERE  F.ESTFAC =  0  OR   F.ESTFAC = 1 AND TPVIDFAC = ".$formatdato;
+        $exec = $this->conn->prepare($impdc);
+        $exec -> execute();
+        $impFac = $exec->fetch(\PDO::FETCH_ASSOC);
+
+        //total efectivo
+        $efetot = (floatval($efeImporte) +  floatval($totalIngs) +   floatval($caja['cashier']['cash_start']) ) - floatval($totalRets);
+        $header = [
+            "print"=>$caja['cashier']['print']['ip_address'],
+            "cashier"=>$caja['cashier']['user']['staff']['complete_name'],
+            "created"=>$created['staff']['complete_name'],
+            "emp"=>$emp,
+            "corte"=>[
+                "DESTER"=>$mosTer['DESTER'],
+                "FECHA"=>Carbon::parse($caja['cashier']['open_date'])->format('d/m/Y'),
+                "HORA"=>now()->format('H:i:s'),
+                "SINATE"=>$caja['cashier']['cash_start'],
+                "VENTASEFE"=>$efeImporte,
+                "INGRESOS"=>$totalIngs,
+                "RETIRADAS"=>$totalRets,
+                "EFEATE"=>$declarec,
+                "IMPDC"=>$impFac['IMPDC'],
+                "MO0ATE"=>$monedas['MO0ATE'],
+                "MO1ATE"=>$monedas['MO1ATE'],
+                "MO2ATE"=>$monedas['MO2ATE'],
+                "MO3ATE"=>0,
+                "MO4ATE"=>0,
+                "MO5ATE"=>0,
+                "MO6ATE"=>0,
+                "MO7ATE"=>0,
+                "BI6ATE"=> $monedas['BI6ATE'],
+                "BI5ATE"=> $monedas['BI5ATE'],
+                "BI4ATE"=> $billetes['BI4ATE'],
+                "BI3ATE"=> $billetes['BI3ATE'],
+                "BI2ATE"=> $billetes['BI2ATE'],
+                "BI1ATE"=> $billetes['BI1ATE'],
+                "BI0ATE"=> $billetes['BI0ATE'],
+            ],
+            "totalEfe"=>$efetot,
+            "ingresos"=>$ings,
+            "retiradas"=>$rets,
+            "vales"=>$vls,
+            "totales"=>$tots,
+            "movimientos"=>$mov,
+        ];
+        $cellerPrinter = new PrinterController();
+        $printed = $cellerPrinter->printCount($header);
+        $printed = $cellerPrinter->printCount($header);
+        return response()->json($header,200);
+    }
+
+
+
 }
