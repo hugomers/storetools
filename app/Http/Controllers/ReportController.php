@@ -1112,8 +1112,15 @@ class ReportController extends Controller
                 "movimientos"=>$mov,
             ];
         }
+        return response()->json($this->toUtf8($cashs));
+    }
 
-
-        return response()->json($cashs);
+    private function toUtf8($data) {
+        if (is_array($data)) {
+            return array_map([$this, 'toUtf8'], $data);
+        }
+        return is_string($data)
+            ? mb_convert_encoding($data, 'UTF-8', 'ISO-8859-1')
+            : $data;
     }
 }
