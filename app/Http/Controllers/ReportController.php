@@ -1051,4 +1051,69 @@ class ReportController extends Controller
         // return response()->json(mb_convert_encoding($refunds,'UTF-8'),200);
         return response()->json($refunds,200);
     }
+
+    public function OpenBoxes(Request $request){
+        $fecha = $request->filt;
+        $cashs = $request->cash;
+        foreach($cashs as &$cash){
+            $terminal = $cash['_terminal'];
+            $idterminal = str_pad($cash['_terminal'], 4, "0", STR_PAD_LEFT)."00".Carbon::parse($fecha)->format('ymd');
+            $formatdato = "'".$idterminal."'";
+            $ingresos = "SELECT * FROM F_ING WHERE TPVIDING = ".$formatdato;
+            $exec = $this->conn->prepare($ingresos);
+            $exec -> execute();
+            $ings = $exec->fetchall(\PDO::FETCH_ASSOC);
+            $totalIngs = array_reduce($ings, function ($carry, $item) {
+                return $carry + ((float) $item["IMPING"]);
+            }, 0);
+            $retiradas = "SELECT * FROM F_RET WHERE TPVIDRET = ".$formatdato;
+            $exec = $this->conn->prepare($retiradas);
+            $exec -> execute();
+            $rets = $exec->fetchall(\PDO::FETCH_ASSOC);
+            $totalRets = array_reduce($rets, function ($carry, $item) {
+                return $carry + ((float) $item["IMPRET"]);
+            }, 0);
+            $vales = "SELECT * FROM F_ANT WHERE TPVIDANT = ".$formatdato;
+            $exec = $this->conn->prepare($vales);
+            $exec -> execute();
+            $vls = $exec->fetchall(\PDO::FETCH_ASSOC);
+            $totales = "SELECT FPALCO ,CPTLCO, SUM(IMPLCO) AS IMPORTE FROM F_LCO WHERE TPVIDLCO = ".$formatdato."  GROUP BY FPALCO, CPTLCO";
+            $exec = $this->conn->prepare($totales);
+            $exec -> execute();
+            $tots = $exec->fetchall(\PDO::FETCH_ASSOC);
+            $index = array_search("EFE", array_column($tots, "FPALCO"));
+            $efeImporte = $index !== false ? (float) $tots[$index]["IMPORTE"] : 0;
+            $movimientos = "SELECT SUM(TOTFAC) AS TOTAL, COUNT(CODFAC) AS MOVIMIENTOS FROM F_FAC WHERE TPVIDFAC = ".$formatdato;
+            $exec = $this->conn->prepare($movimientos);
+            $exec -> execute();
+            $mov = $exec->fetch(\PDO::FETCH_ASSOC);
+            $terminal = "SELECT *  FROM T_TER WHERE CODTER = ".$cash['_terminal'];
+            $exec = $this->conn->prepare($terminal);
+            $exec -> execute();
+            $mosTer = $exec->fetch(\PDO::FETCH_ASSOC);
+            $impdc = "SELECT SUM(F.CAMFAC)  * -1 AS IMPDC  FROM F_FAC AS F  WHERE  F.ESTFAC =  0  OR   F.ESTFAC = 1 AND TPVIDFAC = ".$formatdato;
+            $exec = $this->conn->prepare($impdc);
+            $exec -> execute();
+            $impFac = $exec->fetch(\PDO::FETCH_ASSOC);
+            $efetot = (floatval($efeImporte) +  floatval($totalIngs) +   floatval($mosTer['SINTER']) ) - floatval($totalRets);
+            $cash['corte'] = [
+                "DESTER"=>$mosTer['DESTER'],
+                "HORA"=>now()->format('H:i:s'),
+                "SINATE"=>$mosTer['SINTER'],
+                "VENTASEFE"=>$efeImporte,
+                "INGRESOS"=>$totalIngs,
+                "RETIRADAS"=>$totalRets,
+                "IMPDC"=>$impFac['IMPDC'],
+                "totalEfe"=>$efetot,
+                "ingresos"=>$ings,
+                "retiradas"=>$rets,
+                "vales"=>$vls,
+                "totales"=>$tots,
+                "movimientos"=>$mov,
+            ];
+        }
+
+
+        return response()->json($cashs);
+    }
 }

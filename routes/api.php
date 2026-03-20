@@ -178,6 +178,8 @@ Route::prefix('/reports')->group(function(){
     Route::post('/addAdvances',[ReportController::class, 'addAdvances']);
     Route::post('/addWithdrawal',[ReportController::class, 'addWithdrawal']);
     Route::post('/getSalesPerMonth',[ReportController::class, 'getSalesPerMonth']);
+    Route::post('/OpenBoxes',[ReportController::class, 'OpenBoxes']);
+
 
 });
 
