@@ -1097,6 +1097,7 @@ class ReportController extends Controller
             $impFac = $exec->fetch(\PDO::FETCH_ASSOC);
             $efetot = (floatval($efeImporte) +  floatval($totalIngs) +   floatval($mosTer['SINTER']) ) - floatval($totalRets);
             $cash['corte'] = [
+                "FECHA"=>$fecha,
                 "DESTER"=>$mosTer['DESTER'],
                 "HORA"=>now()->format('H:i:s'),
                 "SINATE"=>$mosTer['SINTER'],
