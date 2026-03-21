@@ -627,12 +627,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($ingresos);
         $exec -> execute();
         $ings = $exec->fetchall(\PDO::FETCH_ASSOC);
-        $ings = array_map(function ($item) {
-            if (is_string($item)) {
-                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
-            }
-            return $item;
-        }, $ings);
+        // $ings = array_map(function ($item) {
+        //     if (is_string($item)) {
+        //         return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+        //     }
+        //     return $item;
+        // }, $ings);
 
         $totalIngs = array_reduce($ings, function ($carry, $item) {
             return $carry + ((float) $item["IMPING"]);
@@ -642,12 +642,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($retiradas);
         $exec -> execute();
         $rets = $exec->fetchall(\PDO::FETCH_ASSOC);
-        $rets = array_map(function ($item) {
-            if (is_string($item)) {
-                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
-            }
-            return $item;
-        }, $rets);
+        // $rets = array_map(function ($item) {
+        //     if (is_string($item)) {
+        //         return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+        //     }
+        //     return $item;
+        // }, $rets);
 
         $totalRets = array_reduce($rets, function ($carry, $item) {
             return $carry + ((float) $item["IMPRET"]);
@@ -658,12 +658,12 @@ class salesController extends Controller
         $exec = $this->conn->prepare($vales);
         $exec -> execute();
         $vls = $exec->fetchall(\PDO::FETCH_ASSOC);
-        $vls = array_map(function ($item) {
-            if (is_string($item)) {
-                return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
-            }
-            return $item;
-        }, $vls);
+        // $vls = array_map(function ($item) {
+        //     if (is_string($item)) {
+        //         return mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+        //     }
+        //     return $item;
+        // }, $vls);
         //totals de cobro
         $totales = "SELECT FPALCO ,CPTLCO, SUM(IMPLCO) AS IMPORTE FROM F_LCO WHERE TPVIDLCO = ".$formatdato."  GROUP BY FPALCO, CPTLCO";
         $exec = $this->conn->prepare($totales);
@@ -765,9 +765,9 @@ class salesController extends Controller
                 "movimientos"=>$mov,
             ];
             $cellerPrinter = new PrinterController();
-            $printed = $cellerPrinter->printCut($header);
-            $printed = $cellerPrinter->printCut($header);
-            return response()->json($header,200);
+            $printed = $cellerPrinter->printCut($this->toUtf8($header));
+            $printed = $cellerPrinter->printCut($this->toUtf8($header));
+            return response()->json($this->toUtf8($header),200);
         }else{
             return response()->json('No se pudo crear el cierre de la terminal',401);
         }
@@ -973,9 +973,17 @@ class salesController extends Controller
             "movimientos"=>$mov,
         ];
         $cellerPrinter = new PrinterController();
-        $printed = $cellerPrinter->printCount($header);
-        $printed = $cellerPrinter->printCount($header);
+        $printed = $cellerPrinter->printCount($this->toUtf8($header));
+        $printed = $cellerPrinter->printCount($this->toUtf8($header));
         return response()->json($header,200);
+    }
+    private function toUtf8($data) {
+        if (is_array($data)) {
+            return array_map([$this, 'toUtf8'], $data);
+        }
+        return is_string($data)
+            ? mb_convert_encoding($data, 'UTF-8', 'ISO-8859-1')
+            : $data;
     }
 
 
