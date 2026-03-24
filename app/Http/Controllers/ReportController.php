@@ -1083,6 +1083,14 @@ class ReportController extends Controller
             $tots = $exec->fetchall(\PDO::FETCH_ASSOC);
             $index = array_search("EFE", array_column($tots, "FPALCO"));
             $efeImporte = $index !== false ? (float) $tots[$index]["IMPORTE"] : 0;
+            $formas = ["TBA", "TSA", "TSC","TCD"];
+            $importeTar = 0;
+            foreach ($tots as $row) {
+                if (in_array($row["FPALCO"], $formas)) {
+                    $importeTar += (float) $row["IMPORTE"];
+                }
+            }
+
             $movimientos = "SELECT SUM(TOTFAC) AS TOTAL, COUNT(CODFAC) AS MOVIMIENTOS FROM F_FAC WHERE TPVIDFAC = ".$formatdato;
             $exec = $this->conn->prepare($movimientos);
             $exec -> execute();
@@ -1110,6 +1118,7 @@ class ReportController extends Controller
                 "retiradas"=>$rets,
                 "vales"=>$vls,
                 "totales"=>$tots,
+                "tarjetas"=>$importeTar,
                 "movimientos"=>$mov,
             ];
         }
