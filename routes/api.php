@@ -212,9 +212,14 @@ Route::prefix('/sales')->group(function(){
     Route::post('/getCredits',[salesController::class, 'getCredits']);
     Route::post('/printWitrawal',[salesController::class, 'printWitrawal']);
     Route::post('/addWithdrawal',[salesController::class, 'addWithdrawal']);
+    Route::post('/getWithdrawals',[salesController::class, 'getWithdrawals']);
+
+    Route::post('/printIngress',[salesController::class, 'printIngress']);
+    Route::post('/addIngress',[salesController::class, 'addIngress']);
+    Route::post('/getIngress',[salesController::class, 'getIngress']);
+
     Route::post('/addSale',[salesController::class, 'addSale']);
     Route::post('/reprintSale',[salesController::class, 'reprintSale']);
-    Route::post('/getWithdrawals',[salesController::class, 'getWithdrawals']);
     Route::post('/openCash',[salesController::class, 'openCash']);
     Route::post('/closeCash',[salesController::class, 'closeCash']);
     Route::post('/countCash',[salesController::class, 'countCash']);

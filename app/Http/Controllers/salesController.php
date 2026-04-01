@@ -987,6 +987,107 @@ class salesController extends Controller
             : $data;
     }
 
+    public function getIngress(Request $request){
+        $sql = "SELECT
+            Format(R.FECING, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORING, 'HH:mm:ss') as HORA,
+            R.CODING,
+            R.CAJING,
+            TR.DESTER,
+            R.CONING,
+            R.IMPING,
+            R.CLIING,
+            FP.NOFCLI
+            FROM ((F_ING AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJING)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIING)
+            WHERE R.FECING = DATE() AND R.CAJING = ".$request->cash['_terminal'];
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetchall(\PDO::FETCH_ASSOC);
+        return response()->json(mb_convert_encoding(["ingress"=>$cuts], 'UTF-8'));
+    }
 
+    public function addIngress(Request $request){
+        $envio = $request->all();
+        $date_format = Carbon::now()->format('d/m/Y');//formato fecha factusol
+        $date = date("Y/m/d H:i");//horario para la hora
+        $hour = "01/01/1900 ".explode(" ", $date)[1];//hora para el ticket
+        $horad = explode(" ", $date)[1];
+        $idano = Carbon::now()->format('ymd');
+        $cash = $envio['cash'];
+        $with = $envio['ingress'];
+        $codmax = "SELECT MAX(CODING) as max FROM F_ING";
+        $exec = $this->conn->prepare($codmax);
+        $exec->execute();
+        $cod=$exec->fetch(\PDO::FETCH_ASSOC);
+        $codigo = $cod['max']  + 1;
+        // return $codigo;
+
+        $cajaob = "SELECT CODTER FROM T_TER WHERE CODTER = ". $cash['_terminal'];
+        $exec = $this->conn->prepare($cajaob);
+        $exec->execute();
+        $cajat=$exec->fetch(\PDO::FETCH_ASSOC);
+
+        $idterminal = str_pad($cajat['CODTER'], 4, "0", STR_PAD_LEFT)."00".$idano;
+        $insert = [
+            $codigo,
+            $cash['_terminal'],
+            $date_format,
+            $horad,
+            $with['concept'],
+            $with['import'],
+            $with['client']['val']['id'],
+            $idterminal
+        ];
+        $ins = "INSERT INTO F_ING (CODING,CAJING,FECING,HORING,CONING,IMPING,CLIING,TPVIDING) VALUES (?,?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($ins);
+        $res = $exec->execute($insert);
+        if($res){
+            $envio['ingress']['fs_id'] = $codigo;
+            $cellerPrinter = new PrinterController();
+            $printed = $cellerPrinter->printIngress($envio);
+            $printed = $cellerPrinter->printIngress($envio);
+            return $envio;
+        }else{
+            return response()->json('No se logro realizar la retirada',500);
+        }
+    }
+    public function printIngress(Request $request){
+        $cash = $request->cash;
+        $code = $request->ingress;
+        $sql = "SELECT
+            Format(R.FECING, 'YYYY-MM-DD') as FECHA,
+            Format(R.HORING, 'HH:mm:ss') as HORA,
+            R.CODING,
+            R.CAJING,
+            TR.DESTER,
+            R.CONING,
+            R.IMPING,
+            R.CLIING,
+            FP.NOFCLI
+            FROM ((F_ING AS R
+            INNER JOIN T_TER AS TR ON  TR.CODTER = R.CAJING)
+            INNER JOIN F_CLI AS FP ON FP.CODCLI = R.CLIING)
+        WHERE R.CODING  = " .$code;
+
+        $exec = $this->conn->prepare($sql);
+        $exec -> execute();
+        $cuts = $exec->fetch(\PDO::FETCH_ASSOC);
+        $envio = [
+            "cash"=>$cash,
+            "ingress"=>[
+                "fs_id"=>$cuts['CODING'],
+                "concept"=>$cuts['CONING'],
+                "import"=>$cuts['IMPING'],
+                "client"=>[
+                    "val"=>["id"=>$cuts['CLIING'],"name"=>$cuts['NOFCLI']]
+                ]
+            ]
+        ];
+        $cellerPrinter = new PrinterController();
+        $printed = $cellerPrinter->printIngress($envio);
+        return $envio;
+    }
 
 }

@@ -500,5 +500,50 @@ class PrinterController extends Controller
         }
     }
 
+    public function printIngress($header){
+        // return $header;
+        try{
+            $connector = new NetworkPrintConnector($header['cash']['cashier']['print']['ip_address'], 9100, 3);
+            $printer = new Printer($connector);
+        }catch(\Exception $e){ return null;}
+        try {
+            try{
+                $headersTCK = json_decode($header['cash']['cashier']['cash']['tpv']['herader_tck']);
+                $printer->setJustification(printer::JUSTIFY_LEFT);
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(" \n");
+                foreach($headersTCK  as $headerT){
+                    $printer->text($headerT->val."\n");
+                }
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text("INGRESO DE TERMINAL".$header['cash']['_terminal']." \n");
+                $printer->text("N° ".$header['ingress']['fs_id']." Fecha: ".now()->format('d/m/Y H:i') ." \n");
+                $printer->text("creado Por :".$header['cash']["cashier"]['user']['staff']['complete_name']." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text($header['ingress']['client']['val']['name']." \n");
+                $printer->text(" \n");
+                $printer->text(" \n");
+                $printer->text("00000"." \n");
+                $printer->text(" \n");
+                $printer->text("GVC"." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(str_pad("IMPORTE INGRESADO: ",14));
+                $printer->text(number_format($header['ingress']['import'],2)." \n");
+                $printer->text("Concepto:"." \n");
+                $printer->text($header['ingress']['concept']." \n");
+                $printer -> cut();
+                $printer -> close();
+            }catch(Exception $e){}
+
+        } finally {
+            $printer -> close();
+            return true;
+        }
+            return false;
+    }
 
 }
