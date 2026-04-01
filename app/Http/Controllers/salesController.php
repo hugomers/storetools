@@ -274,6 +274,7 @@ class salesController extends Controller
             $envio['withdrawal']['fs_id'] = $codigo;
             $cellerPrinter = new PrinterController();
             $printed = $cellerPrinter->printret($envio);
+            $printed = $cellerPrinter->printret($envio);
             return $codigo;
         }else{
             return response()->json('No se logro realizar la retirada',500);
