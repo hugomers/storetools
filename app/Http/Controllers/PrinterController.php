@@ -546,4 +546,51 @@ class PrinterController extends Controller
             return false;
     }
 
+    public function printCashBack($order,$cash,$folio,$config,$cashBack,$stores,$envio){
+        try{
+            $connector = new NetworkPrintConnector($cash['cashier']['print']['ip_address'], 9100, 3);
+            $printer = new Printer($connector);
+        }catch(\Exception $e){ return null;}
+        try {
+            try{
+                $imagen = '';
+                if($stores->id == 7 ){
+                    $imagen = env('IMAGENSOT');
+
+                }else if( $stores->id == 13){
+                    $imagen = env('IMAGENBRA');
+                }
+                $headersTCK = json_decode($cash['cashier']['cash']['tpv']['herader_tck']);
+                // $headersTCK = json_decode($cashier['cash']['tpv']['herader_tck']);
+                if(file_exists($imagen)){
+                    $logo = EscposImage::load($imagen, false);
+                    $printer->setJustification(Printer::JUSTIFY_CENTER);
+                    $printer->bitImage($logo,0);
+                    $printer->feed();
+                }
+                $printer->text("--------------------------------------------\n");
+                $printer->setBarcodeHeight(55);
+                $printer->setBarcodeWidth(3);
+                $printer->barcode($envio['advance']['fs_id']);
+                $printer->text("(".$envio['advance']['fs_id'].")"." \n");
+                // $printer->feed(1);
+                $printer->setJustification(printer::JUSTIFY_LEFT);
+                $printer->text(" \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text("N° ".$envio['advance']['fs_id']." Fecha: ".now()->format('d/m/Y H:i') ." \n");
+                $printer->text("------------------------------------------------\n");
+                $printer->text(str_pad("IMPORTE VALIDO: ",14));
+                $printer->text(number_format($cashBack,2)." \n");
+                $printer->text($envio['advance']['observacion']." \n");
+                $printer -> cut();
+                $printer -> close();
+            }catch(Exception $e){}
+        } finally {
+            $printer -> close();
+            return true;
+        }
+            return false;
+    }
+
+
 }

@@ -224,6 +224,8 @@ Route::prefix('/sales')->group(function(){
     Route::post('/closeCash',[salesController::class, 'closeCash']);
     Route::post('/countCash',[salesController::class, 'countCash']);
     Route::post('/getTicket',[salesController::class, 'getTicket']);
+    Route::post('/addAdvancesCB',[salesController::class, 'addAdvancesCB']);
+
 });
 
 Route::prefix('/sae')->group(function(){

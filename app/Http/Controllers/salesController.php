@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use App\Models\Staff;
+use App\Models\Stores;
+use Illuminate\Support\Facades\Http;
+
 
 
 class salesController extends Controller
@@ -135,6 +138,7 @@ class salesController extends Controller
         $res = $exec->execute($factura);
         // return $res;
         if($res){
+            $cashBack = 0;
             $contap = 1;
             foreach($order['products'] as $product){
                 $upd = [
@@ -142,6 +146,7 @@ class salesController extends Controller
                     $product['pivot']['units'],
                     $product['code'],
                 ];
+                $cashBack += isset($product['pivot']['accumulated'])  ? (float)$product['pivot']['accumulated']  : 0;
 
                 $inspro = [
                     $codter['TIPDOC'],
@@ -229,11 +234,82 @@ class salesController extends Controller
                 $addAdvance = $this->addAdvancesSobrante($envio);
             }
         }
+
         $order['created_at'] = now()->format('d/m/Y');
         $cellerPrinter = new PrinterController();
         $printed = $cellerPrinter->printck($order,$cash,$folio,$config);
+        $returCB = null;
+        if($cashBack > 0){
+            $returCB = $this->createCashBack($order,$cash,$folio,$config,$cashBack,$ncli);
+        }
         if($printed){
-            return response()->json(['folio'=>$folio,'retirada'=>$addWith,'vale'=>$addAdvance]);
+            return response()->json(['folio'=>$folio,'retirada'=>$addWith,'vale'=>$addAdvance,'addvance'=>$returCB]);
+        }
+    }
+
+    private function createCashBack($order,$cash,$folio,$config,$cashBack,$ncli){
+        $cellerPrinter = new PrinterController();
+        $storeId = $cash['store']['id'];
+        if (in_array($storeId, [7,3,4,6,8,9,10,11,20])) {
+            $stores = Stores::where('id', 7)->first();
+        } elseif (in_array($storeId, [13,12,16,17])) {
+            $stores = Stores::where('id', 13)->first();
+        }
+        if($stores){
+            $envio = [
+                    "sale"=>$folio,
+                    "advance"=>[
+                        "client"=>[
+                            "id"=>$ncli['CODCLI'],
+                            "name"=>$ncli['NOFCLI']
+                        ],
+                        "import"=>$cashBack,
+                        "observacion"=>"CashBack de Venta ".$folio,
+                    ]
+            ];
+            $create = Http::timeout(10)->post("http://{$stores->ip_address}/storetools/public/api/sales/addAdvancesCB",$envio);
+            if($create->status() == 200){
+                $fsfol = $create->json();
+                $printCB = $cellerPrinter->printCashBack($order,$cash,$folio,$config,$cashBack,$stores,$fsfol);
+                return $printCB;
+            }
+        }else{
+            return 'No se pudo realizar el vale';
+
+        }
+    }
+
+    public function addAdvancesCB(Request $request){
+        $envio = $request->all();
+        $date_format = Carbon::now()->format('d/m/Y');//formato fecha factusol
+        $date = date("Y/m/d H:i");//horario para la hora
+        $hour = "01/01/1900 ".explode(" ", $date)[1];//hora para el ticket
+        $horad = explode(" ", $date)[1];
+        $advance = $envio['advance'];
+
+        $codmax = "SELECT MAX(CODANT) as max FROM F_ANT";
+        $exec = $this->conn->prepare($codmax);
+        $exec->execute();
+        $cod=$exec->fetch(\PDO::FETCH_ASSOC);
+        $codigo = $cod['max'] + 1;
+        $insert = [
+            $codigo,//codant
+            $date_format,//fecant
+            $advance['client']['id'],//cliant
+            $advance['import'],//impant
+            0,//estant
+            $advance['observacion'],//obsant,
+            0,//CRIANT
+        ];
+        $ins = "INSERT INTO F_ANT (CODANT,FECANT,CLIANT,IMPANT,ESTANT,OBSANT,CRIANT) VALUES (?,?,?,?,?,?,?)";
+        $exec = $this->conn->prepare($ins);
+        $res = $exec->execute($insert);
+
+        if($res){
+            $envio['advance']['fs_id'] = $codigo;
+            return $envio;
+        }else{
+            return 'No se logro realizar el anticipo';
         }
     }
 
