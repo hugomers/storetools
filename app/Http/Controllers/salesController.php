@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
-use App\Models\Staff;
 use App\Models\Stores;
 use Illuminate\Support\Facades\Http;
 
@@ -574,7 +573,7 @@ class salesController extends Controller
             $advance = $exec->fetch(\PDO::FETCH_ASSOC);
            $mapedPayments['VALE']['id']['code'] = $advance['CODANT'] ; // o 'code' si lo tienes
         }
-        $idDep = Staff::where('id_tpv',$factura['DEPFAC'])->value('id');
+        $idDep = User::where('id_tpv',$factura['DEPFAC'])->value('id');
         $order = [
             "change"=>number_format((float)$factura['CAMFAC'], 2, '.', ''),
             "client"=>[
@@ -1013,8 +1012,8 @@ class salesController extends Controller
         $efetot = (floatval($efeImporte) +  floatval($totalIngs) +   floatval($caja['cashier']['cash_start']) ) - floatval($totalRets);
         $header = [
             "print"=>$caja['cashier']['print']['ip_address'],
-            "cashier"=>$caja['cashier']['user']['staff']['complete_name'],
-            "created"=>$created['staff']['complete_name'],
+            "cashier"=>$caja['cashier']['user']['complete_name'],
+            "created"=>$created['complete_name'],
             "emp"=>$emp,
             "corte"=>[
                 "DESTER"=>$mosTer['DESTER'],

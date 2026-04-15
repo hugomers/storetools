@@ -130,7 +130,7 @@ class PrinterController extends Controller
                     $printer->text(" \n");
                 }
                 $printer->text("Vendedor :".$order['dependiente']['complete_name']." \n");
-                $printer->text("Cajero :".$cash['cashier']['user']['staff']['complete_name']." \n");
+                $printer->text("Cajero :".$cash['cashier']['user']['complete_name']." \n");
                 $printer->text(" \n");
                 $printer->text(isset($order["observation"]) ? $order["observation"] :"" ." \n");
                 $printer->text(" \n");
@@ -192,7 +192,7 @@ class PrinterController extends Controller
                 $printer->text("------------------------------------------------\n");
                 $printer->text("SALIDA DE TERMINAL".$header['cash']['_terminal']." \n");
                 $printer->text("N° ".$header['withdrawal']['fs_id']." Fecha: ".now()->format('d/m/Y H:i') ." \n");
-                $printer->text("creado Por :".$header['cash']["cashier"]['user']['staff']['complete_name']." \n");
+                $printer->text("creado Por :".$header['cash']["cashier"]['user']['complete_name']." \n");
                 $printer->text("------------------------------------------------\n");
                 $printer->text($header['withdrawal']['providers']['val']['name']." \n");
                 $printer->text(" \n");
@@ -236,7 +236,7 @@ class PrinterController extends Controller
                 $printer->text(" \n");
                 $printer->text("------------------------------------------------\n");
                 $printer->text("N° ".$header['advance']['fs_id']." Fecha: ".now()->format('d/m/Y H:i') ." \n");
-                $printer->text("creado Por :".$header['cash']["cashier"]['user']['staff']['complete_name']." \n");
+                $printer->text("creado Por :".$header['cash']["cashier"]['user']['complete_name']." \n");
                 $printer->text("------------------------------------------------\n");
                 $printer->text($header['advance']['client']['name']." \n");
                 $printer->text(" \n");
@@ -522,7 +522,7 @@ class PrinterController extends Controller
                 $printer->text("------------------------------------------------\n");
                 $printer->text("INGRESO DE TERMINAL".$header['cash']['_terminal']." \n");
                 $printer->text("N° ".$header['ingress']['fs_id']." Fecha: ".now()->format('d/m/Y H:i') ." \n");
-                $printer->text("creado Por :".$header['cash']["cashier"]['user']['staff']['complete_name']." \n");
+                $printer->text("creado Por :".$header['cash']["cashier"]['user']['complete_name']." \n");
                 $printer->text("------------------------------------------------\n");
                 $printer->text($header['ingress']['client']['val']['name']." \n");
                 $printer->text(" \n");

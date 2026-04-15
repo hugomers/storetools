@@ -36,7 +36,7 @@ class PartitionRequisition extends Model
                     ->withTimestamps();
     }
 
-    public function getOutVerifiedStaff(){
-        return \App\Models\Staff::where('id', $this->_out_verified)->first();
+    public function getOutVerifiedUser(){
+        return \App\Models\User::where('id', $this->_out_verified)->first();
     }
 }

@@ -313,7 +313,7 @@ class cashierController extends Controller
                 $codigo,//
                 Carbon::parse($sale['created_at'])->format('d/m/Y'),
                 "GEN",
-                $sale['staff']['id_tpv'],
+                $sale['id_tpv'],
                 $ncli['CODCLI'],
                 $ncli['NOFCLI'],
                 $ncli['DOMCLI'],
@@ -337,7 +337,7 @@ class cashierController extends Controller
                 $idterminal,
                 2,
                 intval($codter['CODTER']),
-                $sale['staff']['id_tpv'],
+                $sale['id_tpv'],
                 $sale['pfpa_import'],
                 $sale['change'],
                 $sale['sfpa_import'],
