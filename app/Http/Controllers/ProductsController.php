@@ -2188,4 +2188,180 @@ class ProductsController extends Controller
         ];
         return response()->json($res);
     }
+
+    public function previewModels(Request $request){
+            $modelos =  $request->modelo;
+            $colores = $request->colores;
+
+            if(!$modelos || !$colores){
+                return response()->json([
+                    "error"=>"Debes enviar modelo y colores"
+                ],400);
+            }
+
+        $productos = [];
+
+        foreach($modelos as $modelo){
+
+            $sql = "SELECT * FROM F_ART WHERE CODART = ?";
+            $exec = $this->conn->prepare($sql);
+            $exec->execute([$modelo]);
+            $base = $exec->fetch(\PDO::FETCH_ASSOC);
+
+            if(!$base){
+                continue;
+            }
+
+        $descripcionBase = trim($base["DLAART"]);
+
+        $sqlPrecios = "SELECT * FROM F_LTA WHERE ARTLTA = ?";
+        $execPrecios = $this->conn->prepare($sqlPrecios);
+        $execPrecios->execute([$modelo]);
+        $precios = $execPrecios->fetchAll(\PDO::FETCH_ASSOC);
+
+
+
+
+        $index = 1;
+
+
+        //ESTE COMPA ME VA AYUDAR A REVISAR SI YA EXISTE EL MODELO
+        $sqlLast = "SELECT CODART FROM F_ART WHERE CODART LIKE ?";
+        $execLast = $this->conn->prepare($sqlLast);
+        $execLast->execute([$modelo."-%"]);
+
+        $modelosExistentes = $execLast->fetchAll(\PDO::FETCH_ASSOC);
+
+        $ultimoIndex = 0;
+
+        foreach($modelosExistentes as $m){
+
+        $partes = explode("-", $m["CODART"]);
+
+        if(isset($partes[1])){
+
+            $numero = (int)$partes[1];
+
+            if($numero > $ultimoIndex){
+                $ultimoIndex = $numero;
+            }
+
+        }
+      }
+
+        $index = $ultimoIndex + 1;
+
+            $sqlColores = "SELECT DLAART FROM F_ART WHERE CODART LIKE ?";
+            $execColores = $this->conn->prepare($sqlColores);
+            $execColores->execute([$modelo."-%"]);
+
+            $articulos = $execColores->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach($colores as $color){
+
+                $codigoNuevo = $modelo."-".$index;
+
+                $descripcionNueva = $descripcionBase." ".$color;
+
+                $barcodeBase = $base["EANART"];
+
+                $barcodeBase = substr_replace($barcodeBase, '', 7, 1);
+
+                $preciosPreview = [];
+
+                $sqlCheck = "SELECT CODART FROM F_ART WHERE CODART = ?";
+            $execCheck = $this->conn->prepare($sqlCheck);
+            $execCheck->execute([$codigoNuevo]);
+
+            $existe = $execCheck->fetch(\PDO::FETCH_ASSOC);
+
+                if($existe){
+            $insertados['fails'][] = "El código ".$codigoNuevo." ya existe";
+            continue;
+            }
+
+        $colorExiste = false;
+
+        foreach($articulos as $art){
+
+            $desc = strtoupper(trim($art["DLAART"]));
+            $colorCheck = strtoupper(trim($color));
+
+
+            $partes = explode(" ", $desc);
+            $ultimoSegmento = trim(end($partes));
+
+
+            if($ultimoSegmento === $colorCheck){
+                $colorExiste = true;
+                break;
+            }
+         }
+            if($colorExiste){
+            $productos[] = [
+                "CODIGO"=>$codigoNuevo,
+                "DESCRIPCION"=>$descripcionNueva,
+                "ESTADO"=>"COLOR YA EXISTE"
+            ];
+
+            $index++;
+            continue;
+            }
+                $mapaListas = [
+            "7" => "AAA",
+            "6" => "CENTRO",
+            "5" => "ESPECIAL",
+            "4" => "CAJA",
+            "3" => "DOCENA",
+            "2" => "MAYOREO",
+            "1" => "MENUDEO"
+            ];
+                usort($precios, function($a, $b) {
+            return $b["TARLTA"] - $a["TARLTA"];
+            });
+
+            foreach($precios as $precio){
+
+            $listaNumero = $precio["TARLTA"];
+
+            $preciosPreview[] = [
+                "LISTA" => $mapaListas[$listaNumero] ?? $listaNumero,
+                "PRECIO" => $precio["PRELTA"]
+            ];
+         }
+
+                $productos[] = [
+
+                    "CODIGO"=>$codigoNuevo,
+                    "CB"=>$barcodeBase.$index,
+                    "FAMILIA"=>$base["FAMART"],
+                    "DESCRIPCION"=>strtoupper($descripcionNueva),
+                    "CODIGO CORTO"=>null,
+                    "PROVEEDOR"=>$base["PHAART"],
+                    "REFERENCIA"=>strtoupper($base["REFART"]),
+                    "FABRICANTE"=>$base["FTEART"],
+                    "COSTO"=>$base["PCOART"],
+                    "PXC"=>$base["EQUART"],
+                    "CATEGORIA"=>strtoupper($base["CP1ART"]),
+                    "#LUCES"=>$base["CP2ART"],
+                    "UNIDA MED COMPRA"=>$base["CP3ART"],
+                    "PRO RES"=>strtoupper($base["CP4ART"]),
+                    "MEDIDAS NAV"=>strtoupper($base["CP5ART"]),
+                    "PRECIOS"=>$preciosPreview
+                ];
+
+                $index++;
+        }
+     }
+
+        return response()->json([
+            "modelo_base"=>$modelos,
+            "descripcion_original"=>$descripcionBase,
+            "cb_base"=>$base["EANART"],
+            "total_modelos"=>count($productos),
+            "productos"=>$productos
+        ]);
+  }
+
 }
+
