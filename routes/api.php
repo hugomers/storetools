@@ -77,6 +77,7 @@ Route::prefix('/Products')->group(function(){//regisprice
     Route::post('/regispricefor',[ProductsController::class, 'regispricefor']);
     Route::post('/previewModels',[ProductsController::class,'previewModels']);
     Route::post('/confirmPreview',[ProductsController::class,'confirmPreview']);
+    Route::post('/compouns',[ProductsController::class,'compouns']);
 
 });
 //regispricepub

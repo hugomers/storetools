@@ -2363,5 +2363,41 @@ class ProductsController extends Controller
         ]);
   }
 
-}
+    public function compouns(Request $request){
+            $data = $request->all();
 
+            $sql = "INSERT INTO F_COM (CODCOM, ARTCOM, CE1COM, CE2COM, DESCOM, COSCOM, UNICOM, ORDCOM, GUICOM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmtInsert = $this->conn->prepare($sql);
+            $ord = 1;
+
+
+            foreach ($data as $item) {
+                $sqldes = "SELECT DESART, PCOART FROM F_ART WHERE CODART = ?";
+                $exec = $this->conn->prepare($sqldes);
+                $exec->execute([$item['articulo']]);
+                $des = $exec->fetch(\PDO::FETCH_ASSOC);
+                $sqlcomp = "UPDATE F_ART SET COMART = 1 WHERE CODART = ?";
+                $exec = $this->conn->prepare($sqlcomp);
+                $exec->execute([$item['compuesto']]);
+
+
+                if (!$des) {continue;}
+                $stmtInsert->execute([
+                    $item['compuesto'],
+                    $item['articulo'],
+                    "",
+                    "",
+                    $des['DESART'],
+                    $des['PCOART'],
+                    $item['piezas'],
+                    $ord++,
+                    ""
+                ]);
+            }
+
+            return response()->json([
+                'success' => true
+            ]);
+  }
+
+}
